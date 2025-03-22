@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  GalleryView.swift
 //  MyAnimeList
 //
 //  Created by Samuel He on 2024/12/8.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct GalleryView: View {
     var body: some View {
         VStack {
             Image(systemName: "globe")
@@ -20,5 +20,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    GalleryView()
 }

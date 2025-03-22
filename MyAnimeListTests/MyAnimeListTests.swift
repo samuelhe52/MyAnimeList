@@ -11,7 +11,9 @@ import Testing
 struct MyAnimeListTests {
 
     @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+        let store = CollectionStore()
+        try await store.updateInfos()
+        print(store.collection[0])
     }
 
 }

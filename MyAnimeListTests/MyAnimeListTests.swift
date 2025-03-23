@@ -11,9 +11,9 @@ import Testing
 struct MyAnimeListTests {
 
     @Test func example() async throws {
-        let store = CollectionStore()
+        let store = LibraryStore()
         try await store.updateInfos()
-        print(store.collection[0])
+        print(store.library[0])
     }
 
 }

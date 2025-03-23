@@ -10,47 +10,50 @@ import TMDb
 
 class InfoFetcher {
     var tmdbClient: TMDbClient = .init(apiKey: "***REMOVED***")
-    var language: Language = .chinese
+    var language: Language = .japanese
     
     func search(name: String) async throws -> [Media] {
         let results = try await tmdbClient.search.searchAll(query: name, page: 1, language: language.rawValue)
         return results.results
     }
     
-    func basicInfo(for item: AnimeItem) async throws -> BasicMediaInfo {
-        switch item.mediaType {
+    /// Generate a type-agnostic `BasicMediaInfo` instance for a given `AnimeEntry`.
+    func basicInfo(for entry: AnimeEntry) async throws -> BasicMediaInfo {
+        switch entry.mediaType {
         case .tvSeries:
-            let details = try await fetchTVSeriesInfo(item: item)
-            let posterURL = try await fetchFullImageURL(itemId: details.id, mediaType: item.mediaType)
+            let details = try await fetchTVSeriesInfo(entry: entry)
+            let (posterURL, backdropURL) = try await fetchFullImageURLs(entryId: details.id, mediaType: entry.mediaType)
             return .init(name: details.name,
                          overview: details.overview,
                          posterURL: posterURL,
+                         backdropURL: backdropURL,
                          tmdbId: details.id,
                          linkToDetails: details.homepageURL,
                          mediaType: .tvSeries)
         case .movie:
-            let details = try await fetchMovieInfo(item: item)
-            let posterURL = try await fetchFullImageURL(itemId: details.id, mediaType: item.mediaType)
+            let details = try await fetchMovieInfo(entry: entry)
+            let (posterURL, backdropURL) = try await fetchFullImageURLs(entryId: details.id, mediaType: entry.mediaType)
             return .init(name: details.title,
                          overview: details.overview,
                          posterURL: posterURL,
+                         backdropURL: backdropURL,
                          tmdbId: details.id,
                          linkToDetails: details.homepageURL,
                          mediaType: .tvSeries)
         }
     }
     
-    func fetchTVSeriesInfo(item: AnimeItem) async throws -> TVSeries {
-        if let tmdbId = item.tmdbId {
-            switch item.mediaType {
+    func fetchTVSeriesInfo(entry: AnimeEntry) async throws -> TVSeries {
+        if let tmdbId = entry.tmdbId {
+            switch entry.mediaType {
             case .tvSeries:
                 return try await tmdbClient.tvSeries.details(forTVSeries: tmdbId,
                                                                     language: language.rawValue)
-            default: throw InfoFetcherError.mediaTypeMismatch(("TV Series", item.mediaType.description))
+            default: throw InfoFetcherError.mediaTypeMismatch(("TV Series", entry.mediaType.description))
             }
         } else {
-            guard let searchResult = try await search(name: item.name).first else {
-                throw InfoFetcherError.unableToMatchMetadata(item.name)
+            guard let searchResult = try await search(name: entry.name).first else {
+                throw InfoFetcherError.unableToMatchMetadata(entry.name)
             }
             switch searchResult {
             case .tvSeries(let tvSeries):
@@ -62,17 +65,17 @@ class InfoFetcher {
         }
     }
     
-    func fetchMovieInfo(item: AnimeItem) async throws -> Movie {
-        if let tmdbId = item.tmdbId {
-            switch item.mediaType {
+    func fetchMovieInfo(entry: AnimeEntry) async throws -> Movie {
+        if let tmdbId = entry.tmdbId {
+            switch entry.mediaType {
             case .movie:
                 return try await tmdbClient.movies.details(forMovie: tmdbId,
                                                                     language: language.rawValue)
-            default: throw InfoFetcherError.mediaTypeMismatch(("Movies", item.mediaType.description))
+            default: throw InfoFetcherError.mediaTypeMismatch(("Movies", entry.mediaType.description))
             }
         } else {
-            guard let searchResult = try await search(name: item.name).first else {
-                throw InfoFetcherError.unableToMatchMetadata(item.name)
+            guard let searchResult = try await search(name: entry.name).first else {
+                throw InfoFetcherError.unableToMatchMetadata(entry.name)
             }
             switch searchResult {
             case .movie(let movie):
@@ -85,19 +88,27 @@ class InfoFetcher {
     }
     
     // We use the original poster -- japanese version.
-    func fetchFullImageURL(itemId: Int, mediaType: AnimeItem.MediaType) async throws -> URL? {
+    /// Fetches full poster and backdrop urls for a given entry.
+    func fetchFullImageURLs(entryId: Int, mediaType: AnimeEntry.MediaType) async throws -> (poster: URL?, backdrop: URL?) {
         var posterPath: URL? = nil
+        var backdropPath: URL? = nil
+        
         switch mediaType {
         case .tvSeries:
-            posterPath = try await tmdbClient.tvSeries.details(forTVSeries: itemId, language: "ja").posterPath
+            posterPath = try await tmdbClient.tvSeries.details(forTVSeries: entryId, language: "ja").posterPath
+            backdropPath = try await tmdbClient.tvSeries.details(forTVSeries: entryId, language: "ja").backdropPath
         case .movie:
-            posterPath = try await tmdbClient.movies.details(forMovie: itemId, language: "ja").posterPath
+            posterPath = try await tmdbClient.movies.details(forMovie: entryId, language: "ja").posterPath
+            backdropPath = try await tmdbClient.movies.details(forMovie: entryId, language: "ja").backdropPath
         }
         
         let configurationService = tmdbClient.configurations
         let apiConfiguration = try await configurationService.apiConfiguration()
         let imagesConfiguration = apiConfiguration.images
-        return imagesConfiguration.posterURL(for: posterPath)
+        
+        let posterURL = imagesConfiguration.posterURL(for: posterPath)
+        let backdropURL = imagesConfiguration.backdropURL(for: backdropPath)
+        return (posterURL, backdropURL)
     }
 }
 

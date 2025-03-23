@@ -11,8 +11,9 @@ struct BasicMediaInfo {
     var name: String
     var overview: String?
     var posterURL: URL?
+    var backdropURL: URL?
     var tmdbId: Int
     var linkToDetails: URL?
     
-    var mediaType: AnimeItem.MediaType
+    var mediaType: AnimeEntry.MediaType
 }

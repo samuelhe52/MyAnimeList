@@ -11,7 +11,7 @@ import SwiftUI
 struct MyAnimeListApp: App {
     var body: some Scene {
         WindowGroup {
-            GalleryView()
+            LibraryView()
         }
     }
 }

@@ -1,5 +1,5 @@
 //
-//  BasicMediaInfo.swift
+//  BasicInfo.swift
 //  MyAnimeList
 //
 //  Created by Samuel He on 2025/3/22.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct BasicMediaInfo {
+struct BasicInfo {
     var name: String
     var overview: String?
     var posterURL: URL?
@@ -15,5 +15,5 @@ struct BasicMediaInfo {
     var tmdbId: Int
     var linkToDetails: URL?
     
-    var mediaType: AnimeEntry.MediaType
+    var entryType: EntryType
 }

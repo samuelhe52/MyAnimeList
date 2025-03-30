@@ -8,17 +8,14 @@
 import SwiftUI
 
 struct LibraryView: View {
+    var store: LibraryStore
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, My Anime List!")
-        }
-        .padding()
+        Text("Hello, my library!")
     }
 }
 
 #Preview {
-    LibraryView()
+    @Previewable let store = LibraryStore()
+    LibraryView(store: store)
 }

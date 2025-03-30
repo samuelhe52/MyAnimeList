@@ -19,19 +19,25 @@ struct BasicInfo: Equatable, Identifiable {
     
     var entryType: EntryType
     
-    mutating func updatePosterURL() async throws {
-        self.posterURL = try await InfoFetcher.shared.tmdbClient
-            .imagesConfiguration
-            .posterURL(for: posterPath)
+    mutating func updatePosterURL(width: Int? = nil) async throws {
+        if let width {
+            self.posterURL = try await InfoFetcher.shared.tmdbClient
+                .imagesConfiguration
+                .posterURL(for: posterPath, idealWidth: width)
+        } else {
+            self.posterURL = try await InfoFetcher.shared.tmdbClient
+                .imagesConfiguration
+                .posterURL(for: posterPath)
+        }
     }
     
     var id: Int { tmdbId }
 }
 
 extension Array where Element == BasicInfo {
-    mutating func updatePosterURLs() async throws {
+    mutating func updatePosterURLs(width: Int? = nil) async throws {
         for index in self.indices {
-            try await self[index].updatePosterURL()
+            try await self[index].updatePosterURL(width: width)
         }
     }
 }

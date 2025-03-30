@@ -43,7 +43,6 @@ struct SearchPage: View {
             .onSubmit(of: .search) {
                 updateSearchResults()
             }
-            .animation(.default, value: results)
             .listStyle(.plain)
         }
         .onAppear { updateSearchResults() }
@@ -77,8 +76,10 @@ struct SearchPage: View {
                               entryType: .tvSeries)
                 }
                 
-                try await moviesInfo.updatePosterURLs()
-                try await tvSeriesInfo.updatePosterURLs()
+                // The poster displayed here is small and we use smaller sizes
+                // to reduce network overhead.
+                try await moviesInfo.updatePosterURLs(width: 200)
+                try await tvSeriesInfo.updatePosterURLs(width: 200)
 
                 await MainActor.run {
                     if currentQuery == query {
@@ -101,12 +102,14 @@ struct SearchItem: View {
                 KFImage(url)
                     .resizable()
                     .fade(duration: 0.3)
-                    .roundCorner(radius: .heightFraction(0.08))
                     .placeholder {
-                        
+                        ProgressView()
                     }
+                    .diskCacheExpiration(.days(1))
+                    .clipShape(.rect(cornerRadius: 6))
                     .aspectRatio(contentMode: .fit)
-                    .frame(height: 80)
+                    .frame(height: 90)
+                    .animation(.default, value: url)
             }
             VStack(alignment: .leading) {
                 Text(info.name)

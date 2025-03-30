@@ -34,6 +34,7 @@ extension Movie: TMDbMedia {
                      posterURL: posterURL,
                      backdropURL: backdropURL,
                      tmdbId: id,
+                     onAirDate: releaseDate,
                      linkToDetails: homepageURL,
                      entryType: .movie)
     }
@@ -59,6 +60,7 @@ extension TVSeries: TMDbMedia {
             posterURL: posterURL,
             backdropURL: backdropURL,
             tmdbId: id,
+            onAirDate: firstAirDate,
             linkToDetails: homepageURL,
             entryType: .tvSeries
         )
@@ -83,6 +85,7 @@ extension TVSeason: TMDbMedia {
             posterURL: posterURL,
             backdropURL: nil,
             tmdbId: id,
+            onAirDate: airDate,
             linkToDetails: nil,
             entryType: .tvSeason
         )

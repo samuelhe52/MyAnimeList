@@ -30,6 +30,7 @@ struct MovieEntry: AnimeEntry {
     var overview: String?
     var dateAdded: Date?
     var dateFinished: Date?
+    var onAirDate: Date?
     var linkToDetails: URL?
     var posterURL: URL?
     var backdropURL: URL?
@@ -41,6 +42,7 @@ struct MovieEntry: AnimeEntry {
         linkToDetails = info.linkToDetails ?? self.linkToDetails
         posterURL = info.posterURL ?? self.posterURL
         backdropURL = info.backdropURL ?? self.backdropURL
+        onAirDate = info.onAirDate ?? self.onAirDate
         id = info.tmdbId
     }
     
@@ -58,6 +60,7 @@ struct TVSeasonEntry: AnimeEntry {
     var overview: String?
     var dateAdded: Date?
     var dateFinished: Date?
+    var onAirDate: Date?
     var linkToDetails: URL?
     var posterURL: URL?
     var backdropURL: URL?
@@ -86,6 +89,7 @@ struct TVSeasonEntry: AnimeEntry {
         linkToDetails = info.linkToDetails ?? self.linkToDetails
         posterURL = info.posterURL ?? self.posterURL
         backdropURL = info.backdropURL ?? self.backdropURL
+        onAirDate = info.onAirDate ?? self.onAirDate
         id = info.tmdbId
     }
     
@@ -111,6 +115,7 @@ struct TVSeriesEntry: AnimeEntry {
     var overview: String?
     var dateAdded: Date?
     var dateFinished: Date?
+    var onAirDate: Date?
     var linkToDetails: URL?
     var posterURL: URL?
     var backdropURL: URL?
@@ -122,6 +127,7 @@ struct TVSeriesEntry: AnimeEntry {
         linkToDetails = info.linkToDetails ?? self.linkToDetails
         posterURL = info.posterURL ?? self.posterURL
         backdropURL = info.backdropURL ?? self.backdropURL
+        onAirDate = info.onAirDate ?? self.onAirDate
         id = info.tmdbId
     }
     

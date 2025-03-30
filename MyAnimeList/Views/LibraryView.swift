@@ -9,9 +9,20 @@ import SwiftUI
 
 struct LibraryView: View {
     var store: LibraryStore
+    @State var isSearching: Bool = false
     
     var body: some View {
         Text("Hello, my library!")
+        Button("Search...") {
+            isSearching = true
+        }.buttonStyle(.bordered)
+        .sheet(isPresented: $isSearching) {
+            NavigationStack {
+                SearchPage()
+                    .navigationTitle("Search TMDB")
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+        }
     }
 }
 

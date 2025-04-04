@@ -15,8 +15,8 @@ struct SearchPage: View {
     
     @State private var isSeriesExpanded: Bool = true
     
-    private var movies: [BasicInfo] { results.filter { $0.entryType == .movie } }
-    private var series: [BasicInfo] { results.filter { $0.entryType == .tvSeries } }
+    private var movies: [BasicInfo] { results.filter { $0.typeMetadata == .movie } }
+    private var series: [BasicInfo] { results.filter { $0.typeMetadata == .tvSeries } }
     
     @Environment(\.dismiss) var dismiss
     
@@ -65,7 +65,7 @@ struct SearchPage: View {
                                      posterPath: movie.posterPath,
                                      tmdbID: movie.id,
                                      onAirDate: movie.releaseDate,
-                                     entryType: .movie)
+                                     typeMetadata: .movie)
                 }
                 var tvSeriesInfo = tvSeries.map { series in
                     BasicInfo(name: series.name,
@@ -73,7 +73,7 @@ struct SearchPage: View {
                               posterPath: series.posterPath,
                               tmdbID: series.id,
                               onAirDate: series.firstAirDate,
-                              entryType: .tvSeries)
+                              typeMetadata: .tvSeries)
                 }
                 
                 // The poster displayed here is small and we use smaller sizes

@@ -47,7 +47,7 @@ extension Movie: TMDbMedia {
                      tmdbID: id,
                      onAirDate: releaseDate,
                      linkToDetails: homepageURL,
-                     entryType: .movie)
+                     typeMetadata: .movie)
     }
     
     func backdropURL(client: TMDb.TMDbClient) async throws -> URL? {
@@ -81,7 +81,7 @@ extension TVSeries: TMDbMedia {
             tmdbID: id,
             onAirDate: firstAirDate,
             linkToDetails: homepageURL,
-            entryType: .tvSeries
+            typeMetadata: .tvSeries
         )
     }
 
@@ -118,7 +118,7 @@ extension TVSeason: TMDbMedia {
             tmdbID: id,
             onAirDate: airDate,
             linkToDetails: nil,
-            entryType: .tvSeason(seasonNumber: seasonNumber, parentSeriesID: 0)
+            typeMetadata: .tvSeason(seasonNumber: seasonNumber, parentSeriesID: 0)
         )
     }
     

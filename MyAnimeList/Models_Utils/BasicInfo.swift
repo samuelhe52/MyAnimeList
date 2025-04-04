@@ -17,7 +17,7 @@ struct BasicInfo: Equatable, Identifiable {
     var onAirDate: Date?
     var linkToDetails: URL?
     
-    var entryType: EntryType
+    var typeMetadata: MediaTypeMetadata
     
     mutating func updatePosterURL(width: Int? = nil) async throws {
         if let width {

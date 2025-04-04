@@ -25,7 +25,7 @@ actor InfoFetcher: Sendable {
         let results = try await tmdbClient.search.searchAll(query: name, page: 1, language: language.rawValue)
         return results.results.filter {
             switch $0 {
-            // 16 is genre id for animation
+            // 16 is the genre id for animation
             case .movie(let movie): movie.genreIDs.contains(16)
             case .tvSeries(let series): series.genreIDs.contains(16)
             case .person(_): false
@@ -35,13 +35,13 @@ actor InfoFetcher: Sendable {
 
     func searchMovies(name: String) async throws -> [MovieListItem] {
         let results = try await tmdbClient.search.searchMovies(query: name, page: 1, language: language.rawValue)
-        // 16 is genre id for animation
+        // 16 is the genre id for animation
         return results.results.filter { $0.genreIDs.contains(16) }
     }
 
     func searchTVSeries(name: String) async throws -> [TVSeriesListItem] {
         let results = try await tmdbClient.search.searchTVSeries(query: name, page: 1, language: language.rawValue)
-        // 16 is genre id for animation
+        // 16 is the genre id for animation
         return results.results.filter { $0.genreIDs.contains(16) }
     }
     

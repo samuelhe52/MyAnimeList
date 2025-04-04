@@ -12,7 +12,7 @@ struct AnimeEntry: Identifiable, Codable {
     var name: String
     var overview: String?
     var onAirDate: Date?
-    var entryType: EntryType
+    var entryType: MediaTypeMetadata
     
     /// Link ot the homepage of the anime.
     var linkToDetails: URL?
@@ -88,7 +88,7 @@ struct AnimeEntry: Identifiable, Codable {
     }
 }
 
-enum EntryType: CustomStringConvertible, Codable, Equatable {
+enum MediaTypeMetadata: CustomStringConvertible, Codable, Equatable {
     case tvSeason(seasonNumber: Int, parentSeriesID: Int)
     case movie
     case tvSeries

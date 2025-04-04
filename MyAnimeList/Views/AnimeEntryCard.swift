@@ -8,8 +8,8 @@
 import SwiftUI
 import Kingfisher
 
-struct AnimeEntryCard<Entry: AnimeEntry>: View {
-    var entry: Entry?
+struct AnimeEntryCard: View {
+    var entry: AnimeEntry?
     
     var body: some View {
         image
@@ -32,7 +32,7 @@ struct AnimeEntryCard<Entry: AnimeEntry>: View {
 
 #Preview {
     @Previewable let store: LibraryStore = .init()
-    AnimeEntryCard(entry: store.tvAnimeLibrary.first)
+    AnimeEntryCard(entry: store.library.first)
         .task {
             try? await store.updateInfos()
         }

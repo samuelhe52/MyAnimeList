@@ -29,12 +29,12 @@ struct SearchPage: View {
                     }
                 }
                 Section("Series") {
-                    ForEach(series.prefix(8), id: \.tmdbId) { series in
+                    ForEach(series.prefix(8), id: \.tmdbID) { series in
                         SearchItem(info: series)
                     }
                 }
                 Section("Movies") {
-                    ForEach(movies.prefix(8), id: \.tmdbId) { movie in
+                    ForEach(movies.prefix(8), id: \.tmdbID) { movie in
                         SearchItem(info: movie)
                     }
                 }
@@ -63,7 +63,7 @@ struct SearchPage: View {
                     BasicInfo(name: movie.title,
                                      overview: movie.overview,
                                      posterPath: movie.posterPath,
-                                     tmdbId: movie.id,
+                                     tmdbID: movie.id,
                                      onAirDate: movie.releaseDate,
                                      entryType: .movie)
                 }
@@ -71,7 +71,7 @@ struct SearchPage: View {
                     BasicInfo(name: series.name,
                               overview: series.overview,
                               posterPath: series.posterPath,
-                              tmdbId: series.id,
+                              tmdbID: series.id,
                               onAirDate: series.firstAirDate,
                               entryType: .tvSeries)
                 }

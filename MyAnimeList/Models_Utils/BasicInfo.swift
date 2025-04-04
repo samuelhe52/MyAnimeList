@@ -13,7 +13,7 @@ struct BasicInfo: Equatable, Identifiable {
     var posterPath: URL?
     var posterURL: URL?
     var backdropURL: URL?
-    var tmdbId: Int
+    var tmdbID: Int
     var onAirDate: Date?
     var linkToDetails: URL?
     
@@ -31,7 +31,7 @@ struct BasicInfo: Equatable, Identifiable {
         }
     }
     
-    var id: Int { tmdbId }
+    var id: Int { tmdbID }
 }
 
 extension Array where Element == BasicInfo {

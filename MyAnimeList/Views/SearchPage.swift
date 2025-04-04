@@ -9,52 +9,46 @@ import SwiftUI
 import Kingfisher
 
 struct SearchPage: View {
-    @State private var query: String = "K-on"
-    @State private var results: [BasicInfo] = []
+    @State var service: SearchService = .init()
     @AppStorage("language") private var language: Language = .english
     
-    @State private var isSeriesExpanded: Bool = true
-    
-    private var movies: [BasicInfo] { results.filter { $0.typeMetadata == .movie } }
-    private var series: [BasicInfo] { results.filter { $0.typeMetadata == .tvSeries } }
-    
-    @Environment(\.dismiss) var dismiss
-    
     var body: some View {
-        VStack {
-            List {
-                Picker("Language", selection: $language) {
-                    ForEach(Language.allCases, id: \.rawValue) {
-                        Text($0.description).tag($0)
-                    }
+        List {
+            Picker("Language", selection: $language) {
+                ForEach(Language.allCases, id: \.rawValue) {
+                    Text($0.description).tag($0)
                 }
+            }
+            if !service.seriesResults.isEmpty {
                 Section("Series") {
-                    ForEach(series.prefix(8), id: \.tmdbID) { series in
+                    ForEach(service.seriesResults.prefix(8), id: \.tmdbID) { series in
                         SearchItem(info: series)
                     }
                 }
+            }
+            if !service.movieResults.isEmpty {
                 Section("Movies") {
-                    ForEach(movies.prefix(8), id: \.tmdbID) { movie in
+                    ForEach(service.movieResults.prefix(8), id: \.tmdbID) { movie in
                         SearchItem(info: movie)
                     }
                 }
             }
-            .searchable(text: $query, prompt: "Search TV animation or movies...")
-            .onSubmit(of: .search) {
-                updateSearchResults()
-            }
-            .listStyle(.plain)
         }
+        .searchable(text: $service.query, prompt: "Search TV animation or movies...")
+        .onSubmit(of: .search) {
+            updateSearchResults()
+        }
+        .listStyle(.inset)
         .onAppear { updateSearchResults() }
         .onChange(of: language) { updateSearchResults() }
     }
     
     func updateSearchResults() {
-        if !query.isEmpty {
+        if !service.query.isEmpty {
             Task {
-                let currentQuery = self.query
+                let currentQuery = self.service.query
                 
-                let fetcher = InfoFetcher.shared
+                let fetcher = service.fetcher
                 await fetcher.changeLanguage(language)
                 let movies = try await fetcher.searchMovies(name: currentQuery)
                 let tvSeries = try await fetcher.searchTVSeries(name: currentQuery)
@@ -82,9 +76,10 @@ struct SearchPage: View {
                 try await tvSeriesInfo.updatePosterURLs(width: 200)
 
                 await MainActor.run {
-                    if currentQuery == query {
+                    if currentQuery == service.query {
                         withAnimation {
-                            results = moviesInfo + tvSeriesInfo
+                            service.movieResults = moviesInfo
+                            service.seriesResults = tvSeriesInfo
                         }
                     }
                 }
@@ -105,11 +100,10 @@ struct SearchItem: View {
                     .placeholder {
                         ProgressView()
                     }
-                    .diskCacheExpiration(.days(1))
+                    .cacheMemoryOnly()
+                    .scaledToFit()
                     .clipShape(.rect(cornerRadius: 6))
-                    .aspectRatio(contentMode: .fit)
-                    .frame(height: 90)
-                    .animation(.default, value: url)
+                    .frame(width: 60, height: 90)
             }
             VStack(alignment: .leading) {
                 Text(info.name)
@@ -127,6 +121,14 @@ struct SearchItem: View {
             }
         }
     }
+}
+
+@Observable
+class SearchService {
+    var fetcher: InfoFetcher = .init(language: .english)
+    var query: String = ""
+    var movieResults: [BasicInfo] = []
+    var seriesResults: [BasicInfo] = []
 }
 
 #Preview {

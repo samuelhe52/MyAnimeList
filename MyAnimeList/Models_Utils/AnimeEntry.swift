@@ -29,6 +29,9 @@ struct AnimeEntry: Identifiable, Codable {
     /// Date marked finished.
     var dateFinished: Date?
     
+    /// Whether the entry is marked as favorite.
+    var favorite: Bool = false
+    
     init(name: String, overview: String? = nil, onAirDate: Date? = nil, entryType: MediaTypeMetadata, linkToDetails: URL? = nil, posterURL: URL? = nil, backdropURL: URL? = nil, id: Int, dateAdded: Date? = nil, dateFinished: Date? = nil) {
         self.name = name
         self.overview = overview

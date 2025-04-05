@@ -11,7 +11,12 @@ import SwiftUI
 @Observable
 class LibraryStore {
     var library: [AnimeEntry] = []
-    var infoFetcher: InfoFetcher = .init()
+    private var infoFetcher: InfoFetcher = .init()
+    
+    @MainActor
+    func changePreferredLanguage(_ language: Language) {
+        Task { await infoFetcher.changeLanguage(language) }
+    }
     
     @MainActor
     func newEntryFromSearchResult(result: SearchResult) {

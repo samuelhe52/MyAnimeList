@@ -15,8 +15,8 @@ struct MyAnimeListApp: App {
     var body: some Scene {
         WindowGroup {
             LibraryView(store: libraryStore)
-                .task {
-                    await libraryStore.infoFetcher.changeLanguage(language)
+                .onAppear {
+                    libraryStore.changePreferredLanguage(language)
                 }
         }
     }

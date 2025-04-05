@@ -85,7 +85,7 @@ struct LibraryView: View {
 #Preview {
     @Previewable let store = LibraryStore()
     LibraryView(store: store)
-        .task {
-            await store.infoFetcher.changeLanguage(.japanese)
+        .onAppear {
+            store.changePreferredLanguage(.japanese)
         }
 }

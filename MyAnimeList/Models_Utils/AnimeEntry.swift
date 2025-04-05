@@ -29,6 +29,8 @@ struct AnimeEntry: Identifiable, Codable {
     /// Date marked finished.
     var dateFinished: Date?
     
+    static let template: Self = .init(name: "Template", entryType: .movie, id: 0)
+    
     mutating func updateInfo(fromInfo info: BasicInfo) {
         name = info.name
         overview = info.overview ?? self.overview
@@ -36,6 +38,7 @@ struct AnimeEntry: Identifiable, Codable {
         posterURL = info.posterURL ?? self.posterURL
         backdropURL = info.backdropURL ?? self.backdropURL
         onAirDate = info.onAirDate ?? self.onAirDate
+        entryType = info.typeMetadata
         id = info.tmdbID
     }
 

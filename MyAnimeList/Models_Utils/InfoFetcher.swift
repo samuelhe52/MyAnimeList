@@ -8,7 +8,7 @@
 import Foundation
 import TMDb
 
-actor InfoFetcher: Sendable {
+actor InfoFetcher {
     let tmdbClient: TMDbClient
     var language: Language
     
@@ -19,6 +19,14 @@ actor InfoFetcher: Sendable {
     
     func changeLanguage(_ language: Language) {
         self.language = language
+    }
+    
+    func fetchMovie(_ id: Int) async throws -> Movie {
+        try await tmdbClient.movies.details(forMovie: id, language: language.rawValue)
+    }
+    
+    func fetchTVSeries(_ id: Int) async throws -> TVSeries {
+        try await tmdbClient.tvSeries.details(forTVSeries: id, language: language.rawValue)
     }
     
     func searchAll(name: String) async throws -> [Media] {

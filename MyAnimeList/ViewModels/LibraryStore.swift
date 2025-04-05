@@ -11,8 +11,7 @@ import SwiftUI
 @Observable
 class LibraryStore {
     var library: [AnimeEntry] = []
-    
-    private var infoFetcher: InfoFetcher = .init()
+    var infoFetcher: InfoFetcher = .init()
     
     /// Fetches the latest infos from tmdb for all entries and update the entries.
     @MainActor

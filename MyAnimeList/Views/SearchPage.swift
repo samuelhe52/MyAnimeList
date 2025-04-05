@@ -11,6 +11,9 @@ import Kingfisher
 struct SearchPage: View {
     @State var service: SearchService = .init()
     @AppStorage("language") private var language: Language = .english
+    var processResult: (BasicInfo) async throws -> Void
+    
+    @Environment(\.dismiss) var dismiss
     
     var body: some View {
         List {
@@ -22,14 +25,14 @@ struct SearchPage: View {
             if !service.seriesResults.isEmpty {
                 Section("Series") {
                     ForEach(service.seriesResults.prefix(8), id: \.tmdbID) { series in
-                        SearchItem(info: series)
+                        searchItem(info: series)
                     }
                 }
             }
             if !service.movieResults.isEmpty {
                 Section("Movies") {
                     ForEach(service.movieResults.prefix(8), id: \.tmdbID) { movie in
-                        SearchItem(info: movie)
+                        searchItem(info: movie)
                     }
                 }
             }
@@ -45,21 +48,21 @@ struct SearchPage: View {
     
     func updateSearchResults() {
         if !service.query.isEmpty {
-            Task {
-                let currentQuery = self.service.query
-                
-                let fetcher = service.fetcher
-                await fetcher.changeLanguage(language)
+            let currentQuery = self.service.query
+            
+            let fetcher = service.fetcher
+            Task { await fetcher.changeLanguage(language) }
+            Task.detached {
                 let movies = try await fetcher.searchMovies(name: currentQuery)
                 let tvSeries = try await fetcher.searchTVSeries(name: currentQuery)
                 
                 var moviesInfo = movies.map { movie in
                     BasicInfo(name: movie.title,
-                                     overview: movie.overview,
-                                     posterPath: movie.posterPath,
-                                     tmdbID: movie.id,
-                                     onAirDate: movie.releaseDate,
-                                     typeMetadata: .movie)
+                              overview: movie.overview,
+                              posterPath: movie.posterPath,
+                              tmdbID: movie.id,
+                              onAirDate: movie.releaseDate,
+                              typeMetadata: .movie)
                 }
                 var tvSeriesInfo = tvSeries.map { series in
                     BasicInfo(name: series.name,
@@ -74,7 +77,7 @@ struct SearchPage: View {
                 // to reduce network overhead.
                 try await moviesInfo.updatePosterURLs(width: 200)
                 try await tvSeriesInfo.updatePosterURLs(width: 200)
-
+                
                 await MainActor.run {
                     if currentQuery == service.query {
                         withAnimation {
@@ -86,12 +89,8 @@ struct SearchPage: View {
             }
         }
     }
-}
-
-struct SearchItem: View {
-    var info: BasicInfo
     
-    var body: some View {
+    private func searchItem(info: BasicInfo) -> some View {
         HStack {
             if let url = info.posterURL {
                 KFImage(url)
@@ -101,6 +100,7 @@ struct SearchItem: View {
                         ProgressView()
                     }
                     .cacheMemoryOnly()
+                    .cancelOnDisappear(true)
                     .scaledToFit()
                     .clipShape(.rect(cornerRadius: 6))
                     .frame(width: 60, height: 90)
@@ -120,6 +120,12 @@ struct SearchItem: View {
                     .lineLimit(3)
             }
         }
+        .onTapGesture {
+            Task {
+                try await processResult(info)
+            }
+            dismiss()
+        }
     }
 }
 
@@ -133,6 +139,6 @@ class SearchService {
 
 #Preview {
     NavigationStack {
-        SearchPage()
+        SearchPage { _ in }
     }
 }

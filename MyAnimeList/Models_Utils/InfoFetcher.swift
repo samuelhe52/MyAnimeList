@@ -53,6 +53,46 @@ actor InfoFetcher {
         return results.results.filter { $0.genreIDs.contains(16) }
     }
     
+    func fetchInfoFromTMDB(entryType: MediaTypeMetadata, id: AnimeEntry.ID) async throws -> BasicInfo {
+        switch entryType {
+        case .tvSeason(let seasonNumber, let parentSeriesID):
+            return try await tvSeasonInfo(seasonNumber: seasonNumber, parentSeriesID: parentSeriesID)
+        case .movie:
+            return try await movieInfo()
+        case .tvSeries:
+            return try await tvSeriesInfo()
+        }
+        
+        func tvSeasonInfo(seasonNumber: Int, parentSeriesID: Int) async throws -> BasicInfo {
+            try await Task.detached { [tmdbClient, language] in
+                let season = try await tmdbClient.tvSeasons.details(forSeason: seasonNumber,
+                                                                            inTVSeries: parentSeriesID,
+                                                                            language: language.rawValue)
+                let parentSeries = try await tmdbClient.tvSeries.details(forTVSeries: parentSeriesID,
+                                                                                 language: language.rawValue)
+                var basicInfo = try await season.basicInfo(client: tmdbClient)
+                // Use the parent series' backdrop image and homepage for the season.
+                basicInfo.backdropURL = try await parentSeries.backdropURL(client: tmdbClient)
+                basicInfo.linkToDetails = parentSeries.homepageURL
+                return basicInfo
+            }.value
+        }
+
+        func movieInfo() async throws -> BasicInfo {
+            return try await Task.detached { [tmdbClient, language] in
+                let movie = try await tmdbClient.movies.details(forMovie: id, language: language.rawValue)
+                return try await movie.basicInfo(client: tmdbClient)
+            }.value
+        }
+
+        func tvSeriesInfo() async throws -> BasicInfo {
+            try await Task.detached { [tmdbClient, language] in
+                let season = try await tmdbClient.tvSeries.details(forTVSeries: id, language: language.rawValue)
+                return try await season.basicInfo(client: tmdbClient)
+            }.value
+        }
+    }
+    
     static let shared = InfoFetcher()
 }
 

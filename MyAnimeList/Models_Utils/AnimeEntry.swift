@@ -29,9 +29,31 @@ struct AnimeEntry: Identifiable, Codable {
     /// Date marked finished.
     var dateFinished: Date?
     
-    static let template: Self = .init(name: "Template", entryType: .movie, id: 0)
+    init(name: String, overview: String? = nil, onAirDate: Date? = nil, entryType: MediaTypeMetadata, linkToDetails: URL? = nil, posterURL: URL? = nil, backdropURL: URL? = nil, id: Int, dateAdded: Date? = nil, dateFinished: Date? = nil) {
+        self.name = name
+        self.overview = overview
+        self.onAirDate = onAirDate
+        self.entryType = entryType
+        self.linkToDetails = linkToDetails
+        self.posterURL = posterURL
+        self.backdropURL = backdropURL
+        self.id = id
+        self.dateAdded = dateAdded
+        self.dateFinished = dateFinished
+    }
     
-    mutating func updateInfo(fromInfo info: BasicInfo) {
+    init(fromInfo info: BasicInfo) {
+        name = info.name
+        overview = info.overview
+        linkToDetails = info.linkToDetails
+        posterURL = info.posterURL
+        backdropURL = info.backdropURL
+        onAirDate = info.onAirDate
+        entryType = info.typeMetadata
+        id = info.tmdbID
+    }
+    
+    mutating func update(fromInfo info: BasicInfo) {
         name = info.name
         overview = info.overview ?? self.overview
         linkToDetails = info.linkToDetails ?? self.linkToDetails
@@ -41,54 +63,19 @@ struct AnimeEntry: Identifiable, Codable {
         entryType = info.typeMetadata
         id = info.tmdbID
     }
-
-    mutating func refreshInfo(fetcher: InfoFetcher) async throws {
-        let info = try await fetchInfo(fetcher: fetcher)
-        updateInfo(fromInfo: info)
+    
+    var basicInfo: BasicInfo {
+        BasicInfo(name: name,
+                  overview: overview,
+                  posterURL: posterURL,
+                  backdropURL: backdropURL,
+                  tmdbID: id,
+                  onAirDate: onAirDate,
+                  linkToDetails: linkToDetails,
+                  typeMetadata: entryType)
     }
     
-    func fetchInfo(fetcher: InfoFetcher) async throws -> BasicInfo {
-        switch entryType {
-        case .tvSeason(let seasonNumber, let parentSeriesID):
-            return try await tvSeasonInfo(seasonNumber: seasonNumber, parentSeriesID: parentSeriesID)
-        case .movie:
-            return try await movieInfo()
-        case .tvSeries:
-            return try await tvSeriesInfo()
-        }
-        
-        func tvSeasonInfo(seasonNumber: Int, parentSeriesID: Int) async throws -> BasicInfo {
-            try await Task {
-                let language = await fetcher.language
-                let season = try await fetcher.tmdbClient.tvSeasons.details(forSeason: seasonNumber,
-                                                                            inTVSeries: parentSeriesID,
-                                                                            language: language.rawValue)
-                let parentSeries = try await fetcher.tmdbClient.tvSeries.details(forTVSeries: parentSeriesID,
-                                                                                 language: language.rawValue)
-                var basicInfo = try await season.basicInfo(client: fetcher.tmdbClient)
-                // Use the parent series' backdrop image and homepage for the season.
-                basicInfo.backdropURL = try await parentSeries.backdropURL(client: fetcher.tmdbClient)
-                basicInfo.linkToDetails = parentSeries.homepageURL
-                return basicInfo
-            }.value
-        }
-
-        func movieInfo() async throws -> BasicInfo {
-            try await Task {
-                let language = await fetcher.language
-                let movie = try await fetcher.tmdbClient.movies.details(forMovie: id, language: language.rawValue)
-                return try await movie.basicInfo(client: fetcher.tmdbClient)
-            }.value
-        }
-
-        func tvSeriesInfo() async throws -> BasicInfo {
-            try await Task {
-                let language = await fetcher.language
-                let season = try await fetcher.tmdbClient.tvSeries.details(forTVSeries: id, language: language.rawValue)
-                return try await season.basicInfo(client: fetcher.tmdbClient)
-            }.value
-        }
-    }
+    static let template: Self = .init(name: "Template", entryType: .movie, id: 0)
 }
 
 enum MediaTypeMetadata: CustomStringConvertible, Codable, Equatable {

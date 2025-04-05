@@ -15,12 +15,12 @@ struct LibraryView: View {
     
     @State var showAlert = false
     @State var cacheSizeResult: Result<UInt, KingfisherError>? = nil
-    @State var selectedID: AnimeEntry.ID = 0
+    @State var selectedEntryID: AnimeEntry.ID = 0
     
     var body: some View {
         NavigationStack {
             if !store.library.isEmpty {
-                TabView(selection: $selectedID) {
+                TabView(selection: $selectedEntryID) {
                     ForEach(store.library) { entry in
                         AnimeEntryCard(entry: entry)
                             .tag(entry.id)
@@ -71,15 +71,8 @@ struct LibraryView: View {
             .sheet(isPresented: $isSearching) {
                 NavigationStack {
                     SearchPage { result in
-                        var entry = AnimeEntry.template
-                        entry.updateInfo(fromInfo: result)
-                        try await entry.refreshInfo(fetcher: store.infoFetcher)
-                        await MainActor.run {
-                            withAnimation {
-                                store.library.append(entry)
-                                selectedID = entry.id
-                            }
-                        }
+                        store.newEntryFromSearchResult(result: result)
+                        selectedEntryID = result.id
                     }
                     .navigationTitle("Search TMDB")
                     .navigationBarTitleDisplayMode(.inline)

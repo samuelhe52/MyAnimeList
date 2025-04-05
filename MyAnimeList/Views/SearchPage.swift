@@ -8,10 +8,12 @@
 import SwiftUI
 import Kingfisher
 
+typealias SearchResult = BasicInfo
+
 struct SearchPage: View {
     @State var service: SearchService = .init()
     @AppStorage("language") private var language: Language = .english
-    var processResult: (BasicInfo) async throws -> Void
+    var processResult: (SearchResult) -> Void
     
     @Environment(\.dismiss) var dismiss
     
@@ -25,14 +27,14 @@ struct SearchPage: View {
             if !service.seriesResults.isEmpty {
                 Section("Series") {
                     ForEach(service.seriesResults.prefix(8), id: \.tmdbID) { series in
-                        searchItem(info: series)
+                        resultItem(result: series)
                     }
                 }
             }
             if !service.movieResults.isEmpty {
                 Section("Movies") {
                     ForEach(service.movieResults.prefix(8), id: \.tmdbID) { movie in
-                        searchItem(info: movie)
+                        resultItem(result: movie)
                     }
                 }
             }
@@ -56,16 +58,16 @@ struct SearchPage: View {
                 let movies = try await fetcher.searchMovies(name: currentQuery)
                 let tvSeries = try await fetcher.searchTVSeries(name: currentQuery)
                 
-                var moviesInfo = movies.map { movie in
-                    BasicInfo(name: movie.title,
+                var moviesResults = movies.map { movie in
+                    SearchResult(name: movie.title,
                               overview: movie.overview,
                               posterPath: movie.posterPath,
                               tmdbID: movie.id,
                               onAirDate: movie.releaseDate,
                               typeMetadata: .movie)
                 }
-                var tvSeriesInfo = tvSeries.map { series in
-                    BasicInfo(name: series.name,
+                var tvSeriesResults = tvSeries.map { series in
+                    SearchResult(name: series.name,
                               overview: series.overview,
                               posterPath: series.posterPath,
                               tmdbID: series.id,
@@ -75,14 +77,14 @@ struct SearchPage: View {
                 
                 // The poster displayed here is small and we use smaller sizes
                 // to reduce network overhead.
-                try await moviesInfo.updatePosterURLs(width: 200)
-                try await tvSeriesInfo.updatePosterURLs(width: 200)
+                try await moviesResults.updatePosterURLs(width: 200)
+                try await tvSeriesResults.updatePosterURLs(width: 200)
                 
                 await MainActor.run {
                     if currentQuery == service.query {
                         withAnimation {
-                            service.movieResults = moviesInfo
-                            service.seriesResults = tvSeriesInfo
+                            service.movieResults = moviesResults
+                            service.seriesResults = tvSeriesResults
                         }
                     }
                 }
@@ -90,9 +92,9 @@ struct SearchPage: View {
         }
     }
     
-    private func searchItem(info: BasicInfo) -> some View {
+    private func resultItem(result: SearchResult) -> some View {
         HStack {
-            if let url = info.posterURL {
+            if let url = result.posterURL {
                 KFImage(url)
                     .resizable()
                     .fade(duration: 0.3)
@@ -106,24 +108,22 @@ struct SearchPage: View {
                     .frame(width: 60, height: 90)
             }
             VStack(alignment: .leading) {
-                Text(info.name)
+                Text(result.name)
                     .bold()
                     .lineLimit(1)
-                if let date = info.onAirDate {
+                if let date = result.onAirDate {
                     Text(date.formatted(date: .abbreviated, time: .omitted))
                         .font(.caption)
                         .padding(.bottom, 1)
                 }
-                Text(info.overview ?? "No overview available")
+                Text(result.overview ?? "No overview available")
                     .font(.caption2)
                     .foregroundStyle(.gray)
                     .lineLimit(3)
             }
         }
         .onTapGesture {
-            Task {
-                try await processResult(info)
-            }
+            processResult(result)
             dismiss()
         }
     }
@@ -133,8 +133,8 @@ struct SearchPage: View {
 class SearchService {
     var fetcher: InfoFetcher = .init(language: .english)
     var query: String = ""
-    var movieResults: [BasicInfo] = []
-    var seriesResults: [BasicInfo] = []
+    var movieResults: [SearchResult] = []
+    var seriesResults: [SearchResult] = []
 }
 
 #Preview {

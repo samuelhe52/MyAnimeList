@@ -7,11 +7,44 @@
 
 import Foundation
 import SwiftUI
+import SwiftData
+import Combine
 
 @Observable
 class LibraryStore {
-    var library: [AnimeEntry] = []
+    var dataProvider: DataProvider
+    private var cancellables = Set<AnyCancellable>()
+
+    @MainActor
+    init(dataProvider: DataProvider) {
+        self.dataProvider = dataProvider
+        setupUpdateData()
+        try? fetchData()
+    }
+    
+    private(set) var library: [AnimeEntry] = []
     private var infoFetcher: InfoFetcher = .init()
+    
+    @MainActor
+    func fetchData() throws {
+        let descriptor = FetchDescriptor<AnimeEntry>(sortBy: [SortDescriptor(\.dateSaved)])
+        let entries = try dataProvider.sharedModelContainer.mainContext.fetch(descriptor)
+        library = entries
+    }
+    
+    @MainActor
+    func setupUpdateData() {
+        NotificationCenter.default
+            .publisher(for: ModelContext.didSave)
+            .sink { [weak self] _ in
+                do {
+                    try self?.fetchData()
+                } catch {
+                    print(error)
+                }
+            }
+            .store(in: &cancellables)
+    }
     
     @MainActor
     func changePreferredLanguage(_ language: Language) {
@@ -22,33 +55,30 @@ class LibraryStore {
     func newEntryFromSearchResult(result: SearchResult) {
         Task {
             let info = try await infoFetcher.fetchInfoFromTMDB(entryType: result.typeMetadata, id: result.id)
-            library.append(AnimeEntry(fromInfo: info))
+            let entry = AnimeEntry(fromInfo: info)
+            try await dataProvider.dataHandler.newEntry(entry)
         }
     }
     
     /// Fetches the latest infos from tmdb for all entries and update the entries.
-    func updateInfos() async throws {
+    func refreshInfos() async throws {
         for index in library.indices {
             let info = try await infoFetcher.fetchInfoFromTMDB(entryType: library[index].entryType, id: library[index].id)
-            library[index].update(fromInfo: info)
+            try await dataProvider.dataHandler.updateEntry(id: library[index].id, info: info)
         }
     }
     
-    func updateInfo(entryID id: AnimeEntry.ID) async throws {
-        if let entry = library[id] {
-            let info = try await infoFetcher.fetchInfoFromTMDB(entryType: entry.entryType, id: entry.id)
-            library[id]?.update(fromInfo: info)
-        }
+    @MainActor
+    func deleteEntry(id: PersistentIdentifier) {
+        Task { try await dataProvider.dataHandler.deleteEntry(id: id) }
     }
-}
-
-extension Array where Element == AnimeEntry {
-    subscript(id: AnimeEntry.ID) -> AnimeEntry? {
-        get { first { $0.id == id } }
-        set {
-            guard let index = firstIndex(where: { $0.id == id }),
-                  let newValue else { return }
-            self[index] = newValue
-        }
+    
+    @MainActor
+    func clearLibrary() {
+        Task { try await dataProvider.dataHandler.deleteAllEntries() }
+    }
+    
+    deinit {
+        cancellables.forEach { $0.cancel() }
     }
 }

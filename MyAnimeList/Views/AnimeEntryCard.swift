@@ -10,6 +10,8 @@ import Kingfisher
 
 struct AnimeEntryCard: View {
     var entry: AnimeEntry
+    @Environment(LibraryStore.self) var store
+    
     @State private var posterImage: UIImage? = nil
     @State private var imageLoadError: Error? = nil
     
@@ -26,6 +28,11 @@ struct AnimeEntryCard: View {
             .task { await loadImage() }
             .onChange(of: entry.posterURL) {
                 Task.detached { await loadImage() }
+            }
+            .contextMenu {
+                Button("Delete") {
+                    store.deleteEntry(id: entry.persistentModelID)
+                }
             }
     }
     

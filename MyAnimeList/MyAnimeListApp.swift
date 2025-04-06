@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct MyAnimeListApp: App {
-    @State var libraryStore: LibraryStore = .init()
+    let dataProvider = DataProvider.shared
+    @State var libraryStore: LibraryStore = .init(dataProvider: .shared)
     @AppStorage("PreferredMetadataLanguage") var language: Language = .japanese
 
     var body: some Scene {

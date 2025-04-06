@@ -53,7 +53,7 @@ actor InfoFetcher {
         return results.results.filter { $0.genreIDs.contains(16) }
     }
     
-    func fetchInfoFromTMDB(entryType: MediaTypeMetadata, id: AnimeEntry.ID) async throws -> BasicInfo {
+    func fetchInfoFromTMDB(entryType: MediaTypeMetadata, id: Int) async throws -> BasicInfo {
         switch entryType {
         case .tvSeason(let seasonNumber, let parentSeriesID):
             return try await tvSeasonInfo(seasonNumber: seasonNumber, parentSeriesID: parentSeriesID)
@@ -64,7 +64,7 @@ actor InfoFetcher {
         }
         
         func tvSeasonInfo(seasonNumber: Int, parentSeriesID: Int) async throws -> BasicInfo {
-            try await Task.detached { [tmdbClient, language] in
+            try await Task.detached { [self] in
                 let season = try await tmdbClient.tvSeasons.details(forSeason: seasonNumber,
                                                                             inTVSeries: parentSeriesID,
                                                                             language: language.rawValue)
@@ -79,14 +79,14 @@ actor InfoFetcher {
         }
 
         func movieInfo() async throws -> BasicInfo {
-            return try await Task.detached { [tmdbClient, language] in
+            return try await Task.detached { [self] in
                 let movie = try await tmdbClient.movies.details(forMovie: id, language: language.rawValue)
                 return try await movie.basicInfo(client: tmdbClient)
             }.value
         }
 
         func tvSeriesInfo() async throws -> BasicInfo {
-            try await Task.detached { [tmdbClient, language] in
+            try await Task.detached { [self] in
                 let season = try await tmdbClient.tvSeries.details(forTVSeries: id, language: language.rawValue)
                 return try await season.basicInfo(client: tmdbClient)
             }.value

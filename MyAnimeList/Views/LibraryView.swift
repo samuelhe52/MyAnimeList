@@ -24,7 +24,7 @@ struct LibraryView: View {
                     ForEach(store.library) { entry in
                         AnimeEntryCard(entry: entry)
                             .environment(store)
-                            .tag(entry.id)
+                            .tag(entry.tmdbID)
                     }
                 }
                 .tabViewStyle(.page)
@@ -43,7 +43,7 @@ struct LibraryView: View {
                 NavigationStack {
                     SearchPage { result in
                         store.newEntryFromSearchResult(result: result)
-                        selectedEntryID = result.id
+                        selectedEntryID = result.tmdbID
                     }
                     .navigationTitle("Search TMDB")
                     .navigationBarTitleDisplayMode(.inline)

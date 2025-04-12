@@ -20,7 +20,6 @@ struct MyAnimeListTests {
         print(series.id)
         for season in seasons {
             print("name: \(season.name), id:\(season.id)")
-//            try await print(season.basicInfo(client: fetcher.tmdbClient))
         }
     }
 

@@ -21,12 +21,12 @@ actor InfoFetcher {
         self.language = language
     }
     
-    func fetchMovie(_ id: Int) async throws -> Movie {
-        try await tmdbClient.movies.details(forMovie: id, language: language.rawValue)
+    func fetchMovie(_ tmdbID: Int) async throws -> Movie {
+        try await tmdbClient.movies.details(forMovie: tmdbID, language: language.rawValue)
     }
     
-    func fetchTVSeries(_ id: Int) async throws -> TVSeries {
-        try await tmdbClient.tvSeries.details(forTVSeries: id, language: language.rawValue)
+    func fetchTVSeries(_ tmdbID: Int) async throws -> TVSeries {
+        try await tmdbClient.tvSeries.details(forTVSeries: tmdbID, language: language.rawValue)
     }
     
     func searchAll(name: String) async throws -> [Media] {
@@ -53,7 +53,7 @@ actor InfoFetcher {
         return results.results.filter { $0.genreIDs.contains(16) }
     }
     
-    func fetchInfoFromTMDB(entryType: MediaTypeMetadata, id: Int) async throws -> BasicInfo {
+    func fetchInfoFromTMDB(entryType: MediaTypeMetadata, tmdbID: Int) async throws -> BasicInfo {
         switch entryType {
         case .tvSeason(let seasonNumber, let parentSeriesID):
             return try await tvSeasonInfo(seasonNumber: seasonNumber, parentSeriesID: parentSeriesID)
@@ -80,14 +80,14 @@ actor InfoFetcher {
 
         func movieInfo() async throws -> BasicInfo {
             return try await Task.detached { [self] in
-                let movie = try await tmdbClient.movies.details(forMovie: id, language: language.rawValue)
+                let movie = try await tmdbClient.movies.details(forMovie: tmdbID, language: language.rawValue)
                 return try await movie.basicInfo(client: tmdbClient)
             }.value
         }
 
         func tvSeriesInfo() async throws -> BasicInfo {
             try await Task.detached { [self] in
-                let season = try await tmdbClient.tvSeries.details(forTVSeries: id, language: language.rawValue)
+                let season = try await tmdbClient.tvSeries.details(forTVSeries: tmdbID, language: language.rawValue)
                 return try await season.basicInfo(client: tmdbClient)
             }.value
         }

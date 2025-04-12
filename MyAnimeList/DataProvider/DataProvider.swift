@@ -8,8 +8,8 @@
 import Foundation
 import SwiftData
 
-typealias CurrentSchema = SchemaV1
-typealias AnimeEntry = SchemaV1.AnimeEntry
+typealias CurrentSchema = SchemaV2
+typealias AnimeEntry = CurrentSchema.AnimeEntry
 
 final class DataProvider: Sendable {
     static let shared = DataProvider()

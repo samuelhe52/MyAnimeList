@@ -54,7 +54,7 @@ class LibraryStore {
     @MainActor
     func newEntryFromSearchResult(result: SearchResult) {
         Task {
-            let info = try await infoFetcher.fetchInfoFromTMDB(entryType: result.typeMetadata, id: result.id)
+            let info = try await infoFetcher.fetchInfoFromTMDB(entryType: result.typeMetadata, tmdbID: result.tmdbID)
             let entry = AnimeEntry(fromInfo: info)
             try await dataProvider.dataHandler.newEntry(entry)
         }
@@ -63,7 +63,7 @@ class LibraryStore {
     /// Fetches the latest infos from tmdb for all entries and update the entries.
     func refreshInfos() async throws {
         for index in library.indices {
-            let info = try await infoFetcher.fetchInfoFromTMDB(entryType: library[index].entryType, id: library[index].id)
+            let info = try await infoFetcher.fetchInfoFromTMDB(entryType: library[index].entryType, tmdbID: library[index].tmdbID)
             try await dataProvider.dataHandler.updateEntry(id: library[index].id, info: info)
         }
     }

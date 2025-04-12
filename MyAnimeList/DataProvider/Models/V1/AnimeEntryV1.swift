@@ -1,5 +1,5 @@
 //
-//  AnimeEntry.swift
+//  AnimeEntryV1.swift
 //  MyAnimeList
 //
 //  Created by Samuel He on 2025/3/22.

@@ -15,15 +15,16 @@ class LibraryStore {
     var dataProvider: DataProvider
     private var cancellables = Set<AnyCancellable>()
 
+    private(set) var library: [AnimeEntry] = []
+    private let infoFetcher: InfoFetcher = .init()
+    var language: Language = .japanese
+    
     @MainActor
     init(dataProvider: DataProvider) {
         self.dataProvider = dataProvider
         setupUpdateData()
         try? fetchData()
     }
-    
-    private(set) var library: [AnimeEntry] = []
-    private var infoFetcher: InfoFetcher = .init()
     
     @MainActor
     func fetchData() throws {
@@ -47,14 +48,11 @@ class LibraryStore {
     }
     
     @MainActor
-    func changePreferredLanguage(_ language: Language) {
-        Task { await infoFetcher.changeLanguage(language) }
-    }
-    
-    @MainActor
     func newEntryFromSearchResult(result: SearchResult) {
         Task {
-            let info = try await infoFetcher.fetchInfoFromTMDB(entryType: result.typeMetadata, tmdbID: result.tmdbID)
+            let info = try await infoFetcher.fetchInfoFromTMDB(entryType: result.typeMetadata,
+                                                               tmdbID: result.tmdbID,
+                                                               language: language)
             let entry = AnimeEntry(fromInfo: info)
             try await dataProvider.dataHandler.newEntry(entry)
         }
@@ -63,7 +61,9 @@ class LibraryStore {
     /// Fetches the latest infos from tmdb for all entries and update the entries.
     func refreshInfos() async throws {
         for index in library.indices {
-            let info = try await infoFetcher.fetchInfoFromTMDB(entryType: library[index].entryType, tmdbID: library[index].tmdbID)
+            let info = try await infoFetcher.fetchInfoFromTMDB(entryType: library[index].entryType,
+                                                               tmdbID: library[index].tmdbID,
+                                                               language: language)
             try await dataProvider.dataHandler.updateEntry(id: library[index].id, info: info)
         }
     }

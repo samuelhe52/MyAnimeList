@@ -94,7 +94,4 @@ struct LibraryView: View {
 #Preview {
     @Previewable let store = LibraryStore(dataProvider: .forPreview)
     LibraryView(store: store)
-        .onAppear {
-            store.changePreferredLanguage(.japanese)
-        }
 }

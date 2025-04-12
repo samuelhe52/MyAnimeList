@@ -53,10 +53,9 @@ struct SearchPage: View {
             let currentQuery = self.service.query
             
             let fetcher = service.fetcher
-            Task { await fetcher.changeLanguage(language) }
             Task.detached {
-                let movies = try await fetcher.searchMovies(name: currentQuery)
-                let tvSeries = try await fetcher.searchTVSeries(name: currentQuery)
+                let movies = try await fetcher.searchMovies(name: currentQuery, language: language)
+                let tvSeries = try await fetcher.searchTVSeries(name: currentQuery, language: language)
                 
                 var moviesResults = movies.map { movie in
                     SearchResult(name: movie.title,

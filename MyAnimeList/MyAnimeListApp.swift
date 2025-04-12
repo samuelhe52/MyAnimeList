@@ -18,7 +18,7 @@ struct MyAnimeListApp: App {
         WindowGroup {
             LibraryView(store: libraryStore)
                 .onAppear {
-                    libraryStore.changePreferredLanguage(language)
+                    libraryStore.language = language
                 }
         }
     }

@@ -10,30 +10,27 @@ import SwiftUI
 import SwiftData
 import Combine
 
-@Observable
+@Observable @MainActor
 class LibraryStore {
-    var dataProvider: DataProvider
+    private let dataProvider: DataProvider
     private var cancellables = Set<AnyCancellable>()
 
     private(set) var library: [AnimeEntry] = []
     private let infoFetcher: InfoFetcher = .init()
     var language: Language = .japanese
     
-    @MainActor
     init(dataProvider: DataProvider) {
         self.dataProvider = dataProvider
         setupUpdateData()
         try? fetchData()
     }
     
-    @MainActor
     func fetchData() throws {
         let descriptor = FetchDescriptor<AnimeEntry>(sortBy: [SortDescriptor(\.dateSaved)])
         let entries = try dataProvider.sharedModelContainer.mainContext.fetch(descriptor)
         library = entries
     }
     
-    @MainActor
     func setupUpdateData() {
         NotificationCenter.default
             .publisher(for: ModelContext.didSave)
@@ -47,15 +44,12 @@ class LibraryStore {
             .store(in: &cancellables)
     }
     
-    @MainActor
-    func newEntryFromSearchResult(result: SearchResult) {
-        Task {
-            let info = try await infoFetcher.fetchInfoFromTMDB(entryType: result.typeMetadata,
-                                                               tmdbID: result.tmdbID,
-                                                               language: language)
-            let entry = AnimeEntry(fromInfo: info)
-            try await dataProvider.dataHandler.newEntry(entry)
-        }
+    func newEntryFromSearchResult(result: SearchResult) async throws {
+        let info = try await infoFetcher.fetchInfoFromTMDB(entryType: result.typeMetadata,
+                                                           tmdbID: result.tmdbID,
+                                                           language: language)
+        let entry = AnimeEntry(fromInfo: info)
+        try await dataProvider.dataHandler.newEntry(entry)
     }
     
     /// Fetches the latest infos from tmdb for all entries and update the entries.
@@ -68,17 +62,11 @@ class LibraryStore {
         }
     }
     
-    @MainActor
-    func deleteEntry(id: PersistentIdentifier) {
-        Task { try await dataProvider.dataHandler.deleteEntry(id: id) }
+    func deleteEntry(id: PersistentIdentifier) async throws {
+        try await dataProvider.dataHandler.deleteEntry(id: id)
     }
     
-    @MainActor
-    func clearLibrary() {
-        Task { try await dataProvider.dataHandler.deleteAllEntries() }
-    }
-    
-    deinit {
-        cancellables.forEach { $0.cancel() }
+    func clearLibrary() async throws {
+        try await dataProvider.dataHandler.deleteAllEntries()
     }
 }

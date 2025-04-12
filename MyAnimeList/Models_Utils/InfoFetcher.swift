@@ -58,32 +58,26 @@ actor InfoFetcher {
         }
         
         func tvSeasonInfo(seasonNumber: Int, parentSeriesID: Int) async throws -> BasicInfo {
-            try await Task.detached { [self] in
-                let season = try await tmdbClient.tvSeasons.details(forSeason: seasonNumber,
-                                                                            inTVSeries: parentSeriesID,
-                                                                            language: language.rawValue)
-                let parentSeries = try await tmdbClient.tvSeries.details(forTVSeries: parentSeriesID,
-                                                                                 language: language.rawValue)
-                var basicInfo = try await season.basicInfo(client: tmdbClient)
-                // Use the parent series' backdrop image and homepage for the season.
-                basicInfo.backdropURL = try await parentSeries.backdropURL(client: tmdbClient)
-                basicInfo.linkToDetails = parentSeries.homepageURL
-                return basicInfo
-            }.value
+            let season = try await tmdbClient.tvSeasons.details(forSeason: seasonNumber,
+                                                                inTVSeries: parentSeriesID,
+                                                                language: language.rawValue)
+            let parentSeries = try await tmdbClient.tvSeries.details(forTVSeries: parentSeriesID,
+                                                                     language: language.rawValue)
+            var basicInfo = try await season.basicInfo(client: tmdbClient)
+            // Use the parent series' backdrop image and homepage for the season.
+            basicInfo.backdropURL = try await parentSeries.backdropURL(client: tmdbClient)
+            basicInfo.linkToDetails = parentSeries.homepageURL
+            return basicInfo
         }
-
+        
         func movieInfo() async throws -> BasicInfo {
-            return try await Task.detached { [self] in
-                let movie = try await tmdbClient.movies.details(forMovie: tmdbID, language: language.rawValue)
-                return try await movie.basicInfo(client: tmdbClient)
-            }.value
+            let movie = try await tmdbClient.movies.details(forMovie: tmdbID, language: language.rawValue)
+            return try await movie.basicInfo(client: tmdbClient)
         }
-
+        
         func tvSeriesInfo() async throws -> BasicInfo {
-            try await Task.detached { [self] in
-                let season = try await tmdbClient.tvSeries.details(forTVSeries: tmdbID, language: language.rawValue)
-                return try await season.basicInfo(client: tmdbClient)
-            }.value
+            let season = try await tmdbClient.tvSeries.details(forTVSeries: tmdbID, language: language.rawValue)
+            return try await season.basicInfo(client: tmdbClient)
         }
     }
     

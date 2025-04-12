@@ -14,9 +14,7 @@ struct SearchPage: View {
     @State var service: SearchService = .init()
     @AppStorage("language") private var language: Language = .english
     var processResult: (SearchResult) -> Void
-    
-    @Environment(\.dismiss) var dismiss
-    
+        
     var body: some View {
         List {
             Picker("Language", selection: $language) {
@@ -51,9 +49,8 @@ struct SearchPage: View {
     func updateSearchResults() {
         if !service.query.isEmpty {
             let currentQuery = self.service.query
-            
             let fetcher = service.fetcher
-            Task.detached {
+            Task {
                 let movies = try await fetcher.searchMovies(name: currentQuery, language: language)
                 let tvSeries = try await fetcher.searchTVSeries(name: currentQuery, language: language)
                 
@@ -79,12 +76,10 @@ struct SearchPage: View {
                 try await moviesResults.updatePosterURLs(width: 200)
                 try await tvSeriesResults.updatePosterURLs(width: 200)
                 
-                await MainActor.run {
-                    if currentQuery == service.query {
-                        withAnimation {
-                            service.movieResults = moviesResults
-                            service.seriesResults = tvSeriesResults
-                        }
+                if currentQuery == service.query {
+                    withAnimation {
+                        service.movieResults = moviesResults
+                        service.seriesResults = tvSeriesResults
                     }
                 }
             }
@@ -121,16 +116,13 @@ struct SearchPage: View {
                     .lineLimit(3)
             }
         }
-        .onTapGesture {
-            processResult(result)
-            dismiss()
-        }
+        .onTapGesture { processResult(result) }
     }
 }
 
 @Observable
 class SearchService {
-    var fetcher: InfoFetcher = .init(language: .english)
+    let fetcher: InfoFetcher = .init(language: .english)
     var query: String = ""
     var movieResults: [SearchResult] = []
     var seriesResults: [SearchResult] = []

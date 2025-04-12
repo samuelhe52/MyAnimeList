@@ -15,16 +15,14 @@ struct LibraryView: View {
     
     @State var showAlert = false
     @State var cacheSizeResult: Result<UInt, KingfisherError>? = nil
-    @State var selectedEntryID: Int = 0
+    @State var selectedEntryID: Int?
     
     var body: some View {
         NavigationStack {
             if !store.library.isEmpty {
                 TabView(selection: $selectedEntryID) {
                     ForEach(store.library) { entry in
-                        AnimeEntryCard(entry: entry)
-                            .environment(store)
-                            .tag(entry.tmdbID)
+                        card(entry: entry).tag(entry.tmdbID)
                     }
                 }
                 .tabViewStyle(.page)
@@ -35,15 +33,16 @@ struct LibraryView: View {
                 Button("Search...") { isSearching = true }
                 HStack {
                     checkCacheButton
-                    Button("Clear", role: .destructive) { store.clearLibrary() }
+                    Button("Clear", role: .destructive) {
+                        Task { try await store.clearLibrary() }
+                    }
                 }
             }
             .buttonStyle(.bordered)
             .sheet(isPresented: $isSearching) {
                 NavigationStack {
                     SearchPage { result in
-                        store.newEntryFromSearchResult(result: result)
-                        selectedEntryID = result.tmdbID
+                        Task { try await processSearchResult(result) }
                     }
                     .navigationTitle("Search TMDB")
                     .navigationBarTitleDisplayMode(.inline)
@@ -58,11 +57,9 @@ struct LibraryView: View {
     private var checkCacheButton: some View {
         Button("Check Cache") {
             KingfisherManager.shared.cache.calculateDiskStorageSize { result in
-                Task {
-                    await MainActor.run {
-                        cacheSizeResult = result
-                        showAlert = true
-                    }
+                DispatchQueue.main.async {
+                    cacheSizeResult = result
+                    showAlert = true
                 }
             }
         }
@@ -88,6 +85,24 @@ struct LibraryView: View {
                     Text(error.localizedDescription)
                 }
             })
+    }
+    
+    private func card(entry: AnimeEntry) -> some View {
+        AnimeEntryCard(entry: entry)
+            .contextMenu {
+                Button("Delete", role: .destructive) {
+                    // TODO: Update selectedEntryID or use ScrollViews instead.
+                    Task {
+                        try await store.deleteEntry(id: entry.persistentModelID)
+                    }
+                }
+            }
+    }
+    
+    private func processSearchResult(_ result: SearchResult) async throws {
+        isSearching = false
+        try await store.newEntryFromSearchResult(result: result)
+        selectedEntryID = result.tmdbID
     }
 }
 

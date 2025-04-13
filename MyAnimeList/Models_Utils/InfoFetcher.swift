@@ -11,8 +11,12 @@ import TMDb
 actor InfoFetcher {
     let tmdbClient: TMDbClient
     
-    init(language: Language = .english) {
+    init() {
         self.tmdbClient = .init(apiKey: "***REMOVED***")
+    }
+    
+    init(httpClient: some HTTPClient) {
+        self.tmdbClient = .init(apiKey: "***REMOVED***", httpClient: httpClient)
     }
     
     func fetchMovie(_ tmdbID: Int, language: Language) async throws -> Movie {
@@ -81,7 +85,11 @@ actor InfoFetcher {
         }
     }
     
-    static let shared = InfoFetcher()
+    /// Creates a new `InfoFetcher` instance which utilizes a custom `HTTPClient`
+    /// to perform API requests in the underlying `TMDbClient`, bypassing the GFW blocking of api.themoviedb.org.
+    static var bypassGFWForTMDbAPI: InfoFetcher { .init(httpClient: RedirectingHTTPClient.bypassGFWForTMDbAPI) }
+    
+    static var shared: InfoFetcher = .init(httpClient: RedirectingHTTPClient.bypassGFWForTMDbAPI)
 }
 
 enum Language: String, CaseIterable, CustomStringConvertible {
@@ -96,4 +104,8 @@ enum Language: String, CaseIterable, CustomStringConvertible {
         case .japanese: return "Japanese"
         }
     }
+}
+
+extension RedirectingHTTPClient {
+    static let bypassGFWForTMDbAPI: Self = .init(fromHost: "api.themoviedb.org", toHost: "api.tmdb.org")
 }

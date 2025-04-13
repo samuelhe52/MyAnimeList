@@ -16,7 +16,7 @@ class LibraryStore {
     private var cancellables = Set<AnyCancellable>()
 
     private(set) var library: [AnimeEntry] = []
-    private let infoFetcher: InfoFetcher = .init()
+    private let infoFetcher: InfoFetcher = .bypassGFWForTMDbAPI
     var language: Language = .japanese
     
     init(dataProvider: DataProvider) {

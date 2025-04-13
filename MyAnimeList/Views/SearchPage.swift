@@ -122,7 +122,7 @@ struct SearchPage: View {
 
 @Observable
 class SearchService {
-    let fetcher: InfoFetcher = .init(language: .english)
+    let fetcher: InfoFetcher = .bypassGFWForTMDbAPI
     var query: String = ""
     var movieResults: [SearchResult] = []
     var seriesResults: [SearchResult] = []

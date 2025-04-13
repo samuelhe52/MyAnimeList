@@ -11,10 +11,10 @@ import Kingfisher
 typealias SearchResult = BasicInfo
 
 struct SearchPage: View {
-    @State var service: SearchService = .init()
+    @Bindable var service: SearchService
     @AppStorage("language") private var language: Language = .english
     var processResult: (SearchResult) -> Void
-        
+    
     var body: some View {
         List {
             Picker("Language", selection: $language) {
@@ -22,65 +22,33 @@ struct SearchPage: View {
                     Text($0.description).tag($0)
                 }
             }
-            if !service.seriesResults.isEmpty {
-                Section("Series") {
-                    ForEach(service.seriesResults.prefix(8), id: \.tmdbID) { series in
-                        resultItem(result: series)
-                    }
-                }
-            }
-            if !service.movieResults.isEmpty {
-                Section("Movies") {
-                    ForEach(service.movieResults.prefix(8), id: \.tmdbID) { movie in
-                        resultItem(result: movie)
-                    }
-                }
+            if service.status == .done {
+                results
             }
         }
         .searchable(text: $service.query, prompt: "Search TV animation or movies...")
-        .onSubmit(of: .search) {
-            updateSearchResults()
-        }
+        .onSubmit(of: .search) { updateResults() }
         .listStyle(.inset)
-        .onAppear { updateSearchResults() }
-        .onChange(of: language) { updateSearchResults() }
+        .onAppear { updateResults() }
+        .onChange(of: language) { updateResults() }
+        .animation(.default, value: service.movieResults)
+        .animation(.default, value: service.seriesResults)
+        .animation(.default, value: service.status)
     }
     
-    func updateSearchResults() {
-        if !service.query.isEmpty {
-            let currentQuery = self.service.query
-            let fetcher = service.fetcher
-            Task {
-                let movies = try await fetcher.searchMovies(name: currentQuery, language: language)
-                let tvSeries = try await fetcher.searchTVSeries(name: currentQuery, language: language)
-                
-                var moviesResults = movies.map { movie in
-                    SearchResult(name: movie.title,
-                              overview: movie.overview,
-                              posterPath: movie.posterPath,
-                              tmdbID: movie.id,
-                              onAirDate: movie.releaseDate,
-                              typeMetadata: .movie)
+    @ViewBuilder
+    private var results: some View {
+        if !service.seriesResults.isEmpty {
+            Section("Series") {
+                ForEach(service.seriesResults.prefix(8), id: \.tmdbID) { series in
+                    resultItem(result: series)
                 }
-                var tvSeriesResults = tvSeries.map { series in
-                    SearchResult(name: series.name,
-                              overview: series.overview,
-                              posterPath: series.posterPath,
-                              tmdbID: series.id,
-                              onAirDate: series.firstAirDate,
-                              typeMetadata: .tvSeries)
-                }
-                
-                // The poster displayed here is small and we use smaller sizes
-                // to reduce network overhead.
-                try await moviesResults.updatePosterURLs(width: 200)
-                try await tvSeriesResults.updatePosterURLs(width: 200)
-                
-                if currentQuery == service.query {
-                    withAnimation {
-                        service.movieResults = moviesResults
-                        service.seriesResults = tvSeriesResults
-                    }
+            }
+        }
+        if !service.movieResults.isEmpty {
+            Section("Movies") {
+                ForEach(service.movieResults.prefix(8), id: \.tmdbID) { movie in
+                    resultItem(result: movie)
                 }
             }
         }
@@ -118,18 +86,71 @@ struct SearchPage: View {
         }
         .onTapGesture { processResult(result) }
     }
+    
+    private func updateResults() {
+        Task { try await service.updateSearchResults(language: language) }
+    }
 }
 
-@Observable
+@Observable @MainActor
 class SearchService {
     let fetcher: InfoFetcher = .bypassGFWForTMDbAPI
-    var query: String = ""
+    var status: Status = .idle
+    var query: String
     var movieResults: [SearchResult] = []
     var seriesResults: [SearchResult] = []
+    
+    init(query: String = "") {
+        self.query = query
+    }
+    
+    func updateSearchResults(language: Language) async throws {
+        guard !query.isEmpty else { return }
+        let currentQuery = query
+        status = .fetching
+        let movies = try await fetcher.searchMovies(name: currentQuery, language: language)
+        let tvSeries = try await fetcher.searchTVSeries(name: currentQuery, language: language)
+        
+        var searchMovieResults = movies.map { movie in
+            SearchResult(name: movie.title,
+                         overview: movie.overview,
+                         posterPath: movie.posterPath,
+                         tmdbID: movie.id,
+                         onAirDate: movie.releaseDate,
+                         typeMetadata: .movie)
+        }
+        var searchTVSeriesResults = tvSeries.map { series in
+            SearchResult(name: series.name,
+                         overview: series.overview,
+                         posterPath: series.posterPath,
+                         tmdbID: series.id,
+                         onAirDate: series.firstAirDate,
+                         typeMetadata: .tvSeries)
+        }
+        
+        // The poster displayed here is small and we use smaller sizes
+        // to reduce network overhead.
+        try await searchMovieResults.updatePosterURLs(width: 200)
+        try await searchTVSeriesResults.updatePosterURLs(width: 200)
+
+        if currentQuery == query {
+            movieResults = searchMovieResults
+            seriesResults = searchTVSeriesResults
+        }
+        status = .done
+    }
+    
+    enum Status: Equatable {
+        case idle
+        case fetching
+        case done
+    }
 }
 
 #Preview {
+    @Previewable @State var service = SearchService(query: "K-on!")
+    
     NavigationStack {
-        SearchPage { _ in }
+        SearchPage(service: service) { _ in }
     }
 }

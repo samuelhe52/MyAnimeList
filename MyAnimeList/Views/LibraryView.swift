@@ -41,7 +41,7 @@ struct LibraryView: View {
             .buttonStyle(.bordered)
             .sheet(isPresented: $isSearching) {
                 NavigationStack {
-                    SearchPage { result in
+                    SearchPage(service: .init()) { result in
                         Task { try await processSearchResult(result) }
                     }
                     .navigationTitle("Search TMDB")

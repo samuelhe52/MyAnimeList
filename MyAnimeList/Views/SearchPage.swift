@@ -63,7 +63,8 @@ struct SearchPage: View {
                     .placeholder {
                         ProgressView()
                     }
-                    .cacheMemoryOnly()
+                    .cacheOriginalImage()
+                    .diskCacheExpiration(.days(1))
                     .cancelOnDisappear(true)
                     .scaledToFit()
                     .clipShape(.rect(cornerRadius: 6))
@@ -96,11 +97,15 @@ struct SearchPage: View {
 class SearchService {
     let fetcher: InfoFetcher = .bypassGFWForTMDbAPI
     var status: Status = .idle
-    var query: String
+    var query: String {
+        didSet {
+            UserDefaults.standard.set(query, forKey: "SearchPageQuery")
+        }
+    }
     var movieResults: [SearchResult] = []
     var seriesResults: [SearchResult] = []
     
-    init(query: String = "") {
+    init(query: String = UserDefaults.standard.string(forKey: "SearchPageQuery") ?? "") {
         self.query = query
     }
     

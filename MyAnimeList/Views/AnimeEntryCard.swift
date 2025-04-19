@@ -15,6 +15,7 @@ struct AnimeEntryCard: View {
     
     var body: some View {
         image
+            .scaledToFit()
             .padding()
             .alert("Image Load Error", isPresented: .constant(imageLoadError != nil), presenting: imageLoadError) { _ in
                 Button("OK", role: .cancel) {
@@ -32,13 +33,11 @@ struct AnimeEntryCard: View {
     @ViewBuilder
     private var image: some View {
         if let posterImage {
-                Image(uiImage: posterImage)
-                    .resizable()
-                    .clipShape(.rect(cornerRadius: 10))
-                    .scaledToFit()
+            Image(uiImage: posterImage)
+                .resizable()
+                .clipShape(.rect(cornerRadius: 10))
         } else {
             ProgressView()
-                .frame(idealWidth: 150, idealHeight: 150)
         }
     }
     

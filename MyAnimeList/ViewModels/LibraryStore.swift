@@ -22,10 +22,10 @@ class LibraryStore {
     init(dataProvider: DataProvider) {
         self.dataProvider = dataProvider
         setupUpdateData()
-        try? fetchData()
+        try? fetchAndUpdate()
     }
     
-    func fetchData() throws {
+    func fetchAndUpdate() throws {
         let descriptor = FetchDescriptor<AnimeEntry>(sortBy: [SortDescriptor(\.dateSaved)])
         let entries = try dataProvider.sharedModelContainer.mainContext.fetch(descriptor)
         library = entries
@@ -36,7 +36,7 @@ class LibraryStore {
             .publisher(for: ModelContext.didSave)
             .sink { [weak self] _ in
                 do {
-                    try self?.fetchData()
+                    try self?.fetchAndUpdate()
                 } catch {
                     print(error)
                 }
@@ -44,7 +44,11 @@ class LibraryStore {
             .store(in: &cancellables)
     }
     
+    
+    /// Creates a new `AnimeEntry` from a `SearchResult` and adds it to the library.
+    /// It does nothing if an entry with the same TMDB ID already exist.
     func newEntryFromSearchResult(result: SearchResult) async throws {
+        guard library.map({ $0.tmdbID }).contains(result.tmdbID) == false else { return }
         let info = try await infoFetcher.fetchInfoFromTMDB(entryType: result.typeMetadata,
                                                            tmdbID: result.tmdbID,
                                                            language: language)

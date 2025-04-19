@@ -10,22 +10,27 @@ import Kingfisher
 
 struct LibraryView: View {
     var store: LibraryStore
-    @State var isSearching: Bool = false
+    @State private var isSearching: Bool = false
     @AppStorage("PreferredMetadataLanguage") var language: Language = .japanese
     
-    @State var showAlert = false
-    @State var cacheSizeResult: Result<UInt, KingfisherError>? = nil
-    @State var selectedEntryID: Int?
+    @State private var showCacheAlert = false
+    @State private var showClearAllAlert = false
+    @State private var cacheSizeResult: Result<UInt, KingfisherError>? = nil
+    @State private var scrolledID: Int?
     
     var body: some View {
         NavigationStack {
             if !store.library.isEmpty {
-                TabView(selection: $selectedEntryID) {
-                    ForEach(store.library) { entry in
-                        card(entry: entry).tag(entry.tmdbID)
-                    }
+                ScrollView(.horizontal) {
+                    LazyHStack {
+                        ForEach(store.library, id: \.tmdbID) { entry in
+                            card(entry: entry)
+                                .containerRelativeFrame(.horizontal)
+                        }
+                    }.scrollTargetLayout()
                 }
-                .tabViewStyle(.page)
+                .scrollPosition(id: $scrolledID)
+                .scrollTargetBehavior(.viewAligned)
             } else {
                 Text("The library is empty.")
             }
@@ -33,9 +38,7 @@ struct LibraryView: View {
                 Button("Search...") { isSearching = true }
                 HStack {
                     checkCacheButton
-                    Button("Clear", role: .destructive) {
-                        Task { try await store.clearLibrary() }
-                    }
+                    clearAllButton
                 }
             }
             .buttonStyle(.bordered)
@@ -49,9 +52,20 @@ struct LibraryView: View {
                 }
             }
         }
-        .animation(.smooth, value: selectedEntryID)
         .animation(.default, value: store.library)
         .padding(.vertical)
+    }
+    
+    private var clearAllButton: some View {
+        Button("Clear all",  role: .destructive) {
+            showClearAllAlert = true
+        }
+        .alert("Clear all entries?", isPresented: $showClearAllAlert) {
+            Button("Clear", role: .destructive) {
+                Task { try await store.clearLibrary() }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
     }
     
     private var checkCacheButton: some View {
@@ -59,13 +73,13 @@ struct LibraryView: View {
             KingfisherManager.shared.cache.calculateDiskStorageSize { result in
                 DispatchQueue.main.async {
                     cacheSizeResult = result
-                    showAlert = true
+                    showCacheAlert = true
                 }
             }
         }
         .alert(
             "Disk Cache",
-            isPresented: $showAlert,
+            isPresented: $showCacheAlert,
             presenting: cacheSizeResult,
             actions: { result in
                 switch result {
@@ -91,8 +105,11 @@ struct LibraryView: View {
         AnimeEntryCard(entry: entry)
             .contextMenu {
                 Button("Delete", role: .destructive) {
-                    // TODO: Update selectedEntryID or use ScrollViews instead.
                     Task {
+                        withAnimation {
+                            scrolledID = scrollIDAfterDelete(deletedID: entry.tmdbID,
+                                                             strategy: .next)
+                        }
                         try await store.deleteEntry(id: entry.persistentModelID)
                     }
                 }
@@ -102,11 +119,32 @@ struct LibraryView: View {
     private func processSearchResult(_ result: SearchResult) async throws {
         isSearching = false
         try await store.newEntryFromSearchResult(result: result)
-        selectedEntryID = result.tmdbID
+        withAnimation {
+            scrolledID = result.tmdbID
+        }
+    }
+}
+
+extension LibraryView {
+    private func scrollIDAfterDelete(deletedID: Int, strategy: ScrollAfterDeleteStrategy) -> Int? {
+        guard let index = store.library.firstIndex(where: { $0.tmdbID == deletedID }) else { return nil }
+        switch strategy {
+        case .next:
+            return index < store.library.count - 1 ?
+            store.library[index + 1].tmdbID : nil
+        case .previous:
+            return index > 0 ?
+            store.library[index - 1].tmdbID : nil
+        }
+    }
+    
+    enum ScrollAfterDeleteStrategy {
+        case next
+        case previous
     }
 }
 
 #Preview {
-    @Previewable let store = LibraryStore(dataProvider: .forPreview)
+    @Previewable let store = LibraryStore(dataProvider: .default)
     LibraryView(store: store)
 }

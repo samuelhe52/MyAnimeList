@@ -10,8 +10,8 @@ import SwiftData
 
 @main
 struct MyAnimeListApp: App {
-    let dataProvider = DataProvider.shared
-    @State var libraryStore: LibraryStore = .init(dataProvider: .shared)
+    let dataProvider = DataProvider.default
+    @State var libraryStore: LibraryStore = .init(dataProvider: .default)
     @AppStorage("PreferredMetadataLanguage") var language: Language = .japanese
 
     var body: some Scene {

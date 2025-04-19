@@ -12,7 +12,7 @@ typealias CurrentSchema = SchemaV2
 typealias AnimeEntry = CurrentSchema.AnimeEntry
 
 final class DataProvider: Sendable {
-    static let shared = DataProvider()
+    static let `default` = DataProvider()
     static let forPreview = DataProvider(inMemory: true)
     
     let sharedModelContainer: ModelContainer

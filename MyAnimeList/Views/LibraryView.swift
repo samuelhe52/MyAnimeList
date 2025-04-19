@@ -7,10 +7,12 @@
 
 import SwiftUI
 import Kingfisher
+import Combine
 
 struct LibraryView: View {
     var store: LibraryStore
     @State private var isSearching: Bool = false
+    @State private var isLandscape: Bool = UIDevice.current.orientation.isLandscape
     @AppStorage("PreferredMetadataLanguage") var language: Language = .japanese
     
     @State private var showCacheAlert = false
@@ -25,7 +27,8 @@ struct LibraryView: View {
                     LazyHStack {
                         ForEach(store.library, id: \.tmdbID) { entry in
                             card(entry: entry)
-                                .containerRelativeFrame(.horizontal)
+                                .containerRelativeFrame(!isLandscape ? .horizontal
+                                                        : .vertical)
                         }
                     }.scrollTargetLayout()
                 }
@@ -52,8 +55,19 @@ struct LibraryView: View {
                 }
             }
         }
+        .onReceive(
+            NotificationCenter.default
+                .publisher(for: UIDevice.orientationDidChangeNotification),
+            perform: { _ in
+                let orientation = UIDevice.current.orientation
+                isLandscape = orientation.isLandscape
+            }
+        )
         .animation(.default, value: store.library)
         .padding(.vertical)
+//        .onChange(of: scrolledID) {
+//            print(store.library[scrolledID ?? 0]?.name ?? "")
+//        }
     }
     
     private var clearAllButton: some View {

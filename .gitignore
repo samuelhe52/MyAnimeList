@@ -64,3 +64,5 @@ fastlane/test_output
 # MacOS system files
 .DS_Store
 
+# Design related resources
+Media/

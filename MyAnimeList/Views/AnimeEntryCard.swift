@@ -7,23 +7,20 @@
 
 import SwiftUI
 import Kingfisher
+import AlertToast
+import os
+
+let logger = Logger(subsystem: "MyAnimeList", category: "AnimeEntryCard")
 
 struct AnimeEntryCard: View {
     var entry: AnimeEntry
     @State private var posterImage: UIImage? = nil
-    @State private var imageLoadError: Error? = nil
+    @State private var imageMissing: Bool = false
     
     var body: some View {
         image
             .scaledToFit()
             .padding()
-            .alert("Image Load Error", isPresented: .constant(imageLoadError != nil), presenting: imageLoadError) { _ in
-                Button("OK", role: .cancel) {
-                    imageLoadError = nil
-                }
-            } message: { error in
-                Text(error.localizedDescription)
-            }
             .task { await loadImage() }
             .onChange(of: entry.posterURL) {
                 Task { await loadImage() }
@@ -32,24 +29,42 @@ struct AnimeEntryCard: View {
     
     @ViewBuilder
     private var image: some View {
-        if let posterImage {
-            Image(uiImage: posterImage)
-                .resizable()
-                .clipShape(.rect(cornerRadius: 10))
+        if !imageMissing {
+            if let posterImage {
+                Image(uiImage: posterImage)
+                    .resizable()
+                    .clipShape(.rect(cornerRadius: 10))
+            } else {
+                ProgressView()
+            }
         } else {
-            ProgressView()
+            Image("missing_image_resource")
         }
     }
     
     private func loadImage() async {
-        guard let url = entry.posterURL else { return }
-        do {
-            let result = try await KingfisherManager.shared.retrieveImage(with: url)
-            withAnimation {
-                posterImage = result.image
+        let kfRetrieveOptions: KingfisherOptionsInfo = [
+            .cacheOriginalImage,
+            .diskCacheExpiration(.days(90)),
+            .onFailureImage(UIImage(named: "missing_image_resource"))
+        ]
+        
+        if let url = entry.posterURL {
+            do {
+                let result = try await KingfisherManager.shared
+                    .retrieveImage(with: url, options: kfRetrieveOptions)
+                withAnimation {
+                    posterImage = result.image
+                }
+            } catch {
+                logger.warning("Error loading image: \(error)")
             }
-        } catch {
-            imageLoadError = error
+        } else {
+            imageMissing = true
         }
     }
+}
+
+#Preview {
+    AnimeEntryCard(entry: .template())
 }

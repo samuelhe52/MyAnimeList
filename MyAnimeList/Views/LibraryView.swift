@@ -133,7 +133,10 @@ struct LibraryView: View {
     
     private func card(entry: AnimeEntry) -> some View {
         AnimeEntryCard(entry: entry)
-            .transition(.move(edge: .top).combined(with: .opacity).animation(.default))
+            .transition(
+                .asymmetric(insertion: .opacity, removal: .move(edge: .top).combined(with: .opacity))
+                .animation(.default)
+            )
             .toast(isPresenting: $showDeleteToast, duration: 3, alert: {
                 AlertToast(displayMode: .alert, type: .regular,
                            title: "Delete Entry?",

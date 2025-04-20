@@ -56,20 +56,10 @@ struct SearchPage: View {
     
     private func resultItem(result: SearchResult) -> some View {
         HStack {
-            if let url = result.posterURL {
-                KFImage(url)
-                    .resizable()
-                    .fade(duration: 0.3)
-                    .placeholder {
-                        ProgressView()
-                    }
-                    .cacheOriginalImage()
-                    .diskCacheExpiration(.days(1))
-                    .cancelOnDisappear(true)
-                    .scaledToFit()
-                    .clipShape(.rect(cornerRadius: 6))
-                    .frame(width: 60, height: 90)
-            }
+            poster(url: result.posterURL)
+                .scaledToFit()
+                .clipShape(.rect(cornerRadius: 6))
+                .frame(width: 60, height: 90)
             VStack(alignment: .leading) {
                 Text(result.name)
                     .bold()
@@ -86,6 +76,24 @@ struct SearchPage: View {
             }
         }
         .onTapGesture { processResult(result) }
+    }
+    
+    @ViewBuilder
+    private func poster(url: URL?) -> some View {
+        if let url {
+            KFImage(url)
+                .resizable()
+                .fade(duration: 0.3)
+                .placeholder {
+                    ProgressView()
+                }
+                .cacheOriginalImage()
+                .diskCacheExpiration(.days(1))
+                .cancelOnDisappear(true)
+        } else {
+            Image("missing_image_resource")
+                .resizable()
+        }
     }
     
     private func updateResults() {

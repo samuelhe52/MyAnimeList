@@ -66,11 +66,25 @@ class LibraryStore {
         }
     }
     
-    func deleteEntry(id: PersistentIdentifier) async throws {
+    func deleteEntry(withID id: PersistentIdentifier) async throws {
         try await dataProvider.dataHandler.deleteEntry(id: id)
     }
     
     func clearLibrary() async throws {
         try await dataProvider.dataHandler.deleteAllEntries()
+    }
+}
+
+// This is where we place debug-specific code.
+extension LibraryStore {
+    /// Mock delete, doesn't really touch anything in the persisted data model. Restores after 1.5 seconds.
+    func mockDeleteEntry(withId: PersistentIdentifier) {
+        if let index = library.firstIndex(where: { $0.id == withId }) {
+            let entry = library[index]
+            library.remove(at: index)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                self?.library.insert(entry, at: index)
+            }
+        }
     }
 }

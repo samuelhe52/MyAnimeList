@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9F8113582DB4AF8200DD903B /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = 9F8113572DB4AF8200DD903B /* AlertToast */; };
 		9F8D665F2D05609200CF355D /* TMDb in Frameworks */ = {isa = PBXBuildFile; productRef = 9F8D665E2D05609200CF355D /* TMDb */; };
 		9FB6FEF12D8FCE5A00B423D0 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 9FB6FEF02D8FCE5A00B423D0 /* Kingfisher */; };
 /* End PBXBuildFile section */
@@ -57,6 +58,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9F8113582DB4AF8200DD903B /* AlertToast in Frameworks */,
 				9FB6FEF12D8FCE5A00B423D0 /* Kingfisher in Frameworks */,
 				9F8D665F2D05609200CF355D /* TMDb in Frameworks */,
 			);
@@ -121,6 +123,7 @@
 			packageProductDependencies = (
 				9F8D665E2D05609200CF355D /* TMDb */,
 				9FB6FEF02D8FCE5A00B423D0 /* Kingfisher */,
+				9F8113572DB4AF8200DD903B /* AlertToast */,
 			);
 			productName = MyAnimeList;
 			productReference = 9F8D66302D055FEF00CF355D /* MyAnimeList.app */;
@@ -207,6 +210,7 @@
 			packageReferences = (
 				9F8D665D2D05609200CF355D /* XCRemoteSwiftPackageReference "TMDb" */,
 				9FB6FEEF2D8FCE5A00B423D0 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				9F8113562DB4AF8200DD903B /* XCRemoteSwiftPackageReference "AlertToast" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9F8D66312D055FEF00CF355D /* Products */;
@@ -571,6 +575,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		9F8113562DB4AF8200DD903B /* XCRemoteSwiftPackageReference "AlertToast" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/elai950/AlertToast.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.3.9;
+			};
+		};
 		9F8D665D2D05609200CF355D /* XCRemoteSwiftPackageReference "TMDb" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/adamayoung/TMDb";
@@ -590,6 +602,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		9F8113572DB4AF8200DD903B /* AlertToast */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9F8113562DB4AF8200DD903B /* XCRemoteSwiftPackageReference "AlertToast" */;
+			productName = AlertToast;
+		};
 		9F8D665E2D05609200CF355D /* TMDb */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9F8D665D2D05609200CF355D /* XCRemoteSwiftPackageReference "TMDb" */;

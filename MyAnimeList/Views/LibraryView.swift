@@ -8,6 +8,8 @@
 import SwiftUI
 import Kingfisher
 import Combine
+import AlertToast
+import SwiftData
 
 struct LibraryView: View {
     var store: LibraryStore
@@ -15,45 +17,12 @@ struct LibraryView: View {
     @State private var isLandscape: Bool = UIDevice.current.orientation.isLandscape
     @AppStorage("PreferredMetadataLanguage") var language: Language = .japanese
     
-    @State private var showCacheAlert = false
-    @State private var showClearAllAlert = false
-    @State private var cacheSizeResult: Result<UInt, KingfisherError>? = nil
     @State private var scrolledID: Int?
     
     var body: some View {
         NavigationStack {
-            if !store.library.isEmpty {
-                ScrollView(.horizontal) {
-                    LazyHStack {
-                        ForEach(store.library, id: \.tmdbID) { entry in
-                            card(entry: entry)
-                                .containerRelativeFrame(!isLandscape ? .horizontal
-                                                        : .vertical)
-                        }
-                    }.scrollTargetLayout()
-                }
-                .scrollPosition(id: $scrolledID)
-                .scrollTargetBehavior(.viewAligned)
-            } else {
-                Text("The library is empty.")
-            }
-            VStack{
-                Button("Search...") { isSearching = true }
-                HStack {
-                    checkCacheButton
-                    clearAllButton
-                }
-            }
-            .buttonStyle(.bordered)
-            .sheet(isPresented: $isSearching) {
-                NavigationStack {
-                    SearchPage(service: .init()) { result in
-                        Task { try await processSearchResult(result) }
-                    }
-                    .navigationTitle("Search TMDB")
-                    .navigationBarTitleDisplayMode(.inline)
-                }
-            }
+            library
+            controls
         }
         .onReceive(
             NotificationCenter.default
@@ -63,11 +32,56 @@ struct LibraryView: View {
                 isLandscape = orientation.isLandscape
             }
         )
-        .animation(.default, value: store.library)
         .padding(.vertical)
-//        .onChange(of: scrolledID) {
-//            print(store.library[scrolledID ?? 0]?.name ?? "")
-//        }
+        .onChange(of: scrolledID) {
+            if let entry = store.library[scrolledID ?? 0] {
+                print(entry.name)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var library: some View {
+        if !store.library.isEmpty {
+            ScrollView(.horizontal) {
+                LazyHStack {
+                    ForEach(store.library, id: \.tmdbID) { entry in
+                        card(entry: entry)
+                    }
+                }.scrollTargetLayout()
+                
+            }
+            .scrollPosition(id: $scrolledID)
+            .scrollTargetBehavior(.viewAligned)
+            .animation(.default, value: store.library)
+        } else {
+            Text("The library is empty.")
+        }
+    }
+    
+    @State private var showCacheAlert = false
+    @State private var showClearAllAlert = false
+    @State private var cacheSizeResult: Result<UInt, KingfisherError>? = nil
+    
+    @ViewBuilder
+    private var controls: some View {
+        VStack{
+            Button("Search...") { isSearching = true }
+            HStack {
+                checkCacheButton
+                clearAllButton
+            }
+        }
+        .buttonStyle(.bordered)
+        .sheet(isPresented: $isSearching) {
+            NavigationStack {
+                SearchPage(service: .init()) { result in
+                    Task { try await processSearchResult(result) }
+                }
+                .navigationTitle("Search TMDB")
+                .navigationBarTitleDisplayMode(.inline)
+            }
+        }
     }
     
     private var clearAllButton: some View {
@@ -115,19 +129,26 @@ struct LibraryView: View {
             })
     }
     
+    @State var showDeleteToast: Bool = false
+    
     private func card(entry: AnimeEntry) -> some View {
         AnimeEntryCard(entry: entry)
+            .transition(.move(edge: .top).combined(with: .opacity).animation(.default))
+            .toast(isPresenting: $showDeleteToast, duration: 3, alert: {
+                AlertToast(displayMode: .alert, type: .regular,
+                           title: "Delete Entry?",
+                           subTitle: "Tap me to confirm.")
+            }, onTap: {
+                Task { try await store.deleteEntry(withID: entry.id) }
+            })
             .contextMenu {
                 Button("Delete", role: .destructive) {
-                    Task {
-                        withAnimation {
-                            scrolledID = scrollIDAfterDelete(deletedID: entry.tmdbID,
-                                                             strategy: .next)
-                        }
-                        try await store.deleteEntry(id: entry.persistentModelID)
-                    }
+                    showDeleteToast = true
                 }
             }
+            .containerRelativeFrame(!isLandscape ? .horizontal
+                                    : .vertical)
+
     }
     
     private func processSearchResult(_ result: SearchResult) async throws {
@@ -139,22 +160,11 @@ struct LibraryView: View {
     }
 }
 
+
+// This is where we place debug-specific code.
 extension LibraryView {
-    private func scrollIDAfterDelete(deletedID: Int, strategy: ScrollAfterDeleteStrategy) -> Int? {
-        guard let index = store.library.firstIndex(where: { $0.tmdbID == deletedID }) else { return nil }
-        switch strategy {
-        case .next:
-            return index < store.library.count - 1 ?
-            store.library[index + 1].tmdbID : nil
-        case .previous:
-            return index > 0 ?
-            store.library[index - 1].tmdbID : nil
-        }
-    }
-    
-    enum ScrollAfterDeleteStrategy {
-        case next
-        case previous
+    private func mockDelete(withID id: PersistentIdentifier) {
+        store.mockDeleteEntry(withId: id)
     }
 }
 

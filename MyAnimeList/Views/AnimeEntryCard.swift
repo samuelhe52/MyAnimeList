@@ -9,7 +9,7 @@ import SwiftUI
 import Kingfisher
 
 struct AnimeEntryCard: View {
-    var entry: AnimeEntry    
+    var entry: AnimeEntry
     @State private var posterImage: UIImage? = nil
     @State private var imageLoadError: Error? = nil
     

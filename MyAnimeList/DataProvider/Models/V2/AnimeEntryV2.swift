@@ -111,7 +111,9 @@ extension SchemaV2 {
                       typeMetadata: entryType)
         }
         
-        static var template: Self { .init(name: "Template", entryType: .movie, tmdbID: 0) }
+        static func template(id: Int = 0) -> Self {
+            .init(name: "Template", entryType: .movie, tmdbID: id)
+        }
     }
     
     enum Status: Equatable, CaseIterable {

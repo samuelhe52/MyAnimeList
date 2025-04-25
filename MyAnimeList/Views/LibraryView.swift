@@ -18,6 +18,16 @@ struct LibraryView: View {
     @AppStorage("PreferredMetadataLanguage") var language: Language = .japanese
     
     @State private var scrolledID: Int?
+    private let scrolledIDSubject = PassthroughSubject<Int?, Never>()
+    private let writer: DebouncedIntUserDefaultsWriter
+    
+    init(store: LibraryStore) {
+        self.store = store
+        let persistedScrollPosition = UserDefaults.standard.integer(forKey: "persistedScrolledID")
+        self._scrolledID = .init(initialValue: persistedScrollPosition)
+        self.writer = DebouncedIntUserDefaultsWriter(publisher: scrolledIDSubject.eraseToAnyPublisher(),
+                                                forKey: "persistedScrolledID")
+    }
     
     var body: some View {
         NavigationStack {
@@ -34,11 +44,9 @@ struct LibraryView: View {
             }
         )
         .padding(.vertical)
-//        .onChange(of: scrolledID) {
-//            if let entry = store.library[scrolledID ?? 0] {
-//                print(entry.name)
-//            }
-//        }
+        .onChange(of: scrolledID) {
+            scrolledIDSubject.send(scrolledID)
+        }
     }
     
     @ViewBuilder
@@ -159,6 +167,19 @@ struct LibraryView: View {
     }
 }
 
+class DebouncedIntUserDefaultsWriter {
+    private var cancellable: AnyCancellable?
+    
+    init<P: Publisher>(publisher: P, forKey key: String, delay: TimeInterval = 0.5) where P.Output == Int?, P.Failure == Never {
+        let queue = DispatchQueue(label: "com.samuelhe.MyAnimeList.userdefaults.intwriter", qos: .background)
+        
+        self.cancellable = publisher
+            .debounce(for: .seconds(delay), scheduler: queue)
+            .sink { value in
+                UserDefaults.standard.set(value, forKey: key)
+            }
+    }
+}
 
 // This is where we place debug-specific code.
 extension LibraryView {

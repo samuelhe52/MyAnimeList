@@ -69,6 +69,11 @@ actor InfoFetcher {
                                                                      language: language.rawValue)
             var basicInfo = try await season.basicInfo(client: tmdbClient)
             // Use the parent series' backdrop image and homepage for the season.
+            let seasonPosterPath = try await tmdbClient.tvSeasons.images(forSeason: seasonNumber,
+                                                           inTVSeries: parentSeriesID)
+                .posters.bestQuality?.filePath
+            let seasonPoster = try await tmdbClient.imagesConfiguration.posterURL(for: seasonPosterPath)
+            basicInfo.posterURL = seasonPoster
             basicInfo.backdropURL = try await parentSeries.backdropURL(client: tmdbClient)
             basicInfo.linkToDetails = parentSeries.homepageURL
             return basicInfo

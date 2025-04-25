@@ -13,6 +13,7 @@ struct BasicInfo: Equatable, Identifiable {
     var posterPath: URL?
     var posterURL: URL?
     var backdropURL: URL?
+    var logoURL: URL?
     var tmdbID: Int
     var onAirDate: Date?
     var linkToDetails: URL?

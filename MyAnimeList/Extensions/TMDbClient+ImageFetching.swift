@@ -49,15 +49,18 @@ extension TMDbClient {
     }
     
     func posters(from collection: ImageCollection) async -> [URL] {
-        return await urlsFromImageMetadata(resources: collection.posters, imageType: .poster)
+        return await urlsFromImageMetadata(resources: collection.posters.filterAndSortByBestQuality,
+                                           imageType: .poster)
     }
     
     func backdrops(from collection: ImageCollection) async -> [URL] {
-        return await urlsFromImageMetadata(resources: collection.backdrops, imageType: .backdrop)
+        return await urlsFromImageMetadata(resources: collection.backdrops.filterAndSortByBestQuality,
+                                           imageType: .backdrop)
     }
     
     func logos(from collection: ImageCollection) async -> [URL] {
-        return await urlsFromImageMetadata(resources: collection.logos, imageType: .logo)
+        return await urlsFromImageMetadata(resources: collection.logos.filterAndSortByBestQuality,
+                                           imageType: .logo)
     }
 }
 

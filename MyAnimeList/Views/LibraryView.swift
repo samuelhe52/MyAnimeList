@@ -136,27 +136,15 @@ struct LibraryView: View {
             Task { try await store.refreshInfos() }
         }
     }
-    
-    @State var showDeleteToast: Bool = false
-    
+        
     private func card(entry: AnimeEntry) -> some View {
-        AnimeEntryCard(entry: entry)
+        AnimeEntryCard(entry: entry, onDelete: {
+            Task { try await store.deleteEntry(withID: entry.id) }
+        })
             .transition(
                 .asymmetric(insertion: .opacity, removal: .move(edge: .top).combined(with: .opacity))
                 .animation(.default)
             )
-            .toast(isPresenting: $showDeleteToast, duration: 3, alert: {
-                AlertToast(displayMode: .alert, type: .regular,
-                           title: "Delete Entry?",
-                           subTitle: "Tap me to confirm.")
-            }, onTap: {
-                Task { try await store.deleteEntry(withID: entry.id) }
-            })
-            .contextMenu {
-                Button("Delete", role: .destructive) {
-                    showDeleteToast = true
-                }
-            }
             .containerRelativeFrame(!isLandscape ? .horizontal
                                     : .vertical)
 

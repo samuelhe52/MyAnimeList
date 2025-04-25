@@ -24,6 +24,7 @@ struct LibraryView: View {
             library
             controls
         }
+        .animation(.default, value: store.library)
         .onReceive(
             NotificationCenter.default
                 .publisher(for: UIDevice.orientationDidChangeNotification),
@@ -33,11 +34,11 @@ struct LibraryView: View {
             }
         )
         .padding(.vertical)
-        .onChange(of: scrolledID) {
-            if let entry = store.library[scrolledID ?? 0] {
-                print(entry.name)
-            }
-        }
+//        .onChange(of: scrolledID) {
+//            if let entry = store.library[scrolledID ?? 0] {
+//                print(entry.name)
+//            }
+//        }
     }
     
     @ViewBuilder
@@ -49,11 +50,9 @@ struct LibraryView: View {
                         card(entry: entry)
                     }
                 }.scrollTargetLayout()
-                
             }
             .scrollPosition(id: $scrolledID)
             .scrollTargetBehavior(.viewAligned)
-            .animation(.default, value: store.library)
         } else {
             Text("The library is empty.")
         }
@@ -65,11 +64,14 @@ struct LibraryView: View {
     
     @ViewBuilder
     private var controls: some View {
-        VStack{
+        HStack{
             Button("Search...") { isSearching = true }
-            HStack {
+            Menu {
                 checkCacheButton
+                refreshInfosButton
                 clearAllButton
+            } label: {
+                Image(systemName: "ellipsis.circle")
             }
         }
         .buttonStyle(.bordered)
@@ -82,28 +84,11 @@ struct LibraryView: View {
                 .navigationBarTitleDisplayMode(.inline)
             }
         }
-    }
-    
-    private var clearAllButton: some View {
-        Button("Clear all",  role: .destructive) {
-            showClearAllAlert = true
-        }
         .alert("Clear all entries?", isPresented: $showClearAllAlert) {
             Button("Clear", role: .destructive) {
                 Task { try await store.clearLibrary() }
             }
             Button("Cancel", role: .cancel) {}
-        }
-    }
-    
-    private var checkCacheButton: some View {
-        Button("Check Cache") {
-            KingfisherManager.shared.cache.calculateDiskStorageSize { result in
-                DispatchQueue.main.async {
-                    cacheSizeResult = result
-                    showCacheAlert = true
-                }
-            }
         }
         .alert(
             "Disk Cache",
@@ -127,6 +112,29 @@ struct LibraryView: View {
                     Text(error.localizedDescription)
                 }
             })
+    }
+    
+    private var clearAllButton: some View {
+        Button("Clear all", systemImage: "trash", role: .destructive) {
+            showClearAllAlert = true
+        }
+    }
+    
+    private var checkCacheButton: some View {
+        Button("Check Cache", systemImage: "archivebox") {
+            KingfisherManager.shared.cache.calculateDiskStorageSize { result in
+                DispatchQueue.main.async {
+                    cacheSizeResult = result
+                    showCacheAlert = true
+                }
+            }
+        }
+    }
+    
+    private var refreshInfosButton: some View {
+        Button("Refresh Infos", systemImage: "arrow.clockwise") {
+            Task { try await store.refreshInfos() }
+        }
     }
     
     @State var showDeleteToast: Bool = false

@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import SwiftData
 import Combine
+import Kingfisher
 
 @Observable @MainActor
 class LibraryStore {
@@ -64,6 +65,8 @@ class LibraryStore {
                                                                language: language)
             try await dataProvider.dataHandler.updateEntry(id: library[index].id, info: info)
         }
+        await KingfisherManager.shared.cache.clearDiskCache()
+        KingfisherManager.shared.cache.clearMemoryCache()
     }
     
     func deleteEntry(withID id: PersistentIdentifier) async throws {

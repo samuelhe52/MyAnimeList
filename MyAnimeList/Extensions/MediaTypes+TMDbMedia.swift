@@ -10,8 +10,13 @@ import TMDb
 
 protocol TMDbMedia: Identifiable, Sendable, Equatable {
     func basicInfo(client: TMDbClient) async throws -> BasicInfo
+    
+    /// Fetches the largest (best quality) poster image for this media.
     func posterURL(client: TMDbClient) async throws -> URL?
+    /// Fetches the largest (best quality) backdrop image for this media.
     func backdropURL(client: TMDbClient) async throws -> URL?
+    /// Fetches the largest (best quality) logo image for this media.
+    func logoURL(client: TMDbClient) async throws -> URL?
     
     var id: Int { get }
     var name: String { get }
@@ -20,13 +25,14 @@ protocol TMDbMedia: Identifiable, Sendable, Equatable {
     var linkToDetails: URL? { get }
 }
 
-extension TMDbClient {
-    var imagesConfiguration: ImagesConfiguration {
-        get async throws {
-            let configurationService = configurations
-            let apiConfiguration = try await configurationService.apiConfiguration()
-            return apiConfiguration.images
-        }
+extension Array where Element == ImageMetadata {
+    var filterAndSortByBestQuality: [ImageMetadata] {
+        self.filter { ($0.voteCount ?? 0) > 0 && ($0.voteAverage ?? 0) > 0 }
+            .sorted { $0.height > $1.height }
+    }
+    
+    var bestQuality: ImageMetadata? {
+        filterAndSortByBestQuality.first
     }
 }
 
@@ -49,13 +55,41 @@ extension Movie: TMDbMedia {
                      linkToDetails: homepageURL,
                      typeMetadata: .movie)
     }
+        
+    func posterURLs(client: TMDb.TMDbClient) async throws -> [URL] {
+        let collection = try await client.movies.images(forMovie: id, filter: .init(languages: [Language.japanese.rawValue]))
+        return await client.posters(from: collection)
+    }
     
+    func backdropURLs(client: TMDb.TMDbClient) async throws -> [URL] {
+        let collection = try await client.movies.images(forMovie: id, filter: .init(languages: [Language.japanese.rawValue]))
+        return await client.backdrops(from: collection)
+    }
+    
+    func logoURLs(client: TMDb.TMDbClient) async throws -> [URL] {
+        let collection = try await client.movies.images(forMovie: id, filter: .init(languages: [Language.japanese.rawValue]))
+        return await client.logos(from: collection)
+    }
+
     func backdropURL(client: TMDb.TMDbClient) async throws -> URL? {
-        return try await client.imagesConfiguration.backdropURL(for: backdropPath)
+        let languagesFilter: MovieImageFilter = .init(languages: [Language.japanese.rawValue])
+        let imageResources = try await client.movies.images(forMovie: id, filter: languagesFilter)
+        let bestQualityBackdropPath = imageResources.backdrops.bestQuality?.filePath
+        return try await client.imagesConfiguration.backdropURL(for: bestQualityBackdropPath)
     }
     
     func posterURL(client: TMDb.TMDbClient) async throws -> URL? {
-        return try await client.imagesConfiguration.posterURL(for: posterPath)
+        let languagesFilter: MovieImageFilter = .init(languages: [Language.japanese.rawValue])
+        let imageResources = try await client.movies.images(forMovie: id, filter: languagesFilter)
+        let bestQualityBackdropPath = imageResources.posters.bestQuality?.filePath
+        return try await client.imagesConfiguration.posterURL(for: bestQualityBackdropPath)
+    }
+    
+    func logoURL(client: TMDb.TMDbClient) async throws -> URL? {
+        let languagesFilter: MovieImageFilter = .init(languages: [Language.japanese.rawValue])
+        let imageResources = try await client.movies.images(forMovie: id, filter: languagesFilter)
+        let bestQualityBackdropPath = imageResources.logos.bestQuality?.filePath
+        return try await client.imagesConfiguration.logoURL(for: bestQualityBackdropPath)
     }
     
     var name: String { title }
@@ -84,13 +118,41 @@ extension TVSeries: TMDbMedia {
             typeMetadata: .tvSeries
         )
     }
-
+    
     func posterURL(client: TMDbClient) async throws -> URL? {
-        return try await client.imagesConfiguration.posterURL(for: posterPath)
+        let languagesFilter: TVSeriesImageFilter = .init(languages: [Language.japanese.rawValue])
+        let imageResources = try await client.tvSeries.images(forTVSeries: id, filter: languagesFilter)
+        let bestQualityBackdropPath = imageResources.posters.bestQuality?.filePath
+        return try await client.imagesConfiguration.posterURL(for: bestQualityBackdropPath)
+    }
+    
+    func backdropURL(client: TMDbClient) async throws -> URL? {
+        let languagesFilter: TVSeriesImageFilter = .init(languages: [Language.japanese.rawValue])
+        let imageResources = try await client.tvSeries.images(forTVSeries: id, filter: languagesFilter)
+        let bestQualityBackdropPath = imageResources.backdrops.bestQuality?.filePath
+        return try await client.imagesConfiguration.backdropURL(for: bestQualityBackdropPath)
+    }
+    
+    func logoURL(client: TMDbClient) async throws -> URL? {
+        let languagesFilter: TVSeriesImageFilter = .init(languages: [Language.japanese.rawValue])
+        let imageResources = try await client.tvSeries.images(forTVSeries: id, filter: languagesFilter)
+        let bestQualityBackdropPath = imageResources.logos.bestQuality?.filePath
+        return try await client.imagesConfiguration.logoURL(for: bestQualityBackdropPath)
+    }
+    
+    func posterURLs(client: TMDbClient) async throws -> [URL] {
+        let collection = try await client.movies.images(forMovie: id, filter: .init(languages: [Language.japanese.rawValue]))
+        return await client.posters(from: collection)
     }
 
-    func backdropURL(client: TMDbClient) async throws -> URL? {
-        return try await client.imagesConfiguration.backdropURL(for: backdropPath)
+    func backdropURLs(client: TMDbClient) async throws -> [URL] {
+        let collection = try await client.movies.images(forMovie: id, filter: .init(languages: [Language.japanese.rawValue]))
+        return await client.backdrops(from: collection)
+    }
+
+    func logoURLs(client: TMDbClient) async throws -> [URL] {
+        let collection = try await client.movies.images(forMovie: id, filter: .init(languages: [Language.japanese.rawValue]))
+        return await client.logos(from: collection)
     }
     
     var onAirDate: Date? { firstAirDate }
@@ -127,7 +189,12 @@ extension TVSeason: TMDbMedia {
     }
     
     func backdropURL(client: TMDbClient) async throws -> URL? {
-        // TVSeason may not have a backdrop image; returning nil
+        // TVSeason does not have a backdrop image; returning nil
+        return nil
+    }
+    
+    func logoURL(client: TMDb.TMDbClient) async throws -> URL? {
+        // TVSeason does not have a logo image; returning nil
         return nil
     }
     

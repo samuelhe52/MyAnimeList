@@ -47,6 +47,7 @@ struct LibraryView: View {
         .onChange(of: scrolledID) {
             scrolledIDSubject.send(scrolledID)
         }
+        .sensoryFeedback(.selection, trigger: scrolledID)
         .globalToasts()
     }
     

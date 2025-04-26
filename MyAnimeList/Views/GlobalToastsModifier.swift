@@ -14,30 +14,28 @@ struct GlobalToastsModifier: ViewModifier {
     func body(content: Content) -> some View {
         @Bindable var center = center
         content
-            .toast(isPresenting: $center.copied,
-                            duration: 1.5, offsetY: 20, alert: {
-                         AlertToast(displayMode: .hud,
-                                    type: .systemImage("checkmark.circle", .green),
-                                    title: "Copied!")
-                     })
-                     .toast(isPresenting: $center.refreshingInfos,
-                            offsetY: 20, alert: {
-                         AlertToast(displayMode: .hud,
-                                    type: .systemImage("arrow.clockwise.circle", .blue),
-                                    title: "Refreshing infos...")
-                     })
-                     .toast(isPresenting: $center.prefetchingImages,
-                            offsetY: 20, alert: {
-                         AlertToast(displayMode: .hud,
-                                    type: .systemImage("photo.on.rectangle.angled", .blue),
-                                    title: "Prefetching images...")
-                     })
-                     .toast(isPresenting: $center.regularCompleted, offsetY: 20,
-                            alert: {
-                         AlertToast(displayMode: .hud,
-                                    type: .complete(.green),
-                                    title: "Completed.")
-                     })
+            .toast(isPresenting: $center.copied, duration: 1.5, offsetY: 20, alert: {
+                AlertToast(displayMode: .hud,
+                           type: .systemImage("checkmark.circle", .green),
+                           title: "Copied!")
+            })
+            .sensoryFeedback(.success, trigger: center.copied) { !$0 && $1 }
+            .toast(isPresenting: $center.refreshingInfos, offsetY: 20, alert: {
+                AlertToast(displayMode: .hud,
+                           type: .systemImage("arrow.clockwise.circle", .blue),
+                           title: "Refreshing infos...")
+            })
+            .toast(isPresenting: $center.prefetchingImages, offsetY: 20, alert: {
+                AlertToast(displayMode: .hud,
+                           type: .systemImage("photo.on.rectangle.angled", .blue),
+                           title: "Prefetching images...")
+            })
+            .toast(isPresenting: $center.regularCompleted, offsetY: 20, alert: {
+                AlertToast(displayMode: .hud,
+                           type: .complete(.green),
+                           title: "Done")
+            })
+            .sensoryFeedback(.success, trigger: center.regularCompleted) { !$0 && $1 }
     }
 }
 

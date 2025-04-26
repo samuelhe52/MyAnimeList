@@ -24,9 +24,9 @@ struct MyAnimeListTests {
     }
 
     @Test func imageTest() async throws {
-        guard let result = try await fetcher.searchMovies(name: "你的名字", language: language).first else { fatalError() }
-        let images = try await fetcher.tmdbClient.movies.images(forMovie: result.id, filter: .init(languages: ["ja"]))
-        images.posters.filter { $0.languageCode == "ja" }.forEach {
+        guard let result = try await fetcher.searchTVSeries(name: "Tamako market", language: language).first else { fatalError() }
+        let images = try await fetcher.tmdbClient.tvSeries.images(forTVSeries: result.id)
+        images.posters.filter { $0.languageCode == "en" }.forEach {
             print($0.filePath)
             print($0.languageCode ?? "nil")
             print($0.voteAverage ?? "nil")

@@ -44,6 +44,7 @@ struct AnimeEntryCard: View {
                 }
                 Button("Poster URL", systemImage: "document.on.clipboard") {
                     UIPasteboard.general.string = entry.posterURL?.absoluteString ?? ""
+                    ToastCenter.global.copied = true
                 }
             }
             .task { await loadImage() }

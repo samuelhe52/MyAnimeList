@@ -1,13 +1,13 @@
 {
-  "originHash" : "b24af95ffe712444cb1ebd94bc6aec8c267e392c3c8c83dc81c06c8e604a1629",
+  "originHash" : "d8232a0c9d7b507f8a04bcb39b05ebb097e51297755b22b1eff43953250bb2d1",
   "pins" : [
     {
       "identity" : "alerttoast",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/elai950/AlertToast.git",
+      "location" : "https://github.com/samuelhe52/AlertToast",
       "state" : {
-        "revision" : "b39252eacd159904afd7d718bba0afabb87f2f2f",
-        "version" : "1.3.9"
+        "branch" : "master",
+        "revision" : "834e47723077b0f38543d1342cff916f10fca652"
       }
     },
     {

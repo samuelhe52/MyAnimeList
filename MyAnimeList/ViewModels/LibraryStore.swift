@@ -59,14 +59,25 @@ class LibraryStore {
     
     /// Fetches the latest infos from tmdb for all entries and update the entries.
     func refreshInfos() async throws {
+        ToastCenter.global.refreshingInfos = true
         for index in library.indices {
             let info = try await infoFetcher.fetchInfoFromTMDB(entryType: library[index].entryType,
                                                                tmdbID: library[index].tmdbID,
                                                                language: language)
             try await dataProvider.dataHandler.updateEntry(id: library[index].id, info: info)
         }
-        await KingfisherManager.shared.cache.clearDiskCache()
-        KingfisherManager.shared.cache.clearMemoryCache()
+        prefetchAllImages()
+        ToastCenter.global.refreshingInfos = false
+    }
+    
+    func prefetchAllImages() {
+        let urls = library.compactMap { $0.posterURL }
+        let prefetcher = ImagePrefetcher(urls: urls) { skipped, failed, completed in
+            ToastCenter.global.prefetchingImages = false
+            ToastCenter.global.regularCompleted = true
+        }
+        ToastCenter.global.prefetchingImages = true
+        prefetcher.start()
     }
     
     func deleteEntry(withID id: PersistentIdentifier) async throws {

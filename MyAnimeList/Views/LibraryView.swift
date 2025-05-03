@@ -47,7 +47,6 @@ struct LibraryView: View {
         .onChange(of: scrolledID) {
             scrolledIDSubject.send(scrolledID)
         }
-        .globalToasts()
     }
     
     @ViewBuilder
@@ -79,6 +78,7 @@ struct LibraryView: View {
             Menu {
                 checkCacheButton
                 refreshInfosButton
+                changeAPIKeyButton
                 clearAllButton
             } label: {
                 Image(systemName: "ellipsis.circle")
@@ -119,6 +119,10 @@ struct LibraryView: View {
                     Text(error.localizedDescription)
                 }
             })
+        .sheet(isPresented: $changeAPIKey) {
+            TMDbAPIKeyEditor(isEditing: true)
+                .presentationDetents([.medium, .large])
+        }
     }
     
     private var clearAllButton: some View {
@@ -138,6 +142,12 @@ struct LibraryView: View {
         }
     }
     
+    @State private var changeAPIKey: Bool = false
+    
+    private var changeAPIKeyButton: some View {
+        Button("Change API Key", systemImage: "key") { changeAPIKey = true }
+    }
+    
     private var refreshInfosButton: some View {
         Button("Refresh Infos", systemImage: "arrow.clockwise") {
             Task { try await store.refreshInfos() }
@@ -149,12 +159,10 @@ struct LibraryView: View {
             Task { try await store.deleteEntry(withID: entry.id) }
         })
             .transition(
-                .asymmetric(insertion: .opacity, removal: .move(edge: .top).combined(with: .opacity))
+                .asymmetric(insertion: .identity, removal: .move(edge: .top).combined(with: .opacity))
                 .animation(.default)
             )
-            .containerRelativeFrame(!isLandscape ? .horizontal
-                                    : .vertical)
-
+            .containerRelativeFrame(!isLandscape ? .horizontal : .vertical)
     }
     
     private func processSearchResult(_ result: SearchResult) async throws {
@@ -174,6 +182,7 @@ extension LibraryView {
 }
 
 #Preview {
+    @Previewable @AppStorage("TMDB_API_KEY") var apiKey: String = "YOUR_API_KEY_HERE"
     @Previewable let store = LibraryStore(dataProvider: .default)
     LibraryView(store: store)
 }

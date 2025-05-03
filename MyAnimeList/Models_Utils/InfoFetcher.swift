@@ -12,11 +12,13 @@ actor InfoFetcher {
     let tmdbClient: TMDbClient
     
     init() {
-        self.tmdbClient = .init(apiKey: "***REMOVED***")
+        let key = UserDefaults.standard.string(forKey: "TMDB_API_KEY")
+        self.tmdbClient = .init(apiKey: key ?? "")
     }
     
     init(httpClient: some HTTPClient) {
-        self.tmdbClient = .init(apiKey: "***REMOVED***", httpClient: httpClient)
+        let key = UserDefaults.standard.string(forKey: "TMDB_API_KEY")
+        self.tmdbClient = .init(apiKey: key ?? "", httpClient: httpClient)
     }
     
     func fetchMovie(_ tmdbID: Int, language: Language) async throws -> Movie {

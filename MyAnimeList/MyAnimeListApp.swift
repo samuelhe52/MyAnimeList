@@ -13,13 +13,21 @@ struct MyAnimeListApp: App {
     let dataProvider = DataProvider.default
     @State var libraryStore: LibraryStore = .init(dataProvider: .default)
     @AppStorage("PreferredMetadataLanguage") var language: Language = .japanese
+    @AppStorage("TMDB_API_KEY") var tmdbAPIKey: String?
 
     var body: some Scene {
         WindowGroup {
-            LibraryView(store: libraryStore)
-                .onAppear {
-                    libraryStore.language = language
+            ZStack {
+                if let tmdbAPIKey, !tmdbAPIKey.isEmpty {
+                    LibraryView(store: libraryStore)
+                        .onAppear { libraryStore.language = language }
+                        .transition(.opacity.animation(.easeInOut(duration: 1)))
+                } else {
+                    TMDbAPIKeyEditor()
+                        .transition(.opacity.animation(.easeInOut(duration: 1)))
                 }
+            }
+            .globalToasts()
         }
     }
 }

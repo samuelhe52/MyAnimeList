@@ -26,7 +26,7 @@ struct LibraryView: View {
         let persistedScrollPosition = UserDefaults.standard.integer(forKey: "persistedScrolledID")
         self._scrolledID = .init(initialValue: persistedScrollPosition)
         self.writer = DebouncedIntUserDefaultsWriter(publisher: scrolledIDSubject.eraseToAnyPublisher(),
-                                                forKey: "persistedScrolledID")
+                                                     forKey: "persistedScrolledID")
     }
     
     var body: some View {
@@ -101,24 +101,24 @@ struct LibraryView: View {
             Button("Cancel", role: .cancel) {}
         }
         .alert("Disk Cache", isPresented: $showCacheAlert, presenting: cacheSizeResult,
-            actions: { result in
-                switch result {
-                case .success:
-                    Button("Clear") {
-                        KingfisherManager.shared.cache.clearCache()
-                    }
-                    Button("Cancel", role: .cancel) {}
-                case .failure:
-                    Button("OK") { }
+               actions: { result in
+            switch result {
+            case .success:
+                Button("Clear") {
+                    KingfisherManager.shared.cache.clearCache()
                 }
-            }, message: { result in
-                switch result {
-                case .success(let size):
-                    Text("Size: \(Double(size) / 1024 / 1024, specifier: "%.2f") MB")
-                case .failure(let error):
-                    Text(error.localizedDescription)
-                }
-            })
+                Button("Cancel", role: .cancel) {}
+            case .failure:
+                Button("OK") { }
+            }
+        }, message: { result in
+            switch result {
+            case .success(let size):
+                Text("Size: \(Double(size) / 1024 / 1024, specifier: "%.2f") MB")
+            case .failure(let error):
+                Text(error.localizedDescription)
+            }
+        })
         .sheet(isPresented: $changeAPIKey) {
             TMDbAPIKeyEditor(isEditing: true)
                 .presentationDetents([.medium, .large])
@@ -153,16 +153,17 @@ struct LibraryView: View {
             Task { try await store.refreshInfos() }
         }
     }
-        
+    
     private func card(entry: AnimeEntry) -> some View {
         AnimeEntryCard(entry: entry, onDelete: {
-            Task { try await store.deleteEntry(withID: entry.id) }
+//            Task { try await store.deleteEntry(withID: entry.id) }
+            mockDelete(withID: entry.id)
         })
-            .transition(
-                .asymmetric(insertion: .identity, removal: .move(edge: .top).combined(with: .opacity))
-                .animation(.default)
-            )
-            .containerRelativeFrame(!isLandscape ? .horizontal : .vertical)
+        .transition(
+            .asymmetric(insertion: .identity, removal: .move(edge: .top).combined(with: .opacity))
+            .animation(.default)
+        )
+        .containerRelativeFrame(!isLandscape ? .horizontal : .vertical)
     }
     
     private func processSearchResult(_ result: SearchResult) async throws {

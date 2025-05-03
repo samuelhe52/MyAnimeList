@@ -15,6 +15,7 @@ let logger = Logger(subsystem: "MyAnimeList", category: "AnimeEntryCard")
 struct AnimeEntryCard: View {
     var entry: AnimeEntry
     var delete: () -> Void
+    @State private var triggerDeleteHaptic: Bool = false
     @State private var showDeleteToast: Bool = false
     @State private var posterImage: UIImage? = nil
     @State private var imageMissing: Bool = false
@@ -37,7 +38,10 @@ struct AnimeEntryCard: View {
                 AlertToast(displayMode: .alert, type: .regular,
                            title: "Delete Entry?",
                            subTitle: "Tap me to confirm.")
-            }, onTap: { delete() })
+            }, onTap: {
+                delete()
+                triggerDeleteHaptic.toggle()
+            })
             .contextMenu {
                 Button("Delete", systemImage: "trash", role: .destructive) {
                     showDeleteToast = true
@@ -51,6 +55,7 @@ struct AnimeEntryCard: View {
             .onChange(of: entry.posterURL) {
                 Task { await loadImage() }
             }
+            .sensoryFeedback(.success, trigger: triggerDeleteHaptic)
     }
     
     @ViewBuilder

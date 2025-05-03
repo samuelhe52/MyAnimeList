@@ -47,7 +47,6 @@ struct LibraryView: View {
         .onChange(of: scrolledID) {
             scrolledIDSubject.send(scrolledID)
         }
-        .sensoryFeedback(.selection, trigger: scrolledID)
         .globalToasts()
     }
     
@@ -58,6 +57,7 @@ struct LibraryView: View {
                 LazyHStack {
                     ForEach(store.library, id: \.tmdbID) { entry in
                         card(entry: entry)
+                            .onScrollVisibilityChange { _ in }
                     }
                 }.scrollTargetLayout()
             }
@@ -100,10 +100,7 @@ struct LibraryView: View {
             }
             Button("Cancel", role: .cancel) {}
         }
-        .alert(
-            "Disk Cache",
-            isPresented: $showCacheAlert,
-            presenting: cacheSizeResult,
+        .alert("Disk Cache", isPresented: $showCacheAlert, presenting: cacheSizeResult,
             actions: { result in
                 switch result {
                 case .success:
@@ -166,20 +163,6 @@ struct LibraryView: View {
         withAnimation {
             scrolledID = result.tmdbID
         }
-    }
-}
-
-class DebouncedIntUserDefaultsWriter {
-    private var cancellable: AnyCancellable?
-    
-    init<P: Publisher>(publisher: P, forKey key: String, delay: TimeInterval = 0.5) where P.Output == Int?, P.Failure == Never {
-        let queue = DispatchQueue(label: "com.samuelhe.MyAnimeList.userdefaults.intwriter", qos: .background)
-        
-        self.cancellable = publisher
-            .debounce(for: .seconds(delay), scheduler: queue)
-            .sink { value in
-                UserDefaults.standard.set(value, forKey: key)
-            }
     }
 }
 

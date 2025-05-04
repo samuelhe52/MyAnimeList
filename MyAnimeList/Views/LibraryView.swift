@@ -28,10 +28,14 @@ struct LibraryView: View {
     
     var body: some View {
         NavigationStack {
-            LibraryScrollView(store: store,
-                              scrolledID: $scrollState.scrolledID)
-            controls
-        }.padding(.vertical)
+            VStack {
+                LibraryScrollView(store: store,
+                                  scrolledID: $scrollState.scrolledID)
+                controls
+            }
+            .padding(.vertical)
+            .ignoresSafeArea(.keyboard, edges: .bottom)
+        }
     }
     
     @ViewBuilder

@@ -108,7 +108,7 @@ struct TMDbAPIKeyEditor: View {
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 200 {
                     status = .valid
-                    if isEditing {
+                    if !isEditing {
                         isTextFieldFocused = false
                     }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {

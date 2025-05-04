@@ -66,16 +66,23 @@ class LibraryStore {
                                                                language: language)
             try await dataProvider.dataHandler.updateEntry(id: library[index].id, info: info)
         }
-        prefetchAllImages()
         ToastCenter.global.refreshingInfos = false
+        prefetchAllImages()
     }
     
     func prefetchAllImages() {
         let urls = library.compactMap { $0.posterURL }
-        let prefetcher = ImagePrefetcher(urls: urls) { skipped, failed, completed in
+        let prefetcher = ImagePrefetcher(urls: urls, completionHandler: { skipped, failed, completed  in
             ToastCenter.global.prefetchingImages = false
-            ToastCenter.global.regularCompleted = true
-        }
+            var state: ToastCenter.CompletedWithMessage.State = .completed
+            let message = "Fetched: \(skipped.count + completed.count), failed: \(failed.count)"
+            if failed.isEmpty {
+                state = .completed
+            } else if completed.isEmpty && skipped.isEmpty {
+                state = .failed
+            } else { state = .partialComplete }
+            ToastCenter.global.completionState = .init(state: state, message: message)
+        })
         ToastCenter.global.prefetchingImages = true
         prefetcher.start()
     }

@@ -592,8 +592,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/elai950/AlertToast";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.3.9;
+				branch = master;
+				kind = branch;
 			};
 		};
 		9F8D665D2D05609200CF355D /* XCRemoteSwiftPackageReference "TMDb" */ = {

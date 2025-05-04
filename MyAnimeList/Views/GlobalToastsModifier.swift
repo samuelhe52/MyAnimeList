@@ -20,12 +20,12 @@ struct GlobalToastsModifier: ViewModifier {
                            title: "Copied!")
             })
             .sensoryFeedback(.success, trigger: center.copied) { !$0 && $1 }
-            .toast(isPresenting: $center.refreshingInfos, offsetY: 20, alert: {
+            .toast(isPresenting: .constant(center.refreshingInfos), offsetY: 20, alert: {
                 AlertToast(displayMode: .hud,
                            type: .systemImage("arrow.clockwise.circle", .blue),
                            title: "Refreshing infos...")
             })
-            .toast(isPresenting: $center.prefetchingImages, offsetY: 20, alert: {
+            .toast(isPresenting: .constant(center.prefetchingImages), offsetY: 20, alert: {
                 AlertToast(displayMode: .hud,
                            type: .systemImage("photo.on.rectangle.angled", .blue),
                            title: "Prefetching images...")
@@ -36,6 +36,32 @@ struct GlobalToastsModifier: ViewModifier {
                            title: "Done")
             })
             .sensoryFeedback(.success, trigger: center.regularCompleted) { !$0 && $1 }
+            .toast(isPresenting: $center.regularFailed, offsetY: 20, alert: {
+                AlertToast(displayMode: .hud,
+                           type: .error(.red),
+                           title: "An error occurred")
+            })
+            .sensoryFeedback(.error, trigger: center.regularFailed) { !$0 && $1 }
+            .toast(item: $center.completionState, offsetY: 20, alert: { state in
+                var alertType: AlertToast.AlertType = .regular
+                if let state = state?.state {
+                    switch state {
+                    case .completed: alertType = .complete(.green)
+                    case .failed: alertType = .error(.red)
+                    case .partialComplete: alertType = .regular
+                    }
+                }
+                return AlertToast(displayMode: .hud,
+                                  type: alertType,
+                                  title: center.completionState?.message)
+            })
+            .sensoryFeedback(trigger: center.completionState) { _,new in
+                guard let state = new?.state else { return nil }
+                switch state {
+                case .failed: return .error
+                default: return nil
+                }
+            }
     }
 }
 

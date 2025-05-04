@@ -156,8 +156,7 @@ struct LibraryView: View {
     
     private func card(entry: AnimeEntry) -> some View {
         AnimeEntryCard(entry: entry, onDelete: {
-//            Task { try await store.deleteEntry(withID: entry.id) }
-            mockDelete(withID: entry.id)
+            Task { try await store.deleteEntry(withID: entry.id) }
         })
         .transition(
             .asymmetric(insertion: .identity, removal: .move(edge: .top).combined(with: .opacity))

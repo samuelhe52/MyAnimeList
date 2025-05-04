@@ -41,20 +41,30 @@ struct SearchPage: View {
         if !service.seriesResults.isEmpty {
             Section("Series") {
                 ForEach(service.seriesResults.prefix(8), id: \.tmdbID) { series in
-                    resultItem(result: series)
+                    ResultItem(result: series)
+                        .onTapGesture { processResult(series) }
                 }
             }
         }
         if !service.movieResults.isEmpty {
             Section("Movies") {
                 ForEach(service.movieResults.prefix(8), id: \.tmdbID) { movie in
-                    resultItem(result: movie)
+                    ResultItem(result: movie)
+                        .onTapGesture { processResult(movie) }
                 }
             }
         }
     }
     
-    private func resultItem(result: SearchResult) -> some View {
+    private func updateResults() {
+        Task { try await service.updateSearchResults(language: language) }
+    }
+}
+
+struct ResultItem: View {
+    let result: SearchResult
+    
+    var body: some View {
         HStack {
             poster(url: result.posterURL)
                 .scaledToFit()
@@ -75,7 +85,6 @@ struct SearchPage: View {
                     .lineLimit(3)
             }
         }
-        .onTapGesture { processResult(result) }
     }
     
     @ViewBuilder
@@ -94,10 +103,6 @@ struct SearchPage: View {
             Image("missing_image_resource")
                 .resizable()
         }
-    }
-    
-    private func updateResults() {
-        Task { try await service.updateSearchResults(language: language) }
     }
 }
 

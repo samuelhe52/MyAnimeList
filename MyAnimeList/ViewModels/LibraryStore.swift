@@ -29,7 +29,9 @@ class LibraryStore {
     func fetchAndUpdate() throws {
         let descriptor = FetchDescriptor<AnimeEntry>(sortBy: [SortDescriptor(\.dateSaved)])
         let entries = try dataProvider.sharedModelContainer.mainContext.fetch(descriptor)
-        library = entries
+        withAnimation {
+            library = entries
+        }
     }
     
     func setupUpdateData() {

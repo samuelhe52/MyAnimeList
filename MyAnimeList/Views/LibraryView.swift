@@ -7,69 +7,32 @@
 
 import SwiftUI
 import Kingfisher
-import Combine
-import AlertToast
 import SwiftData
 
 struct LibraryView: View {
     var store: LibraryStore
+    
     @State private var isSearching: Bool = false
-    @State private var isLandscape: Bool = UIDevice.current.orientation.isLandscape
+    @State private var changeAPIKey: Bool = false
+    @State private var showCacheAlert = false
+    @State private var showClearAllAlert = false
+    @State private var cacheSizeResult: Result<UInt, KingfisherError>? = nil
+    @State private var scrollState = ScrollState()
+
     @AppStorage("PreferredMetadataLanguage") var language: Language = .japanese
     
-    @State private var scrolledID: Int?
-    private let scrolledIDSubject = PassthroughSubject<Int?, Never>()
-    private let writer: DebouncedIntUserDefaultsWriter
     
     init(store: LibraryStore) {
         self.store = store
-        let persistedScrollPosition = UserDefaults.standard.integer(forKey: "persistedScrolledID")
-        self._scrolledID = .init(initialValue: persistedScrollPosition)
-        self.writer = DebouncedIntUserDefaultsWriter(publisher: scrolledIDSubject.eraseToAnyPublisher(),
-                                                     forKey: "persistedScrolledID")
     }
     
     var body: some View {
         NavigationStack {
-            library
+            LibraryScrollView(store: store,
+                              scrolledID: $scrollState.scrolledID)
             controls
-        }
-        .animation(.default, value: store.library)
-        .onReceive(
-            NotificationCenter.default
-                .publisher(for: UIDevice.orientationDidChangeNotification),
-            perform: { _ in
-                let orientation = UIDevice.current.orientation
-                isLandscape = orientation.isLandscape
-            }
-        )
-        .padding(.vertical)
-        .onChange(of: scrolledID) {
-            scrolledIDSubject.send(scrolledID)
-        }
+        }.padding(.vertical)
     }
-    
-    @ViewBuilder
-    private var library: some View {
-        if !store.library.isEmpty {
-            ScrollView(.horizontal) {
-                LazyHStack {
-                    ForEach(store.library, id: \.tmdbID) { entry in
-                        card(entry: entry)
-                            .onScrollVisibilityChange { _ in }
-                    }
-                }.scrollTargetLayout()
-            }
-            .scrollPosition(id: $scrolledID)
-            .scrollTargetBehavior(.viewAligned)
-        } else {
-            Text("The library is empty.")
-        }
-    }
-    
-    @State private var showCacheAlert = false
-    @State private var showClearAllAlert = false
-    @State private var cacheSizeResult: Result<UInt, KingfisherError>? = nil
     
     @ViewBuilder
     private var controls: some View {
@@ -83,12 +46,13 @@ struct LibraryView: View {
             } label: {
                 Image(systemName: "ellipsis.circle")
             }
+            .labelStyle(.iconOnly)
         }
         .buttonStyle(.bordered)
         .sheet(isPresented: $isSearching) {
             NavigationStack {
                 SearchPage(service: .init()) { result in
-                    Task { try await processSearchResult(result) }
+                    Task { await processSearchResult(result) }
                 }
                 .navigationTitle("Search TMDB")
                 .navigationBarTitleDisplayMode(.inline)
@@ -96,7 +60,14 @@ struct LibraryView: View {
         }
         .alert("Clear all entries?", isPresented: $showClearAllAlert) {
             Button("Clear", role: .destructive) {
-                Task { try await store.clearLibrary() }
+                Task {
+                    do  {
+                        try await store.clearLibrary()
+                    } catch {
+                        ToastCenter.global.completionState = .init(state: .failed,
+                                                                   message: error.localizedDescription)
+                    }
+                }
             }
             Button("Cancel", role: .cancel) {}
         }
@@ -141,9 +112,7 @@ struct LibraryView: View {
             }
         }
     }
-    
-    @State private var changeAPIKey: Bool = false
-    
+        
     private var changeAPIKeyButton: some View {
         Button("Change API Key", systemImage: "key") { changeAPIKey = true }
     }
@@ -154,28 +123,52 @@ struct LibraryView: View {
         }
     }
     
-    private func card(entry: AnimeEntry) -> some View {
-        AnimeEntryCard(entry: entry, onDelete: {
-            Task { try await store.deleteEntry(withID: entry.id) }
-        })
-        .transition(
-            .asymmetric(insertion: .identity, removal: .move(edge: .top).combined(with: .opacity))
-            .animation(.default)
-        )
-        .containerRelativeFrame(!isLandscape ? .horizontal : .vertical)
-    }
-    
-    private func processSearchResult(_ result: SearchResult) async throws {
+    private func processSearchResult(_ result: SearchResult) async {
         isSearching = false
-        try await store.newEntryFromInfo(info: result)
+        do {
+            try await store.newEntryFromInfo(info: result)
+        } catch {
+            ToastCenter.global.completionState = .init(state: .failed,
+                                                       message: error.localizedDescription)
+            return
+        }
         withAnimation {
-            scrolledID = result.tmdbID
+            scrollState.scrolledID = result.tmdbID
+        }
+    }
+}
+
+private struct LibraryScrollView: View {
+    let store: LibraryStore
+    @Binding var scrolledID: Int?
+
+    var body: some View {
+        GeometryReader { geometry in
+            let isHorizontal = geometry.size.width < geometry.size.height
+            if !store.library.isEmpty {
+                ScrollView(.horizontal) {
+                    LazyHStack {
+                        ForEach(store.library, id: \.tmdbID) { entry in
+                            AnimeEntryCard(entry: entry, onDelete: {
+                                Task { try await store.deleteEntry(withID: entry.id) }
+                            })
+                            .containerRelativeFrame(isHorizontal ? .horizontal : .vertical)
+                            .transition(.opacity)
+                            .onScrollVisibilityChange { _ in }
+                        }
+                    }.scrollTargetLayout()
+                }
+                .scrollPosition(id: $scrolledID)
+                .scrollTargetBehavior(.viewAligned)
+            } else {
+                Text("The library is empty.")
+            }
         }
     }
 }
 
 // This is where we place debug-specific code.
-extension LibraryView {
+extension LibraryScrollView {
     private func mockDelete(withID id: PersistentIdentifier) {
         store.mockDeleteEntry(withId: id)
     }

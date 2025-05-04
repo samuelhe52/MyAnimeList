@@ -172,10 +172,11 @@ extension TVSeason: TMDbMedia {
     /// - Warning: The `posterURL`, `backdropURL` and `logoURL` are always nil for a tv season..
     /// The `parentSeriesID` is set to `0` since the actual parent series ID cannot be inferred from a `TVSeason` instance alone.
     func basicInfo(client: TMDbClient) async throws -> BasicInfo {
+        let posterURL = try await posterURL(client: client)
         return BasicInfo(
             name: name,
             overview: overview,
-            posterURL: nil,
+            posterURL: posterURL,
             backdropURL: nil,
             logoURL: nil,
             tmdbID: id,
@@ -186,7 +187,7 @@ extension TVSeason: TMDbMedia {
     }
     
     func posterURL(client: TMDbClient) async throws -> URL? {
-        throw ImageResourceError.noResourceDirectlyFromTVSeason
+        return try await client.imagesConfiguration.posterURL(for: posterPath)
     }
     
     func backdropURL(client: TMDbClient) async throws -> URL? {

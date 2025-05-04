@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct BasicInfo: Equatable, Identifiable {
+struct BasicInfo: Equatable, Identifiable, Hashable {
     var name: String
     var overview: String?
     var posterPath: URL?

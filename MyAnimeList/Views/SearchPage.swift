@@ -14,7 +14,7 @@ struct SearchPage: View {
     @Bindable var service: SearchService
     @AppStorage("language") private var language: Language = .english
     var processResult: (SearchResult) -> Void
-    
+        
     var body: some View {
         List {
             Picker("Language", selection: $language) {
@@ -40,17 +40,18 @@ struct SearchPage: View {
     private var results: some View {
         if !service.seriesResults.isEmpty {
             Section("Series") {
-                ForEach(service.seriesResults.prefix(8), id: \.tmdbID) { series in
-                    ResultItem(result: series)
-                        .onTapGesture { processResult(series) }
+                let series = Array(service.seriesResults.keys) as [BasicInfo]
+                ForEach(series, id: \.tmdbID) { series in
+                    SeriesResultItem(result: series,
+                                     seasons: service.seriesResults[series] ?? [],
+                                     processResult: processResult)
                 }
             }
         }
         if !service.movieResults.isEmpty {
             Section("Movies") {
                 ForEach(service.movieResults.prefix(8), id: \.tmdbID) { movie in
-                    ResultItem(result: movie)
-                        .onTapGesture { processResult(movie) }
+                    MovieResultItem(result: movie, processResult: processResult)
                 }
             }
         }
@@ -61,8 +62,78 @@ struct SearchPage: View {
     }
 }
 
-struct ResultItem: View {
+struct SeriesResultItem: View {
     let result: SearchResult
+    let seasons: [BasicInfo]
+    let processResult: (SearchResult) -> Void
+    var selectedSeason: BasicInfo? {
+        seasons.first {
+            $0.typeMetadata.seasonNumber == selectedSeasonNumber
+        }
+    }
+    @State private var selectedSeasonNumber: Int = 1
+    
+    var body: some View {
+        HStack {
+            poster(url: selectedSeason?.posterURL)
+                .scaledToFit()
+                .clipShape(.rect(cornerRadius: 6))
+                .frame(width: 60, height: 90)
+            VStack(alignment: .leading) {
+                HStack {
+                    Text(result.name)
+                        .bold()
+                        .lineLimit(1)
+                    Spacer()
+                    Picker("", selection: $selectedSeasonNumber) {
+                        ForEach(seasons) { season in
+                            pickerItem(season: season)
+                        }
+                    }.frame(height: 0)
+                }
+                if let date = selectedSeason?.onAirDate {
+                    Text(date.formatted(date: .abbreviated, time: .omitted))
+                        .font(.caption)
+                        .padding(.bottom, 1)
+                }
+                Text(result.overview ?? "No overview available")
+                    .font(.caption2)
+                    .foregroundStyle(.gray)
+                    .lineLimit(3)
+            }
+        }
+        .onTapGesture { processResult(selectedSeason ?? result) }
+        .animation(.default, value: selectedSeasonNumber)
+    }
+    
+    @ViewBuilder
+    private func poster(url: URL?) -> some View {
+        if let url {
+            KFImage(url)
+                .resizable()
+                .fade(duration: 0.3)
+                .placeholder {
+                    ProgressView()
+                }
+                .cacheOriginalImage()
+                .diskCacheExpiration(.days(1))
+                .cancelOnDisappear(true)
+        } else {
+            Image("missing_image_resource")
+                .resizable()
+        }
+    }
+    
+    
+    private func pickerItem(season: BasicInfo) -> some View {
+        let seasonNumber = season.typeMetadata.seasonNumber ?? 0
+        return Text(season.name).tag(seasonNumber)
+    }
+}
+
+struct MovieResultItem: View {
+    let result: SearchResult
+    let processResult: (SearchResult) -> Void
     
     var body: some View {
         HStack {
@@ -85,6 +156,7 @@ struct ResultItem: View {
                     .lineLimit(3)
             }
         }
+        .onTapGesture { processResult(result) }
     }
     
     @ViewBuilder
@@ -116,7 +188,7 @@ class SearchService {
         }
     }
     var movieResults: [SearchResult] = []
-    var seriesResults: [SearchResult] = []
+    var seriesResults: [SearchResult: [SearchResult]] = [:]
     
     init(query: String = UserDefaults.standard.string(forKey: "SearchPageQuery") ?? "") {
         self.query = query
@@ -150,12 +222,46 @@ class SearchService {
         // to reduce network overhead.
         try await searchMovieResults.updatePosterURLs(width: 200)
         try await searchTVSeriesResults.updatePosterURLs(width: 200)
-
+        
         if currentQuery == query {
             movieResults = searchMovieResults
-            seriesResults = searchTVSeriesResults
+            seriesResults = [:]
+            await withTaskGroup(of: Void.self) { group in
+                for series in searchTVSeriesResults {
+                    group.addTask {
+                        let seasons = try? await fetchSeasons(seriesInfo: series, language: language)
+                        await MainActor.run {
+                            self.seriesResults[series] = seasons ?? []
+                        }
+                    }
+                }
+            }
         }
         status = .done
+        
+        func fetchSeasons(seriesInfo info: BasicInfo, language: Language) async throws -> [BasicInfo] {
+            let series = try await InfoFetcher.shared.fetchTVSeries(info.tmdbID, language: language)
+            guard let seasons = series.seasons else { return [] }
+            let infos = try await withThrowingTaskGroup(of: BasicInfo.self) { group in
+                var results: [BasicInfo] = []
+                for season in seasons {
+                    group.addTask {
+                        var seasonInfo = try await season.basicInfo(client: InfoFetcher.shared.tmdbClient)
+                        seasonInfo.linkToDetails = info.linkToDetails
+                        seasonInfo.backdropURL = info.backdropURL
+                        seasonInfo.logoURL = info.logoURL
+                        seasonInfo.typeMetadata = .tvSeason(seasonNumber: season.seasonNumber,
+                                                            parentSeriesID: info.tmdbID)
+                        return seasonInfo
+                    }
+                }
+                for try await result in group {
+                    results.append(result)
+                }
+                return results
+            }
+            return infos
+        }
     }
     
     enum Status: Equatable {
@@ -169,6 +275,8 @@ class SearchService {
     @Previewable @State var service = SearchService(query: "K-on!")
     
     NavigationStack {
-        SearchPage(service: service) { _ in }
+        SearchPage(service: service) { result in
+            print(result)
+        }
     }
 }

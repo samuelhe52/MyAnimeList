@@ -167,7 +167,7 @@ struct LibraryView: View {
     
     private func processSearchResult(_ result: SearchResult) async throws {
         isSearching = false
-        try await store.newEntryFromSearchResult(result: result)
+        try await store.newEntryFromInfo(info: result)
         withAnimation {
             scrolledID = result.tmdbID
         }
@@ -182,7 +182,19 @@ extension LibraryView {
 }
 
 #Preview {
-    @Previewable @AppStorage("TMDB_API_KEY") var apiKey: String = "YOUR_API_KEY_HERE"
+    // dataProvider could be changed to .forPreview for memory-only storage.
+    // Uncomment the task below to generate template entries.
     @Previewable let store = LibraryStore(dataProvider: .default)
     LibraryView(store: store)
+//        .task {
+//            await withTaskGroup(of: Void.self) { group in
+//                for index in 0..<50 {
+//                    group.addTask {
+//                        let info = AnimeEntry.template(id: index).basicInfo
+//                        try? await store.newEntryFromInfo(info: info)
+//                    }
+//                }
+//                await group.waitForAll()
+//            }
+//        }
 }

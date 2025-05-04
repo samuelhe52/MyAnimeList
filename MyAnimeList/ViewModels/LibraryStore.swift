@@ -45,13 +45,13 @@ class LibraryStore {
             .store(in: &cancellables)
     }
     
-    
-    /// Creates a new `AnimeEntry` from a `SearchResult` and adds it to the library.
+    /// Creates a new `AnimeEntry` from a `BasicInfo` and adds it to the library.
     /// It does nothing if an entry with the same TMDB ID already exist.
-    func newEntryFromSearchResult(result: SearchResult) async throws {
-        guard library.map({ $0.tmdbID }).contains(result.tmdbID) == false else { return }
-        let info = try await infoFetcher.fetchInfoFromTMDB(entryType: result.typeMetadata,
-                                                           tmdbID: result.tmdbID,
+    func newEntryFromInfo(info: BasicInfo) async throws {
+        // No duplicatye entries
+        guard library.map({ $0.tmdbID }).contains(info.tmdbID) == false else { return }
+        let info = try await infoFetcher.fetchInfoFromTMDB(entryType: info.typeMetadata,
+                                                           tmdbID: info.tmdbID,
                                                            language: language)
         let entry = AnimeEntry(fromInfo: info)
         try await dataProvider.dataHandler.newEntry(entry)

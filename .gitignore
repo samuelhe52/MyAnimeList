@@ -66,3 +66,6 @@ fastlane/test_output
 
 # Design related resources
 Media/
+
+# SPM
+.swiftpm/

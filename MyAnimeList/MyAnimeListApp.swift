@@ -12,8 +12,8 @@ import SwiftData
 struct MyAnimeListApp: App {
     let dataProvider = DataProvider.default
     @State var libraryStore: LibraryStore = .init(dataProvider: .default)
-    @AppStorage("PreferredMetadataLanguage") var language: Language = .japanese
-    @AppStorage("TMDB_API_KEY") var tmdbAPIKey: String?
+    @AppStorage(.preferredMetadataLanguage) var language: Language = .japanese
+    @AppStorage(.tmdbAPIKey) var tmdbAPIKey: String?
 
     var body: some Scene {
         WindowGroup {

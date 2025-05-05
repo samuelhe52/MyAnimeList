@@ -12,12 +12,12 @@ actor InfoFetcher {
     let tmdbClient: TMDbClient
     
     init() {
-        let key = UserDefaults.standard.string(forKey: "TMDB_API_KEY")
+        let key = UserDefaults.standard.string(forKey: .tmdbAPIKey)
         self.tmdbClient = .init(apiKey: key ?? "")
     }
     
     init(httpClient: some HTTPClient) {
-        let key = UserDefaults.standard.string(forKey: "TMDB_API_KEY")
+        let key = UserDefaults.standard.string(forKey: .tmdbAPIKey)
         self.tmdbClient = .init(apiKey: key ?? "", httpClient: httpClient)
     }
     

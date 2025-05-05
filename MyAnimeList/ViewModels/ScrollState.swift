@@ -20,9 +20,9 @@ class ScrollState {
     private let writer: DebouncedIntUserDefaultsWriter
 
     init() {
-        let persistedScrollPosition = UserDefaults.standard.integer(forKey: "persistedScrolledID")
+        let persistedScrollPosition = UserDefaults.standard.integer(forKey: .persistedScrolledID)
         self.scrolledID = persistedScrollPosition
         self.writer = DebouncedIntUserDefaultsWriter(publisher: scrolledIDSubject.eraseToAnyPublisher(),
-                                                     forKey: "persistedScrolledID")
+                                                     forKey: .persistedScrolledID)
     }
 }

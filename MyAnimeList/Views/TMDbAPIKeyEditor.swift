@@ -9,7 +9,7 @@ import SwiftUI
 import AlertToast
 
 struct TMDbAPIKeyEditor: View {
-    @AppStorage("TMDB_API_KEY") var apiKey: String?
+    @AppStorage(.tmdbAPIKey) var apiKey: String?
     
     var isEditing: Bool = false
     @State private var apiKeyInput: String = ""

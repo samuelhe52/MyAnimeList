@@ -19,7 +19,7 @@ struct LibraryView: View {
     @State private var cacheSizeResult: Result<UInt, KingfisherError>? = nil
     @State private var scrollState = ScrollState()
 
-    @AppStorage("PreferredMetadataLanguage") var language: Language = .japanese
+    @AppStorage(.preferredMetadataLanguage) var language: Language = .japanese
     
     
     init(store: LibraryStore) {

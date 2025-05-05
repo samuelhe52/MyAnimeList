@@ -21,12 +21,18 @@ actor InfoFetcher {
         self.tmdbClient = .init(apiKey: key ?? "", httpClient: httpClient)
     }
     
-    func fetchMovie(_ tmdbID: Int, language: Language) async throws -> Movie {
+    func movie(_ tmdbID: Int, language: Language) async throws -> Movie {
         try await tmdbClient.movies.details(forMovie: tmdbID, language: language.rawValue)
     }
     
-    func fetchTVSeries(_ tmdbID: Int, language: Language) async throws -> TVSeries {
+    func tvSeries(_ tmdbID: Int, language: Language) async throws -> TVSeries {
         try await tmdbClient.tvSeries.details(forTVSeries: tmdbID, language: language.rawValue)
+    }
+    
+    func tvSeason(_ parentSeriesID: Int, seasonNumber: Int, language: Language) async throws -> TVSeason {
+        try await tmdbClient.tvSeasons.details(forSeason: seasonNumber,
+                                               inTVSeries: parentSeriesID,
+                                               language: language.rawValue)
     }
     
     func searchAll(name: String, language: Language) async throws -> [Media] {
@@ -56,40 +62,39 @@ actor InfoFetcher {
     func fetchInfoFromTMDB(entryType: MediaTypeMetadata, tmdbID: Int, language: Language) async throws -> BasicInfo {
         switch entryType {
         case .tvSeason(let seasonNumber, let parentSeriesID):
-            return try await tvSeasonInfo(seasonNumber: seasonNumber, parentSeriesID: parentSeriesID)
+            return try await tvSeasonInfo(seasonNumber: seasonNumber, parentSeriesID: parentSeriesID, language: language)
         case .movie:
-            return try await movieInfo()
+            return try await movieInfo(tmdbID: tmdbID, language: language)
         case .tvSeries:
-            return try await tvSeriesInfo()
+            return try await tvSeriesInfo(tmdbID: tmdbID, language: language)
         }
+    }
+    
+    func tvSeasonInfo(seasonNumber: Int, parentSeriesID: Int, language: Language) async throws -> BasicInfo {
+        let season = try await tmdbClient.tvSeasons.details(forSeason: seasonNumber,
+                                                            inTVSeries: parentSeriesID,
+                                                            language: language.rawValue)
+        let parentSeries = try await tmdbClient.tvSeries.details(forTVSeries: parentSeriesID,
+                                                                 language: language.rawValue)
+        let backdropURL = try await parentSeries.backdropURL(client: tmdbClient)
+        let linkToDetails = parentSeries.linkToDetails
         
-        func tvSeasonInfo(seasonNumber: Int, parentSeriesID: Int) async throws -> BasicInfo {
-            let season = try await tmdbClient.tvSeasons.details(forSeason: seasonNumber,
-                                                                inTVSeries: parentSeriesID,
-                                                                language: language.rawValue)
-            let parentSeries = try await tmdbClient.tvSeries.details(forTVSeries: parentSeriesID,
-                                                                     language: language.rawValue)
-            var basicInfo = try await season.basicInfo(client: tmdbClient)
-            // Use the parent series' backdrop image and homepage for the season.
-            let seasonPosterPath = try await tmdbClient.tvSeasons.images(forSeason: seasonNumber,
-                                                           inTVSeries: parentSeriesID)
-                .posters.bestQuality?.filePath
-            let seasonPoster = try await tmdbClient.imagesConfiguration.posterURL(for: seasonPosterPath)
-            basicInfo.posterURL = seasonPoster
-            basicInfo.backdropURL = try await parentSeries.backdropURL(client: tmdbClient)
-            basicInfo.linkToDetails = parentSeries.homepageURL
-            return basicInfo
-        }
-        
-        func movieInfo() async throws -> BasicInfo {
-            let movie = try await tmdbClient.movies.details(forMovie: tmdbID, language: language.rawValue)
-            return try await movie.basicInfo(client: tmdbClient)
-        }
-        
-        func tvSeriesInfo() async throws -> BasicInfo {
-            let season = try await tmdbClient.tvSeries.details(forTVSeries: tmdbID, language: language.rawValue)
-            return try await season.basicInfo(client: tmdbClient)
-        }
+        // Use the parent series' backdrop image and homepage for the season.
+        let basicInfo = try await season.basicInfo(client: tmdbClient,
+                                                   backdropURL: backdropURL,
+                                                   linkToDetails: linkToDetails,
+                                                   parentSeriesID: parentSeriesID)
+        return basicInfo
+    }
+    
+    func movieInfo(tmdbID: Int, language: Language) async throws -> BasicInfo {
+        let movie = try await tmdbClient.movies.details(forMovie: tmdbID, language: language.rawValue)
+        return try await movie.basicInfo(client: tmdbClient)
+    }
+    
+    func tvSeriesInfo(tmdbID: Int, language: Language) async throws -> BasicInfo {
+        let season = try await tmdbClient.tvSeries.details(forTVSeries: tmdbID, language: language.rawValue)
+        return try await season.basicInfo(client: tmdbClient)
     }
     
     /// Creates a new `InfoFetcher` instance which utilizes a custom `HTTPClient`

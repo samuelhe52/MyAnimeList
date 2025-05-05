@@ -18,18 +18,19 @@ struct AnimeEntryCard: View {
     @State private var triggerDeleteHaptic: Bool = false
     @State private var showDeleteToast: Bool = false
     @State private var posterImage: UIImage? = nil
-    @State private var imageMissing: Bool = false
+    var imageMissing: Bool { entry.posterURL == nil }
     
     init(entry: AnimeEntry, onDelete delete: @escaping () -> Void) {
         self.entry = entry
         self.delete = delete
-        self.posterImage = posterImage
-        self.imageMissing = imageMissing
     }
     
     var body: some View {
         image
             .scaledToFit()
+            .overlay(alignment: .bottomTrailing) {
+                MediaTypeIndicator(type: entry.entryType)
+            }
             .padding()
             .onTapGesture {
                 showDeleteToast = false
@@ -45,6 +46,13 @@ struct AnimeEntryCard: View {
             .contextMenu {
                 Button("Delete", systemImage: "trash", role: .destructive) {
                     showDeleteToast = true
+                }
+                if entry.isSeason {
+                    Button {
+                        Task { try await entry.switchPoster(language: .japanese) }
+                    } label: {
+                        Label(entry.useSeriesPoster ? "Use Season Poster" : "Use Series Poster", systemImage: "photo")
+                    }
                 }
                 Button("Poster URL", systemImage: "document.on.clipboard") {
                     UIPasteboard.general.string = entry.posterURL?.absoluteString ?? ""
@@ -90,8 +98,34 @@ struct AnimeEntryCard: View {
             } catch {
                 logger.warning("Error loading image: \(error)")
             }
-        } else {
-            imageMissing = true
+        }
+    }
+}
+
+struct MediaTypeIndicator: View {
+    var type: MediaTypeMetadata
+    var description: String {
+        switch type {
+        case .movie: return "Movie"
+        case .tvSeries: return "TV Series"
+        case .tvSeason(let seasonNumber, _): return "Season \(seasonNumber)"
+        }
+    }
+    
+    var body: some View {
+        Text(description)
+            .font(.footnote)
+            .padding(5)
+            .background(in: .buttonBorder)
+            .backgroundStyle(.regularMaterial)
+    }
+}
+
+extension AnimeEntry {
+    var isSeason: Bool {
+        switch self.entryType {
+        case .tvSeason: return true
+        default : return false
         }
     }
 }

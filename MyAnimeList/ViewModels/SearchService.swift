@@ -59,6 +59,11 @@ class SearchService {
                 for series in searchTVSeriesResults {
                     group.addTask {
                         let seasons = try? await fetchSeasons(seriesInfo: series, language: language)
+                            .sorted {
+                                let seasonNumber1 = $0.typeMetadata.seasonNumber ?? 0
+                                let seasonNumber2 = $1.typeMetadata.seasonNumber ?? 0
+                                return seasonNumber1 < seasonNumber2
+                            }
                         await MainActor.run {
                             withAnimation {
                                 self.seriesResults[series] = seasons ?? []
@@ -71,19 +76,16 @@ class SearchService {
         status = .done
         
         func fetchSeasons(seriesInfo info: BasicInfo, language: Language) async throws -> [BasicInfo] {
-            let series = try await InfoFetcher.shared.fetchTVSeries(info.tmdbID, language: language)
+            let fetcher = InfoFetcher()
+            let series = try await fetcher.tvSeries(info.tmdbID, language: language)
             guard let seasons = series.seasons else { return [] }
             let infos = try await withThrowingTaskGroup(of: BasicInfo.self) { group in
                 var results: [BasicInfo] = []
                 for season in seasons {
                     group.addTask {
-                        var seasonInfo = try await season.basicInfo(client: InfoFetcher.shared.tmdbClient)
-                        seasonInfo.linkToDetails = info.linkToDetails
-                        seasonInfo.backdropURL = info.backdropURL
-                        seasonInfo.logoURL = info.logoURL
-                        seasonInfo.typeMetadata = .tvSeason(seasonNumber: season.seasonNumber,
-                                                            parentSeriesID: info.tmdbID)
-                        return seasonInfo
+                        return try await fetcher.tvSeasonInfo(seasonNumber: season.seasonNumber,
+                                                              parentSeriesID: info.tmdbID,
+                                                              language: language)
                     }
                 }
                 for try await result in group {

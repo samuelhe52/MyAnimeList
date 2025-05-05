@@ -181,7 +181,7 @@ extension LibraryScrollView {
 #Preview {
     // dataProvider could be changed to .forPreview for memory-only storage.
     // Uncomment the task below to generate template entries.
-    @Previewable let store = LibraryStore(dataProvider: .default)
+    @Previewable let store = LibraryStore(dataProvider: .forPreview)
     LibraryView(store: store)
 //        .task {
 //            await withTaskGroup(of: Void.self) { group in

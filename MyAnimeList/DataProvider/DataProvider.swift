@@ -8,7 +8,7 @@
 import Foundation
 import SwiftData
 
-typealias CurrentSchema = SchemaV2
+typealias CurrentSchema = SchemaV2_0_1
 typealias AnimeEntry = CurrentSchema.AnimeEntry
 
 final class DataProvider: Sendable {

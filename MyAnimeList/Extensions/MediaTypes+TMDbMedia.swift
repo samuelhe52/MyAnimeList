@@ -8,23 +8,6 @@
 import Foundation
 import TMDb
 
-protocol TMDbMedia: Identifiable, Sendable, Equatable {
-    func basicInfo(client: TMDbClient) async throws -> BasicInfo
-    
-    /// Fetches the largest (best quality) poster image for this media.
-    func posterURL(client: TMDbClient) async throws -> URL?
-    /// Fetches the largest (best quality) backdrop image for this media.
-    func backdropURL(client: TMDbClient) async throws -> URL?
-    /// Fetches the largest (best quality) logo image for this media.
-    func logoURL(client: TMDbClient) async throws -> URL?
-    
-    var id: Int { get }
-    var name: String { get }
-    var overview: String? { get }
-    var onAirDate: Date? { get }
-    var linkToDetails: URL? { get }
-}
-
 extension Array where Element == ImageMetadata {
     var filterAndSortByBestQuality: [ImageMetadata] {
         self.filter { ($0.voteCount ?? 0) > 0 &&
@@ -38,7 +21,7 @@ extension Array where Element == ImageMetadata {
     }
 }
 
-extension Movie: TMDbMedia {
+extension Movie {
     /// Returns the basic information for the movie.
     ///
     /// - Parameters:
@@ -100,7 +83,7 @@ extension Movie: TMDbMedia {
     var linkToDetails: URL? { homepageURL }
 }
 
-extension TVSeries: TMDbMedia {
+extension TVSeries {
     /// Returns the basic information for the TV series.
     ///
     /// - Parameters:
@@ -161,7 +144,7 @@ extension TVSeries: TMDbMedia {
     var linkToDetails: URL? { homepageURL }
 }
 
-extension TVSeason: TMDbMedia {
+extension TVSeason {
     ///
     /// Returns the basic information for the TV season.
     ///
@@ -169,20 +152,31 @@ extension TVSeason: TMDbMedia {
     ///   - client: The TMDb client used to fetch image configuration.
     /// - Returns: A `BasicInfo` struct containing metadata about the TV season.
     ///
-    /// - Warning: The `posterURL`, `backdropURL` and `logoURL` are always nil for a tv season..
-    /// The `parentSeriesID` is set to `0` since the actual parent series ID cannot be inferred from a `TVSeason` instance alone.
-    func basicInfo(client: TMDbClient) async throws -> BasicInfo {
-        let posterURL = try await posterURL(client: client)
+    /// - Warning: The `posterURL`, `backdropURL` and `logoURL` are nil unless explicitly provided.
+    func basicInfo(client: TMDbClient,
+                   backdropURL: URL? = nil,
+                   logoURL: URL? = nil,
+                   linkToDetails: URL? = nil,
+                   parentSeriesID: Int) async throws -> BasicInfo {
+        let seasonPosterPath = try await client.tvSeasons
+            .images(forSeason: seasonNumber, inTVSeries: parentSeriesID)
+            .posters.bestQuality?.filePath
+        var seasonPoster: URL?
+        if let seasonPosterPath {
+            seasonPoster = try await client.imagesConfiguration.posterURL(for: seasonPosterPath)
+        } else {
+            seasonPoster = try await client.imagesConfiguration.posterURL(for: posterPath)
+        }
         return BasicInfo(
             name: name,
             overview: overview,
-            posterURL: posterURL,
-            backdropURL: nil,
-            logoURL: nil,
+            posterURL: seasonPoster,
+            backdropURL: backdropURL,
+            logoURL: logoURL,
             tmdbID: id,
             onAirDate: airDate,
-            linkToDetails: nil,
-            typeMetadata: .tvSeason(seasonNumber: seasonNumber, parentSeriesID: 0)
+            linkToDetails: linkToDetails,
+            typeMetadata: .tvSeason(seasonNumber: seasonNumber, parentSeriesID: parentSeriesID)
         )
     }
     

@@ -95,7 +95,8 @@ struct SeriesResultItem: View {
     
     private func pickerItem(season: BasicInfo) -> some View {
         let seasonNumber = season.typeMetadata.seasonNumber ?? 0
-        return Text(season.name).tag(seasonNumber)
+        let seasonIndicator = seasonNumber != 0 ? "Season \(seasonNumber)" : "Specials"
+        return Text(seasonIndicator).tag(seasonNumber)
     }
     
     @Observable @MainActor

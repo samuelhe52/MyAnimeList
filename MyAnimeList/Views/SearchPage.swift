@@ -14,7 +14,7 @@ struct SearchPage: View {
     @Bindable var service: SearchService
     @AppStorage(.searchPageLanguage) private var language: Language = .english
     var processResult: (SearchResult) -> Void
-        
+
     var body: some View {
         List {
             Picker("Language", selection: $language) {
@@ -26,13 +26,11 @@ struct SearchPage: View {
                 results
             }
         }
+        .listStyle(.inset)
         .searchable(text: $service.query, prompt: "Search TV animation or movies...")
         .onSubmit(of: .search) { updateResults() }
-        .listStyle(.inset)
         .onAppear { updateResults() }
         .onChange(of: language) { updateResults() }
-        .animation(.default, value: service.movieResults)
-        .animation(.default, value: service.seriesResults)
         .animation(.default, value: service.status)
     }
     
@@ -42,8 +40,7 @@ struct SearchPage: View {
             Section("Series") {
                 let series = Array(service.seriesResults.keys) as [BasicInfo]
                 ForEach(series, id: \.tmdbID) { series in
-                    SeriesResultItem(result: series,
-                                     seasons: service.seriesResults[series] ?? [],
+                    SeriesResultItem(viewModel: .init(result: series, seasons: service.seriesResults[series] ?? []),
                                      processResult: processResult)
                 }
             }
@@ -63,71 +60,59 @@ struct SearchPage: View {
 }
 
 struct SeriesResultItem: View {
-    let result: SearchResult
-    let seasons: [BasicInfo]
+    @Bindable var viewModel: ViewModel
     let processResult: (SearchResult) -> Void
-    var selectedSeason: BasicInfo? {
-        seasons.first {
-            $0.typeMetadata.seasonNumber == selectedSeasonNumber
-        }
-    }
-    @State private var selectedSeasonNumber: Int = 1
     
     var body: some View {
         HStack {
-            poster(url: selectedSeason?.posterURL)
-                .scaledToFit()
-                .clipShape(.rect(cornerRadius: 6))
-                .frame(width: 60, height: 90)
+            PosterView(url: viewModel.selectedSeason?.posterURL)
             VStack(alignment: .leading) {
                 HStack {
-                    Text(result.name)
+                    Text(viewModel.result.name)
                         .bold()
                         .lineLimit(1)
                     Spacer()
-                    Picker("", selection: $selectedSeasonNumber) {
-                        ForEach(seasons) { season in
+                    Picker("", selection: $viewModel.selectedSeasonNumber) {
+                        ForEach(viewModel.seasons) { season in
                             pickerItem(season: season)
                         }
                     }.frame(height: 0)
                 }
-                if let date = selectedSeason?.onAirDate {
+                if let date = viewModel.selectedSeason?.onAirDate {
                     Text(date.formatted(date: .abbreviated, time: .omitted))
                         .font(.caption)
                         .padding(.bottom, 1)
                 }
-                Text(result.overview ?? "No overview available")
+                Text(viewModel.result.overview ?? "No overview available")
                     .font(.caption2)
                     .foregroundStyle(.gray)
                     .lineLimit(3)
             }
         }
-        .onTapGesture { processResult(selectedSeason ?? result) }
-        .animation(.default, value: selectedSeasonNumber)
+        .onTapGesture { processResult(viewModel.selectedSeason ?? viewModel.result) }
+        .animation(.default, value: viewModel.selectedSeasonNumber)
     }
-    
-    @ViewBuilder
-    private func poster(url: URL?) -> some View {
-        if let url {
-            KFImage(url)
-                .resizable()
-                .fade(duration: 0.3)
-                .placeholder {
-                    ProgressView()
-                }
-                .cacheOriginalImage()
-                .diskCacheExpiration(.days(1))
-                .cancelOnDisappear(true)
-        } else {
-            Image("missing_image_resource")
-                .resizable()
-        }
-    }
-    
     
     private func pickerItem(season: BasicInfo) -> some View {
         let seasonNumber = season.typeMetadata.seasonNumber ?? 0
         return Text(season.name).tag(seasonNumber)
+    }
+    
+    @Observable @MainActor
+    class ViewModel {
+        var result: SearchResult
+        var seasons: [BasicInfo]
+        var selectedSeasonNumber: Int = 1
+        var selectedSeason: BasicInfo? {
+            seasons.first {
+                $0.typeMetadata.seasonNumber == selectedSeasonNumber
+            }
+        }
+        
+        init(result: SearchResult, seasons: [BasicInfo]) {
+            self.result = result
+            self.seasons = seasons
+        }
     }
 }
 
@@ -137,10 +122,7 @@ struct MovieResultItem: View {
     
     var body: some View {
         HStack {
-            poster(url: result.posterURL)
-                .scaledToFit()
-                .clipShape(.rect(cornerRadius: 6))
-                .frame(width: 60, height: 90)
+            PosterView(url: result.posterURL)
             VStack(alignment: .leading) {
                 Text(result.name)
                     .bold()
@@ -158,25 +140,32 @@ struct MovieResultItem: View {
         }
         .onTapGesture { processResult(result) }
     }
+}
+
+fileprivate struct PosterView: View {
+    let url: URL?
     
-    @ViewBuilder
-    private func poster(url: URL?) -> some View {
-        if let url {
-            KFImage(url)
-                .resizable()
-                .fade(duration: 0.3)
-                .placeholder {
-                    ProgressView()
-                }
-                .cacheOriginalImage()
-                .diskCacheExpiration(.days(1))
-                .cancelOnDisappear(true)
-        } else {
-            Image("missing_image_resource")
-                .resizable()
+    var body: some View {
+        Group {
+            if let url {
+                KFImage(url)
+                    .resizable()
+                    .fade(duration: 0.3)
+                    .placeholder { ProgressView() }
+                    .cacheOriginalImage()
+                    .diskCacheExpiration(.days(1))
+                    .cancelOnDisappear(true)
+            } else {
+                Image("missing_image_resource")
+                    .resizable()
+            }
         }
+        .scaledToFit()
+        .clipShape(.rect(cornerRadius: 6))
+        .frame(width: 60, height: 90)
     }
 }
+
 
 #Preview {
     @Previewable @State var service = SearchService(query: "K-on!")

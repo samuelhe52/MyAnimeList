@@ -6,16 +6,13 @@
 //
 
 import Foundation
+import SwiftUI
 
 @Observable @MainActor
 class SearchService {
     let fetcher: InfoFetcher = .bypassGFWForTMDbAPI
     var status: Status = .idle
-    var query: String {
-        didSet {
-            UserDefaults.standard.set(query, forKey: .searchPageQuery)
-        }
-    }
+    var query: String
     var movieResults: [SearchResult] = []
     var seriesResults: [SearchResult: [SearchResult]] = [:]
     
@@ -24,6 +21,7 @@ class SearchService {
     }
     
     func updateSearchResults(language: Language) async throws {
+        UserDefaults.standard.set(query, forKey: .searchPageQuery)
         guard !query.isEmpty else { return }
         let currentQuery = query
         status = .fetching
@@ -53,14 +51,18 @@ class SearchService {
         try await searchTVSeriesResults.updatePosterURLs(width: 200)
         
         if currentQuery == query {
-            movieResults = searchMovieResults
+            withAnimation {
+                movieResults = searchMovieResults
+            }
             seriesResults = [:]
             await withTaskGroup(of: Void.self) { group in
                 for series in searchTVSeriesResults {
                     group.addTask {
                         let seasons = try? await fetchSeasons(seriesInfo: series, language: language)
                         await MainActor.run {
-                            self.seriesResults[series] = seasons ?? []
+                            withAnimation {
+                                self.seriesResults[series] = seasons ?? []
+                            }
                         }
                     }
                 }

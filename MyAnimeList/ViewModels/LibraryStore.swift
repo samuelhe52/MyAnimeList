@@ -101,8 +101,8 @@ class LibraryStore {
 // This is where we place debug-specific code.
 extension LibraryStore {
     /// Mock delete, doesn't really touch anything in the persisted data model. Restores after 1.5 seconds.
-    func mockDeleteEntry(withId: PersistentIdentifier) {
-        if let index = library.firstIndex(where: { $0.id == withId }) {
+    func mockDeleteEntry(withID id: PersistentIdentifier) {
+        if let index = library.firstIndex(where: { $0.id == id }) {
             let entry = library[index]
             library.remove(at: index)
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in

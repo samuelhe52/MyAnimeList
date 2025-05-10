@@ -24,7 +24,7 @@ extension SchemaV2_0_1 {
         var backdropURL: URL?
         
         /// The unique TMDB id for this entry.
-        @Attribute(.unique, originalName: "id") var tmdbID: Int
+        @Attribute(.unique) var tmdbID: Int
         
         // MARK: User-specific properties
         /// Use parent series' poster instead?

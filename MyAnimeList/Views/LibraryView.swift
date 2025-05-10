@@ -174,7 +174,7 @@ private struct LibraryScrollView: View {
 // This is where we place debug-specific code.
 extension LibraryScrollView {
     private func mockDelete(withID id: PersistentIdentifier) {
-        store.mockDeleteEntry(withId: id)
+        store.mockDeleteEntry(withID: id)
     }
 }
 

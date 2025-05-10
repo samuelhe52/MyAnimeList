@@ -59,13 +59,13 @@ actor InfoFetcher {
         return results.results.filter { $0.genreIDs.contains(16) }
     }
     
-    func fetchInfoFromTMDB(entryType: MediaTypeMetadata, tmdbID: Int, language: Language) async throws -> BasicInfo {
+    func fetchInfoFromTMDB(entryType: AnimeType, tmdbID: Int, language: Language) async throws -> BasicInfo {
         switch entryType {
-        case .tvSeason(let seasonNumber, let parentSeriesID):
+        case .season(let seasonNumber, let parentSeriesID):
             return try await tvSeasonInfo(seasonNumber: seasonNumber, parentSeriesID: parentSeriesID, language: language)
         case .movie:
             return try await movieInfo(tmdbID: tmdbID, language: language)
-        case .tvSeries:
+        case .series:
             return try await tvSeriesInfo(tmdbID: tmdbID, language: language)
         }
     }

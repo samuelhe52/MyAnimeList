@@ -8,7 +8,7 @@
 import Foundation
 import SwiftData
 
-typealias CurrentSchema = SchemaV2_0_1
+typealias CurrentSchema = SchemaV2_1_0
 typealias AnimeEntry = CurrentSchema.AnimeEntry
 
 final class DataProvider: Sendable {
@@ -25,7 +25,9 @@ final class DataProvider: Sendable {
             let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
             
             do {
-                return try ModelContainer(for: schema, configurations: modelConfiguration)
+                return try ModelContainer(for: schema,
+                                          migrationPlan: MigrationPlan.self,
+                                          configurations: modelConfiguration)
             } catch {
                 fatalError("Could not create ModelContainer: \(error)")
             }

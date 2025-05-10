@@ -5,6 +5,7 @@
 //  Created by Samuel He on 2025/4/5.
 //
 
+/// - Warning: Renamed to `AnimeType`.
 enum MediaTypeMetadata: CustomStringConvertible, Codable, Equatable, Hashable {
     case tvSeason(seasonNumber: Int, parentSeriesID: Int)
     case movie

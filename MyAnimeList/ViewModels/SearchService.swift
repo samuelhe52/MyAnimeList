@@ -34,7 +34,7 @@ class SearchService {
                          posterPath: movie.posterPath,
                          tmdbID: movie.id,
                          onAirDate: movie.releaseDate,
-                         typeMetadata: .movie)
+                         type: .movie)
         }
         var searchTVSeriesResults = tvSeries.map { series in
             SearchResult(name: series.name,
@@ -42,7 +42,7 @@ class SearchService {
                          posterPath: series.posterPath,
                          tmdbID: series.id,
                          onAirDate: series.firstAirDate,
-                         typeMetadata: .tvSeries)
+                         type: .series)
         }
         
         // The poster displayed here is small and we use smaller sizes
@@ -60,8 +60,8 @@ class SearchService {
                     group.addTask {
                         let seasons = try? await fetchSeasons(seriesInfo: series, language: language)
                             .sorted {
-                                let seasonNumber1 = $0.typeMetadata.seasonNumber ?? 0
-                                let seasonNumber2 = $1.typeMetadata.seasonNumber ?? 0
+                                let seasonNumber1 = $0.type.seasonNumber ?? 0
+                                let seasonNumber2 = $1.type.seasonNumber ?? 0
                                 return seasonNumber1 < seasonNumber2
                             }
                         await MainActor.run {

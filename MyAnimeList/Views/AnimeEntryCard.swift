@@ -29,7 +29,7 @@ struct AnimeEntryCard: View {
         image
             .scaledToFit()
             .overlay(alignment: .bottomTrailing) {
-                MediaTypeIndicator(type: entry.entryType)
+                AnimeTypeIndicator(type: entry.type)
             }
             .padding()
             .onTapGesture {
@@ -102,13 +102,13 @@ struct AnimeEntryCard: View {
     }
 }
 
-struct MediaTypeIndicator: View {
-    var type: MediaTypeMetadata
+struct AnimeTypeIndicator: View {
+    var type: AnimeType
     var description: String {
         switch type {
         case .movie: return "Movie"
-        case .tvSeries: return "TV Series"
-        case .tvSeason(let seasonNumber, _): return "Season \(seasonNumber)"
+        case .series: return "TV Series"
+        case .season(let seasonNumber, _): return "Season \(seasonNumber)"
         }
     }
     
@@ -118,15 +118,6 @@ struct MediaTypeIndicator: View {
             .padding(5)
             .background(in: .buttonBorder)
             .backgroundStyle(.regularMaterial)
-    }
-}
-
-extension AnimeEntry {
-    var isSeason: Bool {
-        switch self.entryType {
-        case .tvSeason: return true
-        default : return false
-        }
     }
 }
 

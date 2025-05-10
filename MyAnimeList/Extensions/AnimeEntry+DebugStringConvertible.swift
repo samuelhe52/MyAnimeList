@@ -14,7 +14,7 @@ extension AnimeEntry {
           name: "\(name)",
           overview: "\(overview ?? "nil")",
           onAirDate: \(onAirDate?.description ?? "nil"),
-          entryType: \(entryType),
+          type: \(type),
           linkToDetails: \(linkToDetails?.absoluteString ?? "nil"),
           posterURL: \(posterURL?.absoluteString ?? "nil"),
           backdropURL: \(backdropURL?.absoluteString ?? "nil"),
@@ -27,6 +27,5 @@ extension AnimeEntry {
         )
         """
     }
-    
 }
 

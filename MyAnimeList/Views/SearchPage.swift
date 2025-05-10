@@ -94,7 +94,7 @@ struct SeriesResultItem: View {
     }
     
     private func pickerItem(season: BasicInfo) -> some View {
-        let seasonNumber = season.typeMetadata.seasonNumber ?? 0
+        let seasonNumber = season.type.seasonNumber ?? 0
         let seasonIndicator = seasonNumber != 0 ? "Season \(seasonNumber)" : "Specials"
         return Text(seasonIndicator).tag(seasonNumber)
     }
@@ -106,7 +106,7 @@ struct SeriesResultItem: View {
         var selectedSeasonNumber: Int = 1
         var selectedSeason: BasicInfo? {
             seasons.first {
-                $0.typeMetadata.seasonNumber == selectedSeasonNumber
+                $0.type.seasonNumber == selectedSeasonNumber
             }
         }
         

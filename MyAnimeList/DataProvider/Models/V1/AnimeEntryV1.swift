@@ -62,55 +62,6 @@ extension SchemaV1 {
             self.dateFinished = dateFinished
         }
         
-        init(fromInfo info: BasicInfo) {
-            name = info.name
-            overview = info.overview
-            linkToDetails = info.linkToDetails
-            posterURL = info.posterURL
-            backdropURL = info.backdropURL
-            onAirDate = info.onAirDate
-            entryType = info.typeMetadata
-            id = info.tmdbID
-            dateSaved = .now
-        }
-        
-        func update(from info: BasicInfo) {
-            name = info.name
-            overview = info.overview ?? self.overview
-            linkToDetails = info.linkToDetails ?? self.linkToDetails
-            posterURL = info.posterURL ?? self.posterURL
-            backdropURL = info.backdropURL ?? self.backdropURL
-            onAirDate = info.onAirDate ?? self.onAirDate
-            entryType = info.typeMetadata
-            id = info.tmdbID
-        }
-        
-        /// - Note: `dateSaved` and `id` is not updated in this method.
-        func update(from other: AnimeEntry) {
-            name = other.name
-            overview = other.overview
-            onAirDate = other.onAirDate
-            entryType = other.entryType
-            linkToDetails = other.linkToDetails
-            posterURL = other.posterURL
-            backdropURL = other.backdropURL
-            // Date saved and id is not updated.
-            dateStarted = other.dateStarted
-            dateFinished = other.dateFinished
-            favorite = other.favorite
-        }
-        
-        var basicInfo: BasicInfo {
-            BasicInfo(name: name,
-                      overview: overview,
-                      posterURL: posterURL,
-                      backdropURL: backdropURL,
-                      tmdbID: id,
-                      onAirDate: onAirDate,
-                      linkToDetails: linkToDetails,
-                      typeMetadata: entryType)
-        }
-        
         static var template: Self { .init(name: "Template", entryType: .movie, id: 0) }
     }
     

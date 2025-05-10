@@ -52,7 +52,7 @@ class LibraryStore {
     func newEntryFromInfo(info: BasicInfo) async throws {
         // No duplicatye entries
         guard library.map({ $0.tmdbID }).contains(info.tmdbID) == false else { return }
-        let info = try await infoFetcher.fetchInfoFromTMDB(entryType: info.typeMetadata,
+        let info = try await infoFetcher.fetchInfoFromTMDB(entryType: info.type,
                                                            tmdbID: info.tmdbID,
                                                            language: language)
         let entry = AnimeEntry(fromInfo: info)
@@ -63,7 +63,7 @@ class LibraryStore {
     func refreshInfos() async throws {
         ToastCenter.global.refreshingInfos = true
         for index in library.indices {
-            let info = try await infoFetcher.fetchInfoFromTMDB(entryType: library[index].entryType,
+            let info = try await infoFetcher.fetchInfoFromTMDB(entryType: library[index].type,
                                                                tmdbID: library[index].tmdbID,
                                                                language: language)
             try await dataProvider.dataHandler.updateEntry(id: library[index].id, info: info)

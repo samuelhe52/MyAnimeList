@@ -1,5 +1,5 @@
 //
-//  MediaTypes+TMDbMedia.swift
+//  TMDbMedia+Helpers.swift
 //  MyAnimeList
 //
 //  Created by Samuel He on 2025/3/29.
@@ -41,7 +41,7 @@ extension Movie {
             tmdbID: id,
             onAirDate: releaseDate,
             linkToDetails: homepageURL,
-            typeMetadata: .movie
+            type: .movie
         )
     }
     
@@ -103,7 +103,7 @@ extension TVSeries {
             tmdbID: id,
             onAirDate: firstAirDate,
             linkToDetails: homepageURL,
-            typeMetadata: .tvSeries
+            type: .series
         )
     }
     
@@ -176,7 +176,7 @@ extension TVSeason {
             tmdbID: id,
             onAirDate: airDate,
             linkToDetails: linkToDetails,
-            typeMetadata: .tvSeason(seasonNumber: seasonNumber, parentSeriesID: parentSeriesID)
+            type: .season(seasonNumber: seasonNumber, parentSeriesID: parentSeriesID)
         )
     }
     

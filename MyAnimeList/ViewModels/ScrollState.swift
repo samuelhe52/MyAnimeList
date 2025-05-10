@@ -12,17 +12,15 @@ import Combine
 class ScrollState {
     var scrolledID: Int? {
         didSet {
-            scrolledIDSubject.send(scrolledID)
+            writer.updateValue(scrolledID)
         }
     }
 
-    let scrolledIDSubject = PassthroughSubject<Int?, Never>()
     private let writer: DebouncedIntUserDefaultsWriter
 
     init() {
         let persistedScrollPosition = UserDefaults.standard.integer(forKey: .persistedScrolledID)
         self.scrolledID = persistedScrollPosition
-        self.writer = DebouncedIntUserDefaultsWriter(publisher: scrolledIDSubject.eraseToAnyPublisher(),
-                                                     forKey: .persistedScrolledID)
+        self.writer = DebouncedIntUserDefaultsWriter(forKey: .persistedScrolledID)
     }
 }

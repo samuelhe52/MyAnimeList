@@ -55,8 +55,8 @@ struct LibraryView: View {
         .buttonStyle(.bordered)
         .sheet(isPresented: $isSearching) {
             NavigationStack {
-                SearchPage(service: .init()) { result in
-                    Task { await processSearchResult(result) }
+                SearchPage(service: .init()) { results in
+                    Task { await processSearchResults(results) }
                 }
                 .navigationTitle("Search TMDB")
                 .navigationBarTitleDisplayMode(.inline)
@@ -127,17 +127,20 @@ struct LibraryView: View {
         }
     }
     
-    private func processSearchResult(_ result: SearchResult) async {
+    private func processSearchResults(_ results: [SearchResult]) async {
         isSearching = false
         do {
-            try await store.newEntryFromInfo(info: result)
+            for result in results {
+                try await store.newEntryFromInfo(info: result)
+            }
         } catch {
-            ToastCenter.global.completionState = .init(state: .failed,
-                                                       message: error.localizedDescription)
+            ToastCenter.global.completionState = .init(state: .failed, message: error.localizedDescription)
             return
         }
         withAnimation {
-            scrollState.scrolledID = result.tmdbID
+            if let id = results.first?.tmdbID {
+                scrollState.scrolledID = id
+            }
         }
     }
 }
@@ -157,6 +160,7 @@ private struct LibraryScrollView: View {
                                 Task { try await store.deleteEntry(withID: entry.id) }
                             })
                             .containerRelativeFrame(isHorizontal ? .horizontal : .vertical)
+//                            .transition(.asymmetric(insertion: .identity, removal: .opacity))
                             .transition(.opacity)
                             .onScrollVisibilityChange { _ in }
                         }
@@ -184,7 +188,7 @@ extension LibraryScrollView {
 #Preview {
     // dataProvider could be changed to .forPreview for memory-only storage.
     // Uncomment the task below to generate template entries.
-    @Previewable let store = LibraryStore(dataProvider: .forPreview)
+    @Previewable let store = LibraryStore(dataProvider: .default)
     LibraryView(store: store)
 //        .task {
 //            await withTaskGroup(of: Void.self) { group in

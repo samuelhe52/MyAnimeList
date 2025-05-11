@@ -151,8 +151,6 @@ extension TVSeason {
     /// - Parameters:
     ///   - client: The TMDb client used to fetch image configuration.
     /// - Returns: A `BasicInfo` struct containing metadata about the TV season.
-    ///
-    /// - Warning: The `posterURL`, `backdropURL` and `logoURL` are nil unless explicitly provided.
     func basicInfo(client: TMDbClient,
                    backdropURL: URL? = nil,
                    logoURL: URL? = nil,
@@ -178,18 +176,6 @@ extension TVSeason {
             linkToDetails: linkToDetails,
             type: .season(seasonNumber: seasonNumber, parentSeriesID: parentSeriesID)
         )
-    }
-    
-    func posterURL(client: TMDbClient) async throws -> URL? {
-        return try await client.imagesConfiguration.posterURL(for: posterPath)
-    }
-    
-    func backdropURL(client: TMDbClient) async throws -> URL? {
-        throw ImageResourceError.noResourceDirectlyFromTVSeason
-    }
-    
-    func logoURL(client: TMDb.TMDbClient) async throws -> URL? {
-        throw ImageResourceError.noResourceDirectlyFromTVSeason
     }
     
     var onAirDate: Date? { airDate }

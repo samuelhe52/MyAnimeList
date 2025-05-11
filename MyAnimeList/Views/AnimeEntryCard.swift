@@ -30,6 +30,7 @@ struct AnimeEntryCard: View {
             .scaledToFit()
             .overlay(alignment: .bottomTrailing) {
                 AnimeTypeIndicator(type: entry.type)
+                    .opacity( posterImage == nil ? 0 : 1)
             }
             .padding()
             .onTapGesture {

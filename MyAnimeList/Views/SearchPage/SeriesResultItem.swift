@@ -9,15 +9,11 @@ import SwiftUI
 
 struct SeriesResultItem: View {
     let series: SearchResult
-    @Binding var resultsToSubmit: [SearchResult]
+    @Binding var resultsToSubmit: Set<SearchResult>
     let fetcher: InfoFetcher
     
     @State private var resultOption: ResultOption = .series
     @State private var seasons: [SearchResult] = []
-    @State private var selectedSeasonIDs: Set<Int> = []
-    private var selectedSeasons: [SearchResult] {
-        seasons.filter { selectedSeasonIDs.contains($0.tmdbID) }
-    }
     @State private var addToResults: Bool = false
         
     var body: some View {
@@ -25,8 +21,8 @@ struct SeriesResultItem: View {
             PosterView(url: series.posterURL)
                 .frame(width: 80, height: 120)
             VStack(alignment: .leading) {
-                infos
-                resultOptions
+                infosAndToggles
+                resultOptionsView
             }
         }
         .onChange(of: resultOption) {
@@ -34,38 +30,45 @@ struct SeriesResultItem: View {
                 Task { try await fetchSeasons() }
             }
             addToResults = false
-            cleanupResults()
-            selectedSeasonIDs = []
         }
         .onChange(of: addToResults) {
             if addToResults {
                 if resultOption == .series {
-                    resultsToSubmit.append(series)
-                } else {
-                    resultsToSubmit.append(contentsOf: selectedSeasons)
+                    resultsToSubmit.insert(series)
                 }
             } else {
-                cleanupResults()
+                resultsToSubmit.remove(series)
+                for season in seasons {
+                    resultsToSubmit.remove(season)
+                }
             }
         }
         .animation(.default, value: resultOption)
-        .sensoryFeedback(.selection, trigger: addToResults)
+        .sensoryFeedback(.selection, trigger: addToResults) { _,_ in
+            return resultOption == .series
+        }
     }
 
     @ViewBuilder
-    private var infos: some View {
+    private var infosAndToggles: some View {
         HStack{
             Text(series.name)
                 .bold()
                 .lineLimit(1)
             Spacer()
-            Toggle(isOn: $addToResults) {
-                Image(systemName: "checkmark")
+            if resultOption == .series {
+                Toggle(isOn: $addToResults) {
+                    Image(systemName: "checkmark")
+                }
+                .toggleStyle(.button)
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.circle)
+                .frame(height: 0)
+            } else {
+                SeasonSelector(seasons: seasons,
+                               resultsToSubmit: $resultsToSubmit,
+                               addToResults: $addToResults)
             }
-            .toggleStyle(.button)
-            .buttonStyle(.bordered)
-            .buttonBorderShape(.circle)
-            .disabled(resultOption == .season && selectedSeasons.isEmpty)
         }
         if let date = series.onAirDate {
             Text(date.formatted(date: .abbreviated, time: .omitted))
@@ -79,23 +82,16 @@ struct SeriesResultItem: View {
     }
     
     @ViewBuilder
-    private var resultOptions: some View {
-        HStack(alignment: .center) {
-            Picker("", selection: $resultOption) {
-                ForEach(ResultOption.allCases, id: \.hashValue) { option in
-                    switch option {
-                    case .series: Text("Series").tag(option)
-                    case .season: Text("Season").tag(option)
-                    }
+    private var resultOptionsView: some View {
+        Picker("", selection: $resultOption) {
+            ForEach(ResultOption.allCases, id: \.hashValue) { option in
+                switch option {
+                case .series: Text("Series").tag(option)
+                case .season: Text("Season").tag(option)
                 }
             }
-            .pickerStyle(.segmented)
-            .frame(width: 150)
-            if resultOption == .season && !seasons.isEmpty {
-                Spacer()
-                SeasonMenu(seasons: seasons, selectedSeasonIDs: $selectedSeasonIDs)
-            }
         }
+        .pickerStyle(.segmented)
     }
     
     private func fetchSeasons() async throws {
@@ -134,18 +130,13 @@ struct SeriesResultItem: View {
         case series
         case season
     }
-    
-    private func cleanupResults() {
-        resultsToSubmit.removeAll { result in
-            result.tmdbID == series.tmdbID ||
-            selectedSeasons.contains { result.tmdbID == $0.tmdbID }
-        }
-    }
 }
 
-fileprivate struct SeasonMenu: View {
+fileprivate struct SeasonSelector: View {
     let seasons: [SearchResult]
-    @Binding var selectedSeasonIDs: Set<Int>
+    @Binding var resultsToSubmit: Set<SearchResult>
+    @Binding var addToResults: Bool
+    @State var selectedSeasonIDs: Set<Int> = []
     
     var body: some View {
         return Menu("\(selectedSeasonIDs.count) selected") {
@@ -154,9 +145,15 @@ fileprivate struct SeasonMenu: View {
                 if let seasonNumber = season.type.seasonNumber {
                     Button {
                         if !selected {
+                            resultsToSubmit.insert(season)
                             selectedSeasonIDs.insert(season.tmdbID)
+                            addToResults = true
                         } else {
+                            resultsToSubmit.remove(season)
                             selectedSeasonIDs.remove(season.tmdbID)
+                            if selectedSeasonIDs.isEmpty {
+                                addToResults = false
+                            }
                         }
                     } label: {
                         let title = seasonNumber != 0 ? "Season \(seasonNumber)" : "Specials"
@@ -169,6 +166,7 @@ fileprivate struct SeasonMenu: View {
                 }
             }
         }
+        .animation(nil, value: resultsToSubmit)
         .menuActionDismissBehavior(.disabled)
         .sensoryFeedback(.selection, trigger: selectedSeasonIDs)
     }

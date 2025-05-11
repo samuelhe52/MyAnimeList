@@ -12,12 +12,13 @@ import SwiftData
 struct LibraryView: View {
     var store: LibraryStore
     
-    @State private var isSearching: Bool = false
-    @State private var changeAPIKey: Bool = false
+    @State private var isSearching = false
+    @State private var changeAPIKey = false
     @State private var showCacheAlert = false
     @State private var showClearAllAlert = false
     @State private var cacheSizeResult: Result<UInt, KingfisherError>? = nil
     @State private var scrollState = ScrollState()
+    @State private var newEntriesAddedToggle = false
 
     @AppStorage(.preferredMetadataLanguage) var language: Language = .japanese
     
@@ -35,6 +36,7 @@ struct LibraryView: View {
             }
             .padding(.vertical)
             .ignoresSafeArea(.keyboard, edges: .bottom)
+            .sensoryFeedback(.success, trigger: newEntriesAddedToggle)
         }
     }
     
@@ -127,7 +129,7 @@ struct LibraryView: View {
         }
     }
     
-    private func processSearchResults(_ results: [SearchResult]) async {
+    private func processSearchResults(_ results: Set<SearchResult>) async {
         isSearching = false
         do {
             for result in results {
@@ -138,6 +140,7 @@ struct LibraryView: View {
             return
         }
         withAnimation {
+            newEntriesAddedToggle.toggle()
             if let id = results.first?.tmdbID {
                 scrollState.scrolledID = id
             }

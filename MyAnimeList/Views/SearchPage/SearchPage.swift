@@ -13,8 +13,8 @@ typealias SearchResult = BasicInfo
 struct SearchPage: View {
     @Bindable var service: SearchService
     @AppStorage(.searchPageLanguage) private var language: Language = .english
-    var processResults: ([SearchResult]) -> Void
-    @State var resultsToSubmit: [SearchResult] = []
+    var processResults: (Set<SearchResult>) -> Void
+    @State var resultsToSubmit: Set<SearchResult> = []
 
     var body: some View {
         List {
@@ -34,8 +34,7 @@ struct SearchPage: View {
                 .offset(y: -40)
         }
         .onSubmit(of: .search) { updateResults() }
-        .onAppear { updateResults() }
-        .onChange(of: language) { updateResults() }
+        .onChange(of: language, initial: true) { updateResults() }
         .animation(.default, value: service.status)
         .animation(.default, value: resultsToSubmit)
     }

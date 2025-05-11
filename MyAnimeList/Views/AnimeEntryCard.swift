@@ -60,8 +60,7 @@ struct AnimeEntryCard: View {
                     ToastCenter.global.copied = true
                 }
             }
-            .task { await loadImage() }
-            .onChange(of: entry.posterURL) {
+            .onChange(of: entry.posterURL, initial: true) {
                 Task { await loadImage() }
             }
             .sensoryFeedback(.success, trigger: triggerDeleteHaptic)

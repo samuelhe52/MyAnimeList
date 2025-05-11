@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MovieResultItem: View {
     let movie: SearchResult
-    @Binding var resultsToSubmit: [SearchResult]
+    @Binding var resultsToSubmit: Set<SearchResult>
     @State var selected: Bool = false
     
     var body: some View {
@@ -42,9 +42,9 @@ struct MovieResultItem: View {
         }
         .onChange(of: selected) {
             if selected {
-                resultsToSubmit.append(movie)
+                resultsToSubmit.insert(movie)
             } else {
-                resultsToSubmit.removeAll { $0.tmdbID == movie.tmdbID }
+                resultsToSubmit.remove(movie)
             }
         }
         .sensoryFeedback(.selection, trigger: selected)

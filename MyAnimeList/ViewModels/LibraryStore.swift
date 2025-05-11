@@ -17,16 +17,17 @@ class LibraryStore {
     private var cancellables = Set<AnyCancellable>()
 
     private(set) var library: [AnimeEntry] = []
-    private let infoFetcher: InfoFetcher = .bypassGFWForTMDbAPI
+    private var infoFetcher: InfoFetcher = .bypassGFWForTMDbAPI
     var language: Language = .japanese
     
     init(dataProvider: DataProvider) {
         self.dataProvider = dataProvider
-        setupUpdateData()
-        try? fetchAndUpdate()
+        setupUpdateLibrary()
+        setupTMDbAPIKeyChangeMonitor()
+        try? refreshLibrary()
     }
     
-    func fetchAndUpdate() throws {
+    func refreshLibrary() throws {
         let descriptor = FetchDescriptor<AnimeEntry>(sortBy: [SortDescriptor(\.dateSaved)])
         let entries = try dataProvider.sharedModelContainer.mainContext.fetch(descriptor)
         withAnimation {
@@ -34,15 +35,24 @@ class LibraryStore {
         }
     }
     
-    func setupUpdateData() {
+    func setupUpdateLibrary() {
         NotificationCenter.default
             .publisher(for: ModelContext.didSave)
             .sink { [weak self] _ in
                 do {
-                    try self?.fetchAndUpdate()
+                    try self?.refreshLibrary()
                 } catch {
                     print(error)
                 }
+            }
+            .store(in: &cancellables)
+    }
+    
+    func setupTMDbAPIKeyChangeMonitor() {
+        NotificationCenter.default
+            .publisher(for: .TMDbAPIKeyDidChange)
+            .sink { [weak self] _ in
+                self?.infoFetcher = .bypassGFWForTMDbAPI
             }
             .store(in: &cancellables)
     }
@@ -62,11 +72,29 @@ class LibraryStore {
     /// Fetches the latest infos from tmdb for all entries and update the entries.
     func refreshInfos() async throws {
         ToastCenter.global.refreshingInfos = true
-        for index in library.indices {
-            let info = try await infoFetcher.fetchInfoFromTMDB(entryType: library[index].type,
-                                                               tmdbID: library[index].tmdbID,
-                                                               language: language)
-            try await dataProvider.dataHandler.updateEntry(id: library[index].id, info: info)
+        var fetchedInfos: [(PersistentIdentifier, BasicInfo)] = []
+
+        try await withThrowingTaskGroup(of: (PersistentIdentifier, BasicInfo).self) { group in
+            for entry in library {
+                let type = entry.type
+                let tmdbID = entry.tmdbID
+                let entryID = entry.id
+                let language = language
+                group.addTask {
+                    let info = try await self.infoFetcher.fetchInfoFromTMDB(entryType: type,
+                                                                            tmdbID: tmdbID,
+                                                                            language: language)
+                    return (entryID, info)
+                }
+            }
+
+            for try await result in group {
+                fetchedInfos.append(result)
+            }
+        }
+
+        for (id, info) in fetchedInfos {
+            try await dataProvider.dataHandler.updateEntry(id: id, info: info)
         }
         ToastCenter.global.refreshingInfos = false
         prefetchAllImages()

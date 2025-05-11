@@ -7,8 +7,11 @@
 
 import Foundation
 import TMDb
+import Combine
 
-actor InfoFetcher {
+/// A class for fetching media infos from TMDb.
+/// - Important: Setup proper monitoring mechanism for the `.tmdbAPIKey` key change in `UserDefaults` as this class does not provide a built-in monitor-and-refresh feature.
+final class InfoFetcher: Sendable {
     let tmdbClient: TMDbClient
     
     init() {
@@ -101,7 +104,7 @@ actor InfoFetcher {
     /// to perform API requests in the underlying `TMDbClient`, bypassing the GFW blocking of api.themoviedb.org.
     static var bypassGFWForTMDbAPI: InfoFetcher { .init(httpClient: RedirectingHTTPClient.bypassGFWForTMDbAPI) }
     
-    static var shared: InfoFetcher = .init(httpClient: RedirectingHTTPClient.bypassGFWForTMDbAPI)
+    static let shared: InfoFetcher = .init(httpClient: RedirectingHTTPClient.bypassGFWForTMDbAPI)
 }
 
 enum Language: String, CaseIterable, CustomStringConvertible {

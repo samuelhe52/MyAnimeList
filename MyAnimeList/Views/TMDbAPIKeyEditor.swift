@@ -113,6 +113,7 @@ struct TMDbAPIKeyEditor: View {
                     }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         apiKey = apiKeyInput
+                        NotificationCenter.default.post(name: .TMDbAPIKeyDidChange, object: nil)
                     }
                     return true
                 }
@@ -131,6 +132,10 @@ struct TMDbAPIKeyEditor: View {
         case valid
         case invalid
     }
+}
+
+extension Notification.Name {
+    static let TMDbAPIKeyDidChange = Notification.Name("tmdbAPIKeyDidChange")
 }
 
 #Preview {

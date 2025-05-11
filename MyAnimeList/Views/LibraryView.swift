@@ -165,7 +165,10 @@ private struct LibraryScrollView: View {
                 .scrollPosition(id: $scrolledID)
                 .scrollTargetBehavior(.viewAligned)
             } else {
-                Text("The library is empty.")
+                Color.clear
+                    .overlay {
+                        Text("The library is empty.")
+                    }
             }
         }
     }

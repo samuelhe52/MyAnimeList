@@ -69,7 +69,11 @@ final actor DataHandler {
     }
     
     func deleteAllEntries() throws {
-        try modelContext.delete(model: AnimeEntry.self)
+        let descriptor = FetchDescriptor<AnimeEntry>()
+        let allEntries = try modelContext.fetch(descriptor)
+        for entry in allEntries {
+            modelContext.delete(entry)
+        }
         try modelContext.save()
     }
 }

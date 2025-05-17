@@ -59,7 +59,8 @@ struct GlobalToastsModifier: ViewModifier {
                 guard let state = new?.state else { return nil }
                 switch state {
                 case .failed: return .error
-                default: return nil
+                case .completed: return .success
+                case .partialComplete: return .warning
                 }
             }
     }

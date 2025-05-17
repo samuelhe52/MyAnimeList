@@ -10,7 +10,7 @@ import Kingfisher
 import AlertToast
 import os
 
-let logger = Logger(subsystem: "MyAnimeList", category: "AnimeEntryCard")
+fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "AnimeEntryCard")
 
 struct AnimeEntryCard: View {
     var entry: AnimeEntry

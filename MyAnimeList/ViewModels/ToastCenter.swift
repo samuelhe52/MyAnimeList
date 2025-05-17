@@ -35,6 +35,18 @@ class ToastCenter: ObservableObject {
         enum State {
             case completed, failed, partialComplete
         }
+        
+        static func completed(_ message: String) -> Self {
+            .init(state: .completed, message: message)
+        }
+        
+        static func failed(_ message: String) -> Self {
+            .init(state: .failed, message: message)
+        }
+        
+        static func partialComplete(_ message: String) -> Self {
+            .init(state: .partialComplete, message: message)
+        }
     }
 }
 

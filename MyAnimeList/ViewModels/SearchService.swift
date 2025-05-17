@@ -7,12 +7,13 @@
 
 import Foundation
 import SwiftUI
+import os
 
-struct SearchResult: Hashable, Identifiable {
+fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "SearchService")
+
+struct SearchResult: Hashable {
     var tmdbID: Int
     var type: AnimeType
-    
-    var id: Int { tmdbID }
 }
 
 @Observable @MainActor
@@ -23,11 +24,11 @@ class SearchService {
     private(set) var movieResults: [BasicInfo] = []
     private(set) var seriesResults: [BasicInfo] = []
     
-    private var resultsToSubmit: Set<BasicInfo> = []
-    var processResults: (Set<BasicInfo>) -> Void
+    private var resultsToSubmit: Set<SearchResult> = []
+    var processResults: (Set<SearchResult>) -> Void
     
     init(query: String = UserDefaults.standard.string(forKey: .searchPageQuery) ?? "",
-         processResults: @escaping (Set<BasicInfo>) -> Void) {
+         processResults: @escaping (Set<SearchResult>) -> Void) {
         self.query = query
         self.processResults = processResults
     }
@@ -37,9 +38,13 @@ class SearchService {
     /// The count of all results pending submission.
     var registeredCount: Int { resultsToSubmit.count }
     /// Appends a result to the submission queue.
-    func register(_ result: BasicInfo) { resultsToSubmit.insert(result) }
+    func register(_ result: SearchResult) { resultsToSubmit.insert(result) }
+    /// Creates a result from a `BasicInfo` to the submission queue.
+    func register(info: BasicInfo) { resultsToSubmit.insert(.init(tmdbID: info.tmdbID, type: info.type)) }
     /// Removes a result from the submission queue if it is present.
-    func unregister(_ result: BasicInfo) { resultsToSubmit.remove(result) }
+    func unregister(_ result: SearchResult) { resultsToSubmit.remove(result) }
+    /// Removes a result corresponding to the provided `BasicInfo` from the submission queue if it is present.
+    func unregister(info: BasicInfo) { resultsToSubmit.remove(.init(tmdbID: info.tmdbID, type: info.type)) }
     
     private func fetchPosterURLs(from items: [(tmdbID: Int, path: URL?)]) async throws -> [(tmdbID: Int, url: URL?)] {
         return try await withThrowingTaskGroup(of: (tmdbID: Int, url: URL?).self) { group in
@@ -61,56 +66,45 @@ class SearchService {
         }
     }
     
-    func updateBasicInfos(language: Language) async throws {
+    func updateResults(language: Language) {
         UserDefaults.standard.set(query, forKey: .searchPageQuery)
         guard !query.isEmpty else { return }
-        let currentQuery = query
-        status = .fetching
-        let movies = try await fetcher.searchMovies(name: currentQuery, language: language)
-        let tvSeries = try await fetcher.searchTVSeries(name: currentQuery, language: language)
-        let moviesPosterURLs = try await fetchPosterURLs(from: movies.map { (tmdbID: $0.id, path: $0.posterPath) })
-        let seriesPosterURLs = try await fetchPosterURLs(from: tvSeries.map { (tmdbID: $0.id, path: $0.posterPath) })
-        let searchMovieResults = movies.map { movie in
-            BasicInfo(name: movie.title,
-                         overview: movie.overview,
-                         posterURL: moviesPosterURLs.filter { $0.tmdbID == movie.id }.first?.url,
-                         tmdbID: movie.id,
-                         onAirDate: movie.releaseDate,
-                         type: .movie)
-        }
-        let searchTVSeriesResults = tvSeries.map { series in
-            BasicInfo(name: series.name,
-                         overview: series.overview,
-                         posterURL: seriesPosterURLs.filter { $0.tmdbID == series.id }.first?.url,
-                         tmdbID: series.id,
-                         onAirDate: series.firstAirDate,
-                         type: .series)
-        }
-        
-        if currentQuery == query {
-            withAnimation {
-                movieResults = searchMovieResults
-                seriesResults = searchTVSeriesResults
+        Task {
+            let currentQuery = query
+            status = .fetching
+            do {
+                let movies = try await fetcher.searchMovies(name: currentQuery, language: language)
+                let tvSeries = try await fetcher.searchTVSeries(name: currentQuery, language: language)
+                let moviesPosterURLs = try await fetchPosterURLs(from: movies.map { (tmdbID: $0.id, path: $0.posterPath) })
+                let seriesPosterURLs = try await fetchPosterURLs(from: tvSeries.map { (tmdbID: $0.id, path: $0.posterPath) })
+                let searchMovieResults = movies.map { movie in
+                    BasicInfo(name: movie.title,
+                                 overview: movie.overview,
+                                 posterURL: moviesPosterURLs.filter { $0.tmdbID == movie.id }.first?.url,
+                                 tmdbID: movie.id,
+                                 onAirDate: movie.releaseDate,
+                                 type: .movie)
+                }
+                let searchTVSeriesResults = tvSeries.map { series in
+                    BasicInfo(name: series.name,
+                                 overview: series.overview,
+                                 posterURL: seriesPosterURLs.filter { $0.tmdbID == series.id }.first?.url,
+                                 tmdbID: series.id,
+                                 onAirDate: series.firstAirDate,
+                                 type: .series)
+                }
+            
+                if currentQuery == query {
+                    withAnimation {
+                        movieResults = searchMovieResults
+                        seriesResults = searchTVSeriesResults
+                    }
+                }
+            } catch {
+                logger.error("Error in fetching search results: \(error)")
             }
-//            await withTaskGroup(of: Void.self) { group in
-//                for series in searchTVSeriesResults {
-//                    group.addTask {
-//                        let seasons = try? await fetchSeasons(seriesInfo: series, language: language)
-//                            .sorted {
-//                                let seasonNumber1 = $0.type.seasonNumber ?? 0
-//                                let seasonNumber2 = $1.type.seasonNumber ?? 0
-//                                return seasonNumber1 < seasonNumber2
-//                            }
-//                        await MainActor.run {
-//                            withAnimation {
-//                                self.seriesResults[series] = seasons ?? []
-//                            }
-//                        }
-//                    }
-//                }
-//            }
+            status = .done
         }
-        status = .done
         
         func fetchSeasons(seriesInfo info: BasicInfo, language: Language) async throws -> [BasicInfo] {
             let fetcher = InfoFetcher()

@@ -68,9 +68,9 @@ struct SeriesResultItem: View {
     private var selectionIndicator: some View {
         if resultOption == .series {
             ActionToggle(on: {
-                service.register(series)
+                service.register(info: series)
             }, off: {
-                service.unregister(series)
+                service.unregister(info: series)
             }, label: {
                 Image(systemName: "checkmark")
             })
@@ -78,7 +78,7 @@ struct SeriesResultItem: View {
             .buttonStyle(.bordered)
             .buttonBorderShape(.circle)
             .frame(height: 0)
-            .onDisappear { service.unregister(series) }
+            .onDisappear { service.unregister(info: series) }
         } else {
             SeasonSelector(seasons: seasons, register: service.register, unregister: service.unregister)
                 .padding(.trailing, 7)

@@ -10,6 +10,9 @@ import SwiftUI
 import SwiftData
 import Combine
 import Kingfisher
+import os
+
+fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "LibraryStore")
 
 @Observable @MainActor
 class LibraryStore {
@@ -57,47 +60,95 @@ class LibraryStore {
             .store(in: &cancellables)
     }
     
-    /// Creates a new `AnimeEntry` from a `BasicInfo` and adds it to the library.
-    /// It does nothing if an entry with the same TMDB ID already exist.
-    func newEntryFromInfo(info: BasicInfo) async throws {
-        // No duplicatye entries
-        guard library.map({ $0.tmdbID }).contains(info.tmdbID) == false else { return }
-        let info = try await infoFetcher.fetchInfoFromTMDB(entryType: info.type,
-                                                           tmdbID: info.tmdbID,
+    private func createNewEntry(tmdbID id: Int, type: AnimeType) async throws {
+        // No duplicate entries
+        guard library.map({ $0.tmdbID }).contains(id) == false else { return }
+        let info = try await infoFetcher.fetchInfoFromTMDB(entryType: type,
+                                                           tmdbID: id,
                                                            language: language)
         let entry = AnimeEntry(fromInfo: info)
         try await dataProvider.dataHandler.newEntry(entry)
     }
     
+    /// Creates a new `AnimeEntry` from a TMDB ID and adds it to the library.
+    /// It does nothing if an entry with the same TMDB ID already exist.
+    ///
+    /// - Returns:`true` if no error occurred; otherwise `false`.
+    func newEntry(tmdbID id: Int, type: AnimeType) async -> Bool {
+        do {
+            try await createNewEntry(tmdbID: id, type: type)
+            return true
+        } catch {
+            logger.error("Error creating new entry: \(error)")
+            ToastCenter.global.completionState = .failed(error.localizedDescription)
+            return false
+        }
+    }
+    
+    /// Creates new `AnimeEntry` instances from search results and adds them to the library.
+    /// - Returns: `true` if no error occurred; otherwise `false`.
+    func newEntryFromSearchResults<Sources>(_ results: Sources) async -> Bool
+    where Sources: Collection<SearchResult> {
+        do {
+            for result in results {
+                try await createNewEntry(tmdbID: result.tmdbID, type: result.type)
+            }
+            return true
+        } catch {
+            logger.error("Error creating new entries: \(error)")
+            ToastCenter.global.completionState = .failed(error.localizedDescription)
+            return false
+        }
+    }
+    
+    func updateEntry(_ entry: AnimeEntry, id: PersistentIdentifier) {
+        Task {
+            do {
+                try await dataProvider.dataHandler.updateEntry(id: id, entry: entry)
+            } catch {
+                logger.error("Error updating entry: \(error)")
+                ToastCenter.global.completionState = .failed(error.localizedDescription)
+            }
+        }
+    }
+    
     /// Fetches the latest infos from tmdb for all entries and update the entries.
-    func refreshInfos() async throws {
-        ToastCenter.global.refreshingInfos = true
-        var fetchedInfos: [(PersistentIdentifier, BasicInfo)] = []
+    func refreshInfos() {
+        Task {
+            defer { ToastCenter.global.refreshingInfos = false }
+            ToastCenter.global.refreshingInfos = true
+            var fetchedInfos: [(PersistentIdentifier, BasicInfo)] = []
 
-        try await withThrowingTaskGroup(of: (PersistentIdentifier, BasicInfo).self) { group in
-            for entry in library {
-                let type = entry.type
-                let tmdbID = entry.tmdbID
-                let entryID = entry.id
-                let language = language
-                group.addTask {
-                    let info = try await self.infoFetcher.fetchInfoFromTMDB(entryType: type,
-                                                                            tmdbID: tmdbID,
-                                                                            language: language)
-                    return (entryID, info)
+            do {
+                try await withThrowingTaskGroup(of: (PersistentIdentifier, BasicInfo).self) { group in
+                    for entry in library {
+                        let type = entry.type
+                        let tmdbID = entry.tmdbID
+                        let entryID = entry.id
+                        let language = language
+                        group.addTask {
+                            let info = try await self.infoFetcher.fetchInfoFromTMDB(entryType: type,
+                                                                                    tmdbID: tmdbID,
+                                                                                    language: language)
+                            return (entryID, info)
+                        }
+                    }
+
+                    for try await result in group {
+                        fetchedInfos.append(result)
+                    }
                 }
-            }
 
-            for try await result in group {
-                fetchedInfos.append(result)
+                for (id, info) in fetchedInfos {
+                    try await dataProvider.dataHandler.updateEntry(id: id, info: info)
+                }
+            } catch {
+                logger.error("Error refreshing infos: \(error)")
+                ToastCenter.global.completionState = .failed(error.localizedDescription)
+                return
             }
+            prefetchAllImages()
         }
-
-        for (id, info) in fetchedInfos {
-            try await dataProvider.dataHandler.updateEntry(id: id, info: info)
-        }
-        ToastCenter.global.refreshingInfos = false
-        prefetchAllImages()
     }
     
     func prefetchAllImages() {
@@ -112,17 +163,32 @@ class LibraryStore {
                 state = .failed
             } else { state = .partialComplete }
             ToastCenter.global.completionState = .init(state: state, message: message)
+            logger.info("Prefetched images: \(message)")
         })
         ToastCenter.global.prefetchingImages = true
         prefetcher.start()
     }
     
-    func deleteEntry(withID id: PersistentIdentifier) async throws {
-        try await dataProvider.dataHandler.deleteEntry(id: id)
+    func deleteEntry(withID id: PersistentIdentifier) {
+        Task {
+            do {
+                try await dataProvider.dataHandler.deleteEntry(id: id)
+            } catch {
+                logger.error("Failed to delete entry: \(error)")
+                ToastCenter.global.completionState = .failed(error.localizedDescription)
+            }
+        }
     }
     
-    func clearLibrary() async throws {
-        try await dataProvider.dataHandler.deleteAllEntries()
+    func clearLibrary() {
+        Task {
+            do {
+                try await dataProvider.dataHandler.deleteAllEntries()
+            } catch {
+                logger.error("Error clearing library: \(error)")
+                ToastCenter.global.completionState = .failed(error.localizedDescription)
+            }
+        }
     }
 }
 

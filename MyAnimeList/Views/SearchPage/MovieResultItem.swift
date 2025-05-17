@@ -21,8 +21,8 @@ struct MovieResultItem: View {
                         .bold()
                         .lineLimit(1)
                     Spacer()
-                    ActionToggle(on: { service.register(movie) },
-                                 off: { service.unregister(movie) },
+                    ActionToggle(on: { service.register(info: movie) },
+                                 off: { service.unregister(info: movie) },
                                  label: { Image(systemName: "checkmark") })
                     .toggleStyle(.button)
                     .buttonStyle(.bordered)

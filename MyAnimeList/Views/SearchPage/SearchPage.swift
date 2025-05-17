@@ -12,7 +12,8 @@ struct SearchPage: View {
     @State var service: SearchService
     @AppStorage(.searchPageLanguage) private var language: Language = .english
     
-    init(query: String = "", processResults: @escaping (Set<BasicInfo>) -> Void) {
+    init(query: String = UserDefaults.standard.string(forKey: .searchPageQuery) ?? "",
+         processResults: @escaping (Set<SearchResult>) -> Void) {
         self._service = .init(initialValue: .init(query: query, processResults: processResults))
     }
 
@@ -71,7 +72,7 @@ struct SearchPage: View {
     }
     
     private func updateResults() {
-        Task { try await service.updateBasicInfos(language: language) }
+        service.updateResults(language: language)
     }
 }
 

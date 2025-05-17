@@ -59,23 +59,14 @@ struct LibraryView: View {
         .buttonStyle(.bordered)
         .sheet(isPresented: $isSearching) {
             NavigationStack {
-                SearchPage { results in
-                    Task { await processBasicInfos(results) }
-                }
+                SearchPage { processResults($0) }
                 .navigationTitle("Search TMDB")
                 .navigationBarTitleDisplayMode(.inline)
             }
         }
         .alert("Clear all entries?", isPresented: $showClearAllAlert) {
             Button("Clear", role: .destructive) {
-                Task {
-                    do  {
-                        try await store.clearLibrary()
-                    } catch {
-                        ToastCenter.global.completionState = .init(state: .failed,
-                                                                   message: error.localizedDescription)
-                    }
-                }
+                store.clearLibrary()
             }
             Button("Cancel", role: .cancel) {}
         }
@@ -127,24 +118,21 @@ struct LibraryView: View {
     
     private var refreshInfosButton: some View {
         Button("Refresh Infos", systemImage: "arrow.clockwise") {
-            Task { try await store.refreshInfos() }
+            store.refreshInfos()
         }
     }
     
-    private func processBasicInfos(_ results: Set<BasicInfo>) async {
+    private func processResults(_ results: Set<SearchResult>) {
         isSearching = false
-        do {
-            for result in results {
-                try await store.newEntryFromInfo(info: result)
-            }
-        } catch {
-            ToastCenter.global.completionState = .init(state: .failed, message: error.localizedDescription)
-            return
-        }
-        withAnimation {
-            newEntriesAddedToggle.toggle()
-            if let id = results.first?.tmdbID {
-                scrollState.scrolledID = id
+        Task {
+            let success = await store.newEntryFromSearchResults(results)
+            if success {
+                withAnimation {
+                    newEntriesAddedToggle.toggle()
+                    if let id = results.first?.tmdbID {
+                        scrollState.scrolledID = id
+                    }
+                }
             }
         }
     }
@@ -162,10 +150,9 @@ private struct LibraryScrollView: View {
                     LazyHStack {
                         ForEach(store.library, id: \.tmdbID) { entry in
                             AnimeEntryCard(entry: entry, onDelete: {
-                                Task { try await store.deleteEntry(withID: entry.id) }
+                                store.deleteEntry(withID: entry.id)
                             })
                             .containerRelativeFrame(isHorizontal ? .horizontal : .vertical)
-//                            .transition(.asymmetric(insertion: .identity, removal: .opacity))
                             .transition(.opacity)
                             .onScrollVisibilityChange { _ in }
                         }

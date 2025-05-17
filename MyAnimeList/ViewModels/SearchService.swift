@@ -8,17 +8,38 @@
 import Foundation
 import SwiftUI
 
+struct SearchResult: Hashable, Identifiable {
+    var tmdbID: Int
+    var type: AnimeType
+    
+    var id: Int { tmdbID }
+}
+
 @Observable @MainActor
 class SearchService {
     let fetcher: InfoFetcher = .bypassGFWForTMDbAPI
-    var status: Status = .idle
+    private(set) var status: Status = .idle
     var query: String
-    var movieResults: [SearchResult] = []
-    var seriesResults: [SearchResult] = []
+    private(set) var movieResults: [BasicInfo] = []
+    private(set) var seriesResults: [BasicInfo] = []
     
-    init(query: String = UserDefaults.standard.string(forKey: .searchPageQuery) ?? "") {
+    private var resultsToSubmit: Set<BasicInfo> = []
+    var processResults: (Set<BasicInfo>) -> Void
+    
+    init(query: String = UserDefaults.standard.string(forKey: .searchPageQuery) ?? "",
+         processResults: @escaping (Set<BasicInfo>) -> Void) {
         self.query = query
+        self.processResults = processResults
     }
+    
+    /// Submit the final results.
+    func submit() { processResults(resultsToSubmit) }
+    /// The count of all results pending submission.
+    var registeredCount: Int { resultsToSubmit.count }
+    /// Appends a result to the submission queue.
+    func register(_ result: BasicInfo) { resultsToSubmit.insert(result) }
+    /// Removes a result from the submission queue if it is present.
+    func unregister(_ result: BasicInfo) { resultsToSubmit.remove(result) }
     
     private func fetchPosterURLs(from items: [(tmdbID: Int, path: URL?)]) async throws -> [(tmdbID: Int, url: URL?)] {
         return try await withThrowingTaskGroup(of: (tmdbID: Int, url: URL?).self) { group in
@@ -40,7 +61,7 @@ class SearchService {
         }
     }
     
-    func updateSearchResults(language: Language) async throws {
+    func updateBasicInfos(language: Language) async throws {
         UserDefaults.standard.set(query, forKey: .searchPageQuery)
         guard !query.isEmpty else { return }
         let currentQuery = query
@@ -50,7 +71,7 @@ class SearchService {
         let moviesPosterURLs = try await fetchPosterURLs(from: movies.map { (tmdbID: $0.id, path: $0.posterPath) })
         let seriesPosterURLs = try await fetchPosterURLs(from: tvSeries.map { (tmdbID: $0.id, path: $0.posterPath) })
         let searchMovieResults = movies.map { movie in
-            SearchResult(name: movie.title,
+            BasicInfo(name: movie.title,
                          overview: movie.overview,
                          posterURL: moviesPosterURLs.filter { $0.tmdbID == movie.id }.first?.url,
                          tmdbID: movie.id,
@@ -58,7 +79,7 @@ class SearchService {
                          type: .movie)
         }
         let searchTVSeriesResults = tvSeries.map { series in
-            SearchResult(name: series.name,
+            BasicInfo(name: series.name,
                          overview: series.overview,
                          posterURL: seriesPosterURLs.filter { $0.tmdbID == series.id }.first?.url,
                          tmdbID: series.id,

@@ -8,20 +8,17 @@
 import SwiftUI
 
 struct SeriesResultItem: View {
-    let series: SearchResult
-    @Binding var resultsToSubmit: Set<SearchResult>
-    let fetcher: InfoFetcher
-    
+    @Environment(SearchService.self) var service
+    let series: BasicInfo
     @State private var resultOption: ResultOption = .series
-    @State private var seasons: [SearchResult] = []
-    @State private var addToResults: Bool = false
+    @State private var seasons: [BasicInfo] = []
         
     var body: some View {
         HStack {
             PosterView(url: series.posterURL)
                 .frame(width: 80, height: 120)
             VStack(alignment: .leading) {
-                infosAndToggles
+                infosAndSelection
                 resultOptionsView
             }
         }
@@ -29,51 +26,24 @@ struct SeriesResultItem: View {
             if resultOption == .season && seasons.isEmpty {
                 Task { try await fetchSeasons() }
             }
-            addToResults = false
-        }
-        .onChange(of: addToResults) {
-            if addToResults {
-                if resultOption == .series {
-                    resultsToSubmit.insert(series)
-                }
-            } else {
-                resultsToSubmit.remove(series)
-                for season in seasons {
-                    resultsToSubmit.remove(season)
-                }
-            }
-        }
-        .animation(.default, value: resultOption)
-        .sensoryFeedback(.selection, trigger: addToResults) { _,_ in
-            return resultOption == .series
         }
     }
 
     @ViewBuilder
-    private var infosAndToggles: some View {
-        HStack{
-            Text(series.name)
-                .bold()
-                .lineLimit(1)
-            Spacer()
-            if resultOption == .series {
-                Toggle(isOn: $addToResults) {
-                    Image(systemName: "checkmark")
+    private var infosAndSelection: some View {
+        HStack(alignment: .center) {
+            VStack(alignment: .leading) {
+                Text(series.name)
+                    .bold()
+                    .lineLimit(1)
+                if let date = series.onAirDate {
+                    Text(date.formatted(date: .abbreviated, time: .omitted))
+                        .font(.caption)
+                        .padding(.bottom, 1)
                 }
-                .toggleStyle(.button)
-                .buttonStyle(.bordered)
-                .buttonBorderShape(.circle)
-                .frame(height: 0)
-            } else {
-                SeasonSelector(seasons: seasons,
-                               resultsToSubmit: $resultsToSubmit,
-                               addToResults: $addToResults)
             }
-        }
-        if let date = series.onAirDate {
-            Text(date.formatted(date: .abbreviated, time: .omitted))
-                .font(.caption)
-                .padding(.bottom, 1)
+            Spacer()
+            selectionIndicator
         }
         Text(series.overview ?? "No overview available")
             .font(.caption2)
@@ -94,10 +64,31 @@ struct SeriesResultItem: View {
         .pickerStyle(.segmented)
     }
     
+    @ViewBuilder
+    private var selectionIndicator: some View {
+        if resultOption == .series {
+            ActionToggle(on: {
+                service.register(series)
+            }, off: {
+                service.unregister(series)
+            }, label: {
+                Image(systemName: "checkmark")
+            })
+            .toggleStyle(.button)
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.circle)
+            .frame(height: 0)
+            .onDisappear { service.unregister(series) }
+        } else {
+            SeasonSelector(seasons: seasons, register: service.register, unregister: service.unregister)
+                .padding(.trailing, 7)
+        }
+    }
     private func fetchSeasons() async throws {
+        let fetcher = service.fetcher
         let fetchedSeasons = try await fetcher.tvSeries(series.id, language: .japanese).seasons
         if let fetchedSeasons {
-            let seasonResults = try await withThrowingTaskGroup(of: SearchResult.self) { group in
+            let seasonResults = try await withThrowingTaskGroup(of: BasicInfo.self) { group in
                 for season in fetchedSeasons {
                     group.addTask {
                         let seriesBackdropURL = try await fetcher.tmdbClient.imagesConfiguration.backdropURL(for: series.backdropURL)
@@ -106,11 +97,11 @@ struct SeriesResultItem: View {
                                                                       backdropURL: seriesBackdropURL,
                                                                       logoURL: logoURL,
                                                                       linkToDetails: series.linkToDetails,
-                                                                      parentSeriesID: series.tmdbID) as SearchResult
+                                                                      parentSeriesID: series.tmdbID)
                         return seasonResult
                     }
                 }
-                var results: [SearchResult] = []
+                var results: [BasicInfo] = []
                 for try await result in group {
                     results.append(result)
                 }
@@ -133,27 +124,23 @@ struct SeriesResultItem: View {
 }
 
 fileprivate struct SeasonSelector: View {
-    let seasons: [SearchResult]
-    @Binding var resultsToSubmit: Set<SearchResult>
-    @Binding var addToResults: Bool
-    @State var selectedSeasonIDs: Set<Int> = []
+    let seasons: [BasicInfo]
+    var register: (BasicInfo) -> Void
+    var unregister: (BasicInfo) -> Void
+    @State private var selectedSeasonIDs: Set<Int> = []
     
     var body: some View {
-        return Menu("\(selectedSeasonIDs.count) selected") {
+        Menu {
             ForEach(seasons, id: \.tmdbID) { season in
                 let selected = selectedSeasonIDs.contains(season.tmdbID)
                 if let seasonNumber = season.type.seasonNumber {
                     Button {
                         if !selected {
-                            resultsToSubmit.insert(season)
+                            register(season)
                             selectedSeasonIDs.insert(season.tmdbID)
-                            addToResults = true
                         } else {
-                            resultsToSubmit.remove(season)
+                            unregister(season)
                             selectedSeasonIDs.remove(season.tmdbID)
-                            if selectedSeasonIDs.isEmpty {
-                                addToResults = false
-                            }
                         }
                     } label: {
                         let title = seasonNumber != 0 ? "Season \(seasonNumber)" : "Specials"
@@ -165,9 +152,21 @@ fileprivate struct SeasonSelector: View {
                     }
                 }
             }
+        } label: {
+            Text("\(selectedSeasonIDs.count)")
+                .font(.system(size: 18, design: .monospaced))
         }
-        .animation(nil, value: resultsToSubmit)
+        .padding(9)
+        .background(in: .circle)
+        .backgroundStyle(selectedSeasonIDs.isEmpty ? Color(uiColor: .systemGray5) : .blue.opacity(0.2))
+        .frame(height: 0)
+        .animation(.smooth(duration: 0.2), value: selectedSeasonIDs)
         .menuActionDismissBehavior(.disabled)
         .sensoryFeedback(.selection, trigger: selectedSeasonIDs)
+        .onDisappear {
+            for season in seasons {
+                unregister(season)
+            }
+        }
     }
 }

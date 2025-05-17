@@ -44,21 +44,23 @@ struct LibraryView: View {
     private var controls: some View {
         HStack{
             Button("Search...") { isSearching = true }
+                .buttonBorderShape(.capsule)
             Menu {
                 checkCacheButton
                 refreshInfosButton
                 changeAPIKeyButton
                 clearAllButton
             } label: {
-                Image(systemName: "ellipsis.circle")
+                Image(systemName: "ellipsis").padding(.vertical, 7.5)
             }
             .labelStyle(.iconOnly)
+            .buttonBorderShape(.circle)
         }
         .buttonStyle(.bordered)
         .sheet(isPresented: $isSearching) {
             NavigationStack {
-                SearchPage(service: .init()) { results in
-                    Task { await processSearchResults(results) }
+                SearchPage { results in
+                    Task { await processBasicInfos(results) }
                 }
                 .navigationTitle("Search TMDB")
                 .navigationBarTitleDisplayMode(.inline)
@@ -129,7 +131,7 @@ struct LibraryView: View {
         }
     }
     
-    private func processSearchResults(_ results: Set<SearchResult>) async {
+    private func processBasicInfos(_ results: Set<BasicInfo>) async {
         isSearching = false
         do {
             for result in results {

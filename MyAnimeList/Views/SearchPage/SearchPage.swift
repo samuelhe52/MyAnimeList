@@ -8,13 +8,13 @@
 import SwiftUI
 import Kingfisher
 
-typealias SearchResult = BasicInfo
-
 struct SearchPage: View {
-    @Bindable var service: SearchService
+    @State var service: SearchService
     @AppStorage(.searchPageLanguage) private var language: Language = .english
-    var processResults: (Set<SearchResult>) -> Void
-    @State var resultsToSubmit: Set<SearchResult> = []
+    
+    init(query: String = "", processResults: @escaping (Set<BasicInfo>) -> Void) {
+        self._service = .init(initialValue: .init(query: query, processResults: processResults))
+    }
 
     var body: some View {
         List {
@@ -31,12 +31,11 @@ struct SearchPage: View {
         .searchable(text: $service.query, prompt: "Search TV animation or movies...")
         .overlay(alignment: .bottom) {
             submitMenu
-                .offset(y: -40)
+                .offset(y: -30)
         }
         .onSubmit(of: .search) { updateResults() }
         .onChange(of: language, initial: true) { updateResults() }
         .animation(.default, value: service.status)
-        .animation(.default, value: resultsToSubmit)
     }
     
     @ViewBuilder
@@ -44,16 +43,14 @@ struct SearchPage: View {
         if !service.seriesResults.isEmpty {
             Section("Series") {
                 ForEach(service.seriesResults.prefix(8), id: \.tmdbID) { series in
-                    SeriesResultItem(series: series,
-                                     resultsToSubmit: $resultsToSubmit,
-                                     fetcher: service.fetcher)
+                    SeriesResultItem(series: series).environment(service)
                 }
             }
         }
         if !service.movieResults.isEmpty {
             Section("Movies") {
                 ForEach(service.movieResults.prefix(8), id: \.tmdbID) { movie in
-                    MovieResultItem(movie: movie, resultsToSubmit: $resultsToSubmit)
+                    MovieResultItem(movie: movie).environment(service)
                 }
             }
         }
@@ -61,28 +58,26 @@ struct SearchPage: View {
     
     private var submitMenu: some View {
         Menu {
-            Text("\(resultsToSubmit.count) selected")
+            Text("\(service.registeredCount) selected")
             Button("Add to library") {
-                processResults(resultsToSubmit)
-            }.disabled(resultsToSubmit.isEmpty)
+                service.submit()
+            }.disabled(service.registeredCount == 0)
         } label: {
             Text("Add...")
         }
         .buttonStyle(.borderedProminent)
         .buttonBorderShape(.capsule)
-        .tint(.blue)
+        .shadow(color: .blue, radius: 8)
     }
     
     private func updateResults() {
-        Task { try await service.updateSearchResults(language: language) }
+        Task { try await service.updateBasicInfos(language: language) }
     }
 }
 
 #Preview {
-    @Previewable @State var service = SearchService(query: "K-on!")
-    
     NavigationStack {
-        SearchPage(service: service) { results in
+        SearchPage(query: "K-on!") { results in
             print(results)
         }
     }

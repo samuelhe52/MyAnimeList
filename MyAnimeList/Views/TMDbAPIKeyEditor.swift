@@ -56,6 +56,8 @@ struct TMDbAPIKeyEditor: View {
                 .cornerRadius(10)
                 .padding(.horizontal)
                 .focused($isTextFieldFocused)
+                .textContentType(.password)
+                .privacySensitive()
             
             Button {
                 status = .checking

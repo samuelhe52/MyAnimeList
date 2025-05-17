@@ -8,9 +8,8 @@
 import SwiftUI
 
 struct MovieResultItem: View {
-    let movie: SearchResult
-    @Binding var resultsToSubmit: Set<SearchResult>
-    @State var selected: Bool = false
+    @Environment(SearchService.self) var service
+    let movie: BasicInfo
     
     var body: some View {
         HStack {
@@ -22,9 +21,9 @@ struct MovieResultItem: View {
                         .bold()
                         .lineLimit(1)
                     Spacer()
-                    Toggle(isOn: $selected) {
-                        Image(systemName: "checkmark")
-                    }
+                    ActionToggle(on: { service.register(movie) },
+                                 off: { service.unregister(movie) },
+                                 label: { Image(systemName: "checkmark") })
                     .toggleStyle(.button)
                     .buttonStyle(.bordered)
                     .buttonBorderShape(.circle)
@@ -40,14 +39,6 @@ struct MovieResultItem: View {
                     .lineLimit(3)
             }
         }
-        .onChange(of: selected) {
-            if selected {
-                resultsToSubmit.insert(movie)
-            } else {
-                resultsToSubmit.remove(movie)
-            }
-        }
-        .sensoryFeedback(.selection, trigger: selected)
     }
 }
 

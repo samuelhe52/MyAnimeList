@@ -42,9 +42,9 @@ struct GlobalToastsModifier: ViewModifier {
                            title: "An error occurred")
             })
             .sensoryFeedback(.error, trigger: center.regularFailed) { !$0 && $1 }
-            .toast(item: $center.completionState, offsetY: 20, alert: { state in
+            .toast(item: $center.completionState, offsetY: 20, alert: { completion in
                 var alertType: AlertToast.AlertType = .regular
-                if let state = state?.state {
+                if let state = completion?.state {
                     switch state {
                     case .completed: alertType = .complete(.green)
                     case .failed: alertType = .error(.red)

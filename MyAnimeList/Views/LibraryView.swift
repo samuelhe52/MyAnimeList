@@ -47,9 +47,9 @@ struct LibraryView: View {
             Button("Search...") { isSearching = true }
                 .buttonBorderShape(.capsule)
             Menu {
+                apiConfigruation
                 checkCacheButton
                 refreshInfosButton
-                changeAPIKeyButton
                 clearAllButton
             } label: {
                 Image(systemName: "ellipsis").padding(.vertical, 7.5)
@@ -91,7 +91,7 @@ struct LibraryView: View {
             }
         })
         .sheet(isPresented: $changeAPIKey) {
-            TMDbAPIKeyEditor(isEditing: true)
+            TMDbAPIConfigurator(isEditing: true)
                 .presentationDetents([.medium, .large])
         }
     }
@@ -112,9 +112,17 @@ struct LibraryView: View {
             }
         }
     }
-        
-    private var changeAPIKeyButton: some View {
-        Button("Change API Key", systemImage: "key") { changeAPIKey = true }
+    
+    @AppStorage(.tmdbAPIGFWBypass) var bypassGFW: Bool = false
+    private var apiConfigruation: some View {
+        Menu("TMDB API", systemImage: "server.rack") {
+            Toggle("Enable GFW Bypass", systemImage: "network", isOn: $bypassGFW)
+                .onChange(of: bypassGFW) {
+                    NotificationCenter.default.post(name: .TMDbAPIConfigurationDidChange, object: nil)
+                    ToastCenter.global.completionState = .completed(bypassGFW ? "Enabled" : "Disabled")
+                }
+            Button("Change API Key", systemImage: "person.badge.key") { changeAPIKey = true }
+        }
     }
     
     private var refreshInfosButton: some View {

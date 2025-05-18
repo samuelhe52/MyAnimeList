@@ -14,14 +14,19 @@ import Combine
 final class InfoFetcher: Sendable {
     let tmdbClient: TMDbClient
     
-    init() {
-        let key = UserDefaults.standard.string(forKey: .tmdbAPIKey)
-        self.tmdbClient = .init(apiKey: key ?? "")
+    convenience init() {
+        let bypassGFW = UserDefaults.standard.bool(forKey: .tmdbAPIGFWBypass)
+        self.init(bypassGFW: bypassGFW)
     }
     
-    init(httpClient: some HTTPClient) {
+    init(bypassGFW: Bool) {
         let key = UserDefaults.standard.string(forKey: .tmdbAPIKey)
-        self.tmdbClient = .init(apiKey: key ?? "", httpClient: httpClient)
+        if bypassGFW {
+            self.tmdbClient = .init(apiKey: key ?? "",
+                                    httpClient: RedirectingHTTPClient.bypassGFWForTMDbAPI)
+        } else {
+            self.tmdbClient = .init(apiKey: key ?? "")
+        }
     }
     
     func movie(_ tmdbID: Int, language: Language) async throws -> Movie {
@@ -99,12 +104,6 @@ final class InfoFetcher: Sendable {
         let season = try await tmdbClient.tvSeries.details(forTVSeries: tmdbID, language: language.rawValue)
         return try await season.basicInfo(client: tmdbClient)
     }
-    
-    /// Creates a new `InfoFetcher` instance which utilizes a custom `HTTPClient`
-    /// to perform API requests in the underlying `TMDbClient`, bypassing the GFW blocking of api.themoviedb.org.
-    static var bypassGFWForTMDbAPI: InfoFetcher { .init(httpClient: RedirectingHTTPClient.bypassGFWForTMDbAPI) }
-    
-    static let shared: InfoFetcher = .init(httpClient: RedirectingHTTPClient.bypassGFWForTMDbAPI)
 }
 
 enum Language: String, CaseIterable, CustomStringConvertible {

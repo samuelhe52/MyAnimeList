@@ -23,7 +23,7 @@ struct MyAnimeListApp: App {
                         .onAppear { libraryStore.language = language }
                         .transition(.opacity.animation(.easeInOut(duration: 1)))
                 } else {
-                    TMDbAPIKeyEditor()
+                    TMDbAPIConfigurator()
                         .transition(.opacity.animation(.easeInOut(duration: 1)))
                 }
             }

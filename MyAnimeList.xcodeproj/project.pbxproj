@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9F1D86582DD9848100531E73 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 9F1D86572DD9848100531E73 /* Collections */; };
 		9F3E71532DC6556500F2EC4A /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = 9F3E71522DC6556500F2EC4A /* AlertToast */; };
 		9F8D665F2D05609200CF355D /* TMDb in Frameworks */ = {isa = PBXBuildFile; productRef = 9F8D665E2D05609200CF355D /* TMDb */; };
 		9FB6FEF12D8FCE5A00B423D0 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 9FB6FEF02D8FCE5A00B423D0 /* Kingfisher */; };
@@ -73,6 +74,7 @@
 			files = (
 				9F3E71532DC6556500F2EC4A /* AlertToast in Frameworks */,
 				9FB6FEF12D8FCE5A00B423D0 /* Kingfisher in Frameworks */,
+				9F1D86582DD9848100531E73 /* Collections in Frameworks */,
 				9F8D665F2D05609200CF355D /* TMDb in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -137,6 +139,7 @@
 				9F8D665E2D05609200CF355D /* TMDb */,
 				9FB6FEF02D8FCE5A00B423D0 /* Kingfisher */,
 				9F3E71522DC6556500F2EC4A /* AlertToast */,
+				9F1D86572DD9848100531E73 /* Collections */,
 			);
 			productName = MyAnimeList;
 			productReference = 9F8D66302D055FEF00CF355D /* MyAnimeList.app */;
@@ -224,6 +227,7 @@
 				9F8D665D2D05609200CF355D /* XCRemoteSwiftPackageReference "TMDb" */,
 				9FB6FEEF2D8FCE5A00B423D0 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				9F3E71512DC6556500F2EC4A /* XCRemoteSwiftPackageReference "AlertToast" */,
+				9F1D86562DD9848100531E73 /* XCRemoteSwiftPackageReference "swift-collections" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9F8D66312D055FEF00CF355D /* Products */;
@@ -588,6 +592,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		9F1D86562DD9848100531E73 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-collections.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.4;
+			};
+		};
 		9F3E71512DC6556500F2EC4A /* XCRemoteSwiftPackageReference "AlertToast" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/elai950/AlertToast";
@@ -615,6 +627,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		9F1D86572DD9848100531E73 /* Collections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9F1D86562DD9848100531E73 /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = Collections;
+		};
 		9F3E71522DC6556500F2EC4A /* AlertToast */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9F3E71512DC6556500F2EC4A /* XCRemoteSwiftPackageReference "AlertToast" */;

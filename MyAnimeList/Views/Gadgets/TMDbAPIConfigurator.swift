@@ -1,5 +1,5 @@
 //
-//  TMDbAPIKeyEditor.swift
+//  TMDbAPIConfigurator.swift
 //  MyAnimeList
 //
 //  Created by Samuel He on 2025/5/3.
@@ -8,7 +8,8 @@
 import SwiftUI
 import AlertToast
 
-struct TMDbAPIKeyEditor: View {
+struct TMDbAPIConfigurator: View {
+    @AppStorage(.tmdbAPIGFWBypass) var gfwBypass: Bool = false
     @AppStorage(.tmdbAPIKey) var apiKey: String?
     
     var isEditing: Bool = false
@@ -50,14 +51,31 @@ struct TMDbAPIKeyEditor: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             
-            TextField("TMDB API Key", text: $apiKeyInput)
-                .padding()
-                .background(Color(.secondarySystemBackground))
-                .cornerRadius(10)
-                .padding(.horizontal)
-                .focused($isTextFieldFocused)
-                .textContentType(.password)
-                .privacySensitive()
+            VStack(spacing: 0) {
+                TextField("TMDB API Key", text: $apiKeyInput)
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(10)
+                    .focused($isTextFieldFocused)
+                    .textContentType(.password)
+                    .privacySensitive()
+                
+                HStack {
+                    Toggle(isOn: $gfwBypass) {
+                        Label("Enable GFW Bypass", systemImage: "network").font(.caption)
+                    }
+                    .toggleStyle(.button)
+                    .buttonStyle(.bordered)
+                    .onChange(of: gfwBypass) {
+                        NotificationCenter.default.post(name: .TMDbAPIConfigurationDidChange, object: nil)
+                    }
+                    InfoTip(title: "About GFW Bypass",
+                            message: "GFW blocks the default API endpoint of The Movie Database (api.themoviedb.org). An alternative domain (api.tmdb.org) is not blocked.\nHowever it is not officially documented and should be avoided if a VPN or proxy setup is available.\n**Enabling this option allows MyAnimeList to use this alternative api endpoint. Use at your own risk.** ",
+                            height: 150)
+                }
+                .padding(.top, 10)
+            }
+            .padding(.horizontal)
             
             Button {
                 status = .checking
@@ -91,6 +109,13 @@ struct TMDbAPIKeyEditor: View {
         }
         .padding(.horizontal)
         .padding()
+        .sensoryFeedback(trigger: status) { _,new in
+            switch new {
+            case .invalid: .error
+            case .valid: .success
+            default: nil
+            }
+        }
     }
     
     func checkKey(_ key: String) async -> Bool {
@@ -98,7 +123,8 @@ struct TMDbAPIKeyEditor: View {
             status = .invalid
             return false
         }
-        guard let url = URL(string: "https://api.tmdb.org/3/configuration?api_key=\(key)") else {
+        let endpoint = gfwBypass ? "tmdb" : "themoviedb"
+        guard let url = URL(string: "https://api.\(endpoint).org/3/configuration?api_key=\(key)") else {
             return false
         }
         
@@ -115,7 +141,7 @@ struct TMDbAPIKeyEditor: View {
                     }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         apiKey = apiKeyInput
-                        NotificationCenter.default.post(name: .TMDbAPIKeyDidChange, object: nil)
+                        NotificationCenter.default.post(name: .TMDbAPIConfigurationDidChange, object: nil)
                     }
                     return true
                 }
@@ -137,9 +163,9 @@ struct TMDbAPIKeyEditor: View {
 }
 
 extension Notification.Name {
-    static let TMDbAPIKeyDidChange = Notification.Name("tmdbAPIKeyDidChange")
+    static let TMDbAPIConfigurationDidChange = Notification.Name("tmdbAPIKeyDidChange")
 }
 
 #Preview {
-    TMDbAPIKeyEditor()
+    TMDbAPIConfigurator()
 }

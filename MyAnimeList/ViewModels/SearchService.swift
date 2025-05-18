@@ -19,7 +19,7 @@ struct SearchResult: Hashable {
 
 @Observable @MainActor
 class SearchService {
-    let fetcher: InfoFetcher = .bypassGFWForTMDbAPI
+    let fetcher: InfoFetcher = .init()
     private(set) var status: Status = .idle
     var query: String
     private(set) var movieResults: [BasicInfo] = []

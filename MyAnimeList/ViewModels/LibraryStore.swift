@@ -19,14 +19,16 @@ class LibraryStore {
     private let dataProvider: DataProvider
     private var cancellables = Set<AnyCancellable>()
 
-    private(set) var library: [AnimeEntry] = []
-    private var infoFetcher: InfoFetcher = .bypassGFWForTMDbAPI
+    private(set) var library: [AnimeEntry]
+    private var infoFetcher: InfoFetcher
     var language: Language = .japanese
     
     init(dataProvider: DataProvider) {
         self.dataProvider = dataProvider
+        self.library = []
+        self.infoFetcher = .init()
         setupUpdateLibrary()
-        setupTMDbAPIKeyChangeMonitor()
+        setupTMDbAPIConfigurationChangeMonitor()
         try? refreshLibrary()
     }
     
@@ -51,11 +53,11 @@ class LibraryStore {
             .store(in: &cancellables)
     }
     
-    func setupTMDbAPIKeyChangeMonitor() {
+    func setupTMDbAPIConfigurationChangeMonitor() {
         NotificationCenter.default
-            .publisher(for: .TMDbAPIKeyDidChange)
+            .publisher(for: .TMDbAPIConfigurationDidChange)
             .sink { [weak self] _ in
-                self?.infoFetcher = .bypassGFWForTMDbAPI
+                self?.infoFetcher = .init()
             }
             .store(in: &cancellables)
     }

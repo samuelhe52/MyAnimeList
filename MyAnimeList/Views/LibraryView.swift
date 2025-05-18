@@ -8,6 +8,7 @@
 import SwiftUI
 import Kingfisher
 import SwiftData
+import Collections
 
 struct LibraryView: View {
     var store: LibraryStore
@@ -122,7 +123,7 @@ struct LibraryView: View {
         }
     }
     
-    private func processResults(_ results: Set<SearchResult>) {
+    private func processResults(_ results: OrderedSet<SearchResult>) {
         isSearching = false
         Task {
             let success = await store.newEntryFromSearchResults(results)

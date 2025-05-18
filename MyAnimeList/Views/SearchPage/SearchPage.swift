@@ -7,13 +7,14 @@
 
 import SwiftUI
 import Kingfisher
+import Collections
 
 struct SearchPage: View {
     @State var service: SearchService
     @AppStorage(.searchPageLanguage) private var language: Language = .english
     
     init(query: String = UserDefaults.standard.string(forKey: .searchPageQuery) ?? "",
-         processResults: @escaping (Set<SearchResult>) -> Void) {
+         processResults: @escaping (OrderedSet<SearchResult>) -> Void) {
         self._service = .init(initialValue: .init(query: query, processResults: processResults))
     }
 

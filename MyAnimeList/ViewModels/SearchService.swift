@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import Collections
 import os
 
 fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "SearchService")
@@ -24,23 +25,23 @@ class SearchService {
     private(set) var movieResults: [BasicInfo] = []
     private(set) var seriesResults: [BasicInfo] = []
     
-    private var resultsToSubmit: Set<SearchResult> = []
-    var processResults: (Set<SearchResult>) -> Void
+    private var resultsToSubmit: OrderedSet<SearchResult> = []
+    var processResults: (OrderedSet<SearchResult>) -> Void
     
     init(query: String = UserDefaults.standard.string(forKey: .searchPageQuery) ?? "",
-         processResults: @escaping (Set<SearchResult>) -> Void) {
+         processResults: @escaping (OrderedSet<SearchResult>) -> Void) {
         self.query = query
         self.processResults = processResults
     }
     
     /// Submit the final results.
-    func submit() { processResults(resultsToSubmit) }
+    func submit() { processResults(OrderedSet(resultsToSubmit.reversed())) }
     /// The count of all results pending submission.
     var registeredCount: Int { resultsToSubmit.count }
     /// Appends a result to the submission queue.
-    func register(_ result: SearchResult) { resultsToSubmit.insert(result) }
+    func register(_ result: SearchResult) { resultsToSubmit.insert(result, at: 0) }
     /// Creates a result from a `BasicInfo` to the submission queue.
-    func register(info: BasicInfo) { resultsToSubmit.insert(.init(tmdbID: info.tmdbID, type: info.type)) }
+    func register(info: BasicInfo) { resultsToSubmit.insert(.init(tmdbID: info.tmdbID, type: info.type), at: 0) }
     /// Removes a result from the submission queue if it is present.
     func unregister(_ result: SearchResult) { resultsToSubmit.remove(result) }
     /// Removes a result corresponding to the provided `BasicInfo` from the submission queue if it is present.

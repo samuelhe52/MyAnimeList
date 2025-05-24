@@ -10,6 +10,7 @@
 		9F1D86582DD9848100531E73 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 9F1D86572DD9848100531E73 /* Collections */; };
 		9F3E71532DC6556500F2EC4A /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = 9F3E71522DC6556500F2EC4A /* AlertToast */; };
 		9F8D665F2D05609200CF355D /* TMDb in Frameworks */ = {isa = PBXBuildFile; productRef = 9F8D665E2D05609200CF355D /* TMDb */; };
+		9F93FC222DE202E10071FB56 /* DataProvider in Frameworks */ = {isa = PBXBuildFile; productRef = 9F93FC212DE202E10071FB56 /* DataProvider */; };
 		9FB6FEF12D8FCE5A00B423D0 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 9FB6FEF02D8FCE5A00B423D0 /* Kingfisher */; };
 /* End PBXBuildFile section */
 
@@ -34,15 +35,34 @@
 		9F8D66302D055FEF00CF355D /* MyAnimeList.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyAnimeList.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F8D66402D055FF000CF355D /* MyAnimeListTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyAnimeListTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F8D664A2D055FF000CF355D /* MyAnimeListUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyAnimeListUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9F93FC0D2DE1FD520071FB56 /* DataProvider */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = DataProvider; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		9F08B7672DBC745500CC3925 /* Exceptions for "MyAnimeList" folder in "MyAnimeList" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				Resources/Info.plist,
+				Tests/MyAnimeListTests/MyAnimeListTests.swift,
+				Tests/MyAnimeListUITests/MyAnimeListUITests.swift,
+				Tests/MyAnimeListUITests/MyAnimeListUITestsLaunchTests.swift,
 			);
 			target = 9F8D662F2D055FEF00CF355D /* MyAnimeList */;
+		};
+		9F93FC182DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Tests/MyAnimeListTests/MyAnimeListTests.swift,
+			);
+			target = 9F8D663F2D055FF000CF355D /* MyAnimeListTests */;
+		};
+		9F93FC192DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Tests/MyAnimeListUITests/MyAnimeListUITests.swift,
+				Tests/MyAnimeListUITests/MyAnimeListUITestsLaunchTests.swift,
+			);
+			target = 9F8D66492D055FF000CF355D /* MyAnimeListUITests */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -51,18 +71,10 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				9F08B7672DBC745500CC3925 /* Exceptions for "MyAnimeList" folder in "MyAnimeList" target */,
+				9F93FC182DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListTests" target */,
+				9F93FC192DE1FD800071FB56 /* Exceptions for "MyAnimeList" folder in "MyAnimeListUITests" target */,
 			);
 			path = MyAnimeList;
-			sourceTree = "<group>";
-		};
-		9F8D66432D055FF000CF355D /* MyAnimeListTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MyAnimeListTests;
-			sourceTree = "<group>";
-		};
-		9F8D664D2D055FF000CF355D /* MyAnimeListUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MyAnimeListUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -72,6 +84,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9F93FC222DE202E10071FB56 /* DataProvider in Frameworks */,
 				9F3E71532DC6556500F2EC4A /* AlertToast in Frameworks */,
 				9FB6FEF12D8FCE5A00B423D0 /* Kingfisher in Frameworks */,
 				9F1D86582DD9848100531E73 /* Collections in Frameworks */,
@@ -99,9 +112,9 @@
 		9F8D66272D055FEF00CF355D = {
 			isa = PBXGroup;
 			children = (
+				9F93FC0D2DE1FD520071FB56 /* DataProvider */,
 				9F8D66322D055FEF00CF355D /* MyAnimeList */,
-				9F8D66432D055FF000CF355D /* MyAnimeListTests */,
-				9F8D664D2D055FF000CF355D /* MyAnimeListUITests */,
+				9F93FC202DE202D80071FB56 /* Frameworks */,
 				9F8D66312D055FEF00CF355D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -114,6 +127,13 @@
 				9F8D664A2D055FF000CF355D /* MyAnimeListUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		9F93FC202DE202D80071FB56 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -140,6 +160,7 @@
 				9FB6FEF02D8FCE5A00B423D0 /* Kingfisher */,
 				9F3E71522DC6556500F2EC4A /* AlertToast */,
 				9F1D86572DD9848100531E73 /* Collections */,
+				9F93FC212DE202E10071FB56 /* DataProvider */,
 			);
 			productName = MyAnimeList;
 			productReference = 9F8D66302D055FEF00CF355D /* MyAnimeList.app */;
@@ -157,9 +178,6 @@
 			);
 			dependencies = (
 				9F8D66422D055FF000CF355D /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				9F8D66432D055FF000CF355D /* MyAnimeListTests */,
 			);
 			name = MyAnimeListTests;
 			packageProductDependencies = (
@@ -180,9 +198,6 @@
 			);
 			dependencies = (
 				9F8D664C2D055FF000CF355D /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				9F8D664D2D055FF000CF355D /* MyAnimeListUITests */,
 			);
 			name = MyAnimeListUITests;
 			packageProductDependencies = (
@@ -434,7 +449,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"MyAnimeList/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = MyAnimeList/Info.plist;
+				INFOPLIST_FILE = MyAnimeList/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -463,7 +478,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"MyAnimeList/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = MyAnimeList/Info.plist;
+				INFOPLIST_FILE = MyAnimeList/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -641,6 +656,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9F8D665D2D05609200CF355D /* XCRemoteSwiftPackageReference "TMDb" */;
 			productName = TMDb;
+		};
+		9F93FC212DE202E10071FB56 /* DataProvider */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DataProvider;
 		};
 		9FB6FEF02D8FCE5A00B423D0 /* Kingfisher */ = {
 			isa = XCSwiftPackageProductDependency;

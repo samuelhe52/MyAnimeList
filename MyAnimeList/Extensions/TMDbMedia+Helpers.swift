@@ -61,9 +61,7 @@ extension Movie {
     }
 
     func backdropURL(client: TMDb.TMDbClient) async throws -> URL? {
-        let imageResources = try await client.movies.images(forMovie: id)
-        let bestQualityBackdropPath = imageResources.backdrops.bestQuality?.filePath
-        return try await client.imagesConfiguration.backdropURL(for: bestQualityBackdropPath)
+        return try await client.imagesConfiguration.backdropURL(for: backdropPath)
     }
     
     func posterURL(client: TMDb.TMDbClient) async throws -> URL? {
@@ -74,8 +72,8 @@ extension Movie {
     
     func logoURL(client: TMDb.TMDbClient) async throws -> URL? {
         let imageResources = try await client.movies.images(forMovie: id)
-        let bestQualityBackdropPath = imageResources.logos.bestQuality?.filePath
-        return try await client.imagesConfiguration.logoURL(for: bestQualityBackdropPath)
+        let logoPath = imageResources.logos.first?.filePath
+        return try await client.imagesConfiguration.logoURL(for: logoPath)
     }
     
     var name: String { title }
@@ -114,15 +112,13 @@ extension TVSeries {
     }
     
     func backdropURL(client: TMDbClient) async throws -> URL? {
-        let imageResources = try await client.tvSeries.images(forTVSeries: id)
-        let bestQualityBackdropPath = imageResources.backdrops.bestQuality?.filePath
-        return try await client.imagesConfiguration.backdropURL(for: bestQualityBackdropPath)
+        return try await client.imagesConfiguration.backdropURL(for: backdropPath)
     }
     
     func logoURL(client: TMDbClient) async throws -> URL? {
         let imageResources = try await client.tvSeries.images(forTVSeries: id)
-        let bestQualityBackdropPath = imageResources.logos.bestQuality?.filePath
-        return try await client.imagesConfiguration.logoURL(for: bestQualityBackdropPath)
+        let logoPath = imageResources.logos.first?.filePath
+        return try await client.imagesConfiguration.logoURL(for: logoPath)
     }
     
     func posterURLs(client: TMDbClient) async throws -> [URL] {
@@ -180,8 +176,4 @@ extension TVSeason {
     
     var onAirDate: Date? { airDate }
     var linkToDetails: URL? { nil }
-}
-
-enum ImageResourceError: Error {
-    case noResourceDirectlyFromTVSeason
 }

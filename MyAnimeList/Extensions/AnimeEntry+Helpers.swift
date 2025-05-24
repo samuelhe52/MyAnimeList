@@ -37,6 +37,14 @@ extension AnimeEntry {
         }
     }
     
+    /// The season number of this entry, if it is an `.season`.
+    /// - Note: "0" is for "Specials".
+    var seasonNumber: Int? { type.seasonNumber }
+    
+    /// The TMDB ID for the parent series of this season, if this entry is of type `.season`
+    var parentSeasonID: Int? { type.parentSeriesID }
+    
+    
     func update(from info: BasicInfo) {
         name = info.name
         overview = info.overview ?? self.overview
@@ -81,14 +89,14 @@ extension AnimeEntry {
             let fetcher = InfoFetcher()
             if !useSeriesPoster {
                 let series = try await fetcher.tvSeries(parentSeriesID, language: language)
-                let url = try await fetcher.tmdbClient.imagesConfiguration.posterURL(for: series.posterPath)
+                let url = try await series.posterURL(client: fetcher.tmdbClient)
                 useSeriesPoster = true
                 posterURL = url
             } else {
                 let season = try await fetcher.tvSeason(parentSeriesID,
-                                                             seasonNumber: seasonNumber,
-                                                             language: language)
-                let url = try await fetcher.tmdbClient.imagesConfiguration.posterURL(for: season.posterPath)
+                                                        seasonNumber: seasonNumber,
+                                                        language: language)
+                let url = try await season.posterURL(parentSeriesID: parentSeriesID, client: fetcher.tmdbClient)
                 useSeriesPoster = false
                 posterURL = url
             }

@@ -17,7 +17,10 @@ extension Array where Element == ImageMetadata {
     }
     
     var bestQuality: ImageMetadata? {
-        filterAndSortByBestQuality.first
+        let filtered = filterAndSortByBestQuality
+        // Something is better than nothing when no images matching quality specifcations exist.
+        guard !filtered.isEmpty else { return self.first }
+        return filtered.first
     }
 }
 
@@ -146,6 +149,10 @@ extension TVSeason {
     ///
     /// - Parameters:
     ///   - client: The TMDb client used to fetch image configuration.
+    ///   - backdropURL: A backdrop URL that the returned `BasicInfo` uses. Default to nil since seasons don't have their own backdrops.
+    ///   - logoURL: A logo URL that the returned `BasicInfo` uses. Default to nil since seasons don't have their own logos.
+    ///   - linkToDetails: A homepage URL for this season. Default to nil since seasons don't have their own homepages.
+    ///   - parentSeriesID: This season's parent series' TMDB ID.
     /// - Returns: A `BasicInfo` struct containing metadata about the TV season.
     func basicInfo(client: TMDbClient,
                    backdropURL: URL? = nil,
@@ -155,12 +162,7 @@ extension TVSeason {
         let seasonPosterPath = try await client.tvSeasons
             .images(forSeason: seasonNumber, inTVSeries: parentSeriesID)
             .posters.bestQuality?.filePath
-        var seasonPoster: URL?
-        if let seasonPosterPath {
-            seasonPoster = try await client.imagesConfiguration.posterURL(for: seasonPosterPath)
-        } else {
-            seasonPoster = try await client.imagesConfiguration.posterURL(for: posterPath)
-        }
+        let seasonPoster: URL? = try await client.imagesConfiguration.posterURL(for: seasonPosterPath)
         return BasicInfo(
             name: name,
             overview: overview,
@@ -172,6 +174,13 @@ extension TVSeason {
             linkToDetails: linkToDetails,
             type: .season(seasonNumber: seasonNumber, parentSeriesID: parentSeriesID)
         )
+    }
+    
+    func posterURL(parentSeriesID: Int, client: TMDbClient) async throws -> URL? {
+        let seasonPosterPath = try await client.tvSeasons
+            .images(forSeason: seasonNumber, inTVSeries: parentSeriesID)
+            .posters.bestQuality?.filePath
+        return try await client.imagesConfiguration.posterURL(for: seasonPosterPath)
     }
     
     var onAirDate: Date? { airDate }

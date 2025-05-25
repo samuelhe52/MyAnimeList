@@ -7,26 +7,60 @@
 
 import SwiftUI
 import Kingfisher
+import os
+
+fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "PosterView")
 
 struct PosterView: View {
     let url: URL?
+    let diskCacheExpiration: StorageExpiration
+    @Binding var imageLoaded: Bool
+    @State private var image: UIImage? = nil
+    
+    init(url: URL?,
+         diskCacheExpiration: StorageExpiration,
+         imageLoaded: Binding<Bool> = .constant(false)) {
+        self.url = url
+        self.diskCacheExpiration = diskCacheExpiration
+        self._imageLoaded = imageLoaded
+    }
     
     var body: some View {
         Group {
-            if let url {
-                KFImage(url)
+            if let image {
+                Image(uiImage: image)
                     .resizable()
-                    .fade(duration: 0.3)
-                    .placeholder { ProgressView() }
-                    .cacheOriginalImage()
-                    .diskCacheExpiration(.days(1))
-                    .cancelOnDisappear(true)
             } else {
-                Image("missing_image_resource")
-                    .resizable()
+                ProgressView()
             }
         }
-        .scaledToFit()
-        .clipShape(.rect(cornerRadius: 6))
+        .onChange(of: url, initial: true) {
+            Task { await loadImage() }
+        }
+    }
+    
+    private func loadImage() async {
+        let kfRetrieveOptions: KingfisherOptionsInfo = [
+            .cacheOriginalImage,
+            .diskCacheExpiration(.days(90)),
+            .onFailureImage(UIImage(named: "missing_image_resource"))
+        ]
+        
+        if let url {
+            do {
+                let result = try await KingfisherManager.shared
+                    .retrieveImage(with: url, options: kfRetrieveOptions)
+                withAnimation {
+                    image = result.image
+                    imageLoaded = true
+                }
+            } catch {
+                logger.warning("Error loading image: \(error)")
+                imageLoaded = false
+            }
+        } else {
+            image = UIImage(named: "missing_image_resource")
+            imageLoaded = false
+        }
     }
 }

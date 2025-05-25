@@ -18,7 +18,7 @@ struct AnimeEntryCard: View {
     var delete: () -> Void
     @State private var triggerDeleteHaptic: Bool = false
     @State private var showDeleteToast: Bool = false
-    @State private var posterImage: UIImage? = nil
+    @State private var imageLoaded: Bool = false
     var imageMissing: Bool { entry.posterURL == nil }
     
     init(entry: AnimeEntry, onDelete delete: @escaping () -> Void) {
@@ -27,11 +27,12 @@ struct AnimeEntryCard: View {
     }
     
     var body: some View {
-        image
+        PosterView(url: entry.posterURL, diskCacheExpiration: .days(90), imageLoaded: $imageLoaded)
             .scaledToFit()
+            .clipShape(.rect(cornerRadius: 10))
             .overlay(alignment: .bottomTrailing) {
                 AnimeTypeIndicator(type: entry.type)
-                    .opacity( posterImage == nil ? 0 : 1)
+                    .opacity(imageLoaded ? 1 : 0)
             }
             .padding()
             .onTapGesture {
@@ -61,45 +62,7 @@ struct AnimeEntryCard: View {
                     ToastCenter.global.copied = true
                 }
             }
-            .onChange(of: entry.posterURL, initial: true) {
-                Task { await loadImage() }
-            }
             .sensoryFeedback(.success, trigger: triggerDeleteHaptic)
-    }
-    
-    @ViewBuilder
-    private var image: some View {
-        if !imageMissing {
-            if let posterImage {
-                Image(uiImage: posterImage)
-                    .resizable()
-                    .clipShape(.rect(cornerRadius: 10))
-            } else {
-                ProgressView()
-            }
-        } else {
-            Image("missing_image_resource")
-        }
-    }
-    
-    private func loadImage() async {
-        let kfRetrieveOptions: KingfisherOptionsInfo = [
-            .cacheOriginalImage,
-            .diskCacheExpiration(.days(90)),
-            .onFailureImage(UIImage(named: "missing_image_resource"))
-        ]
-        
-        if let url = entry.posterURL {
-            do {
-                let result = try await KingfisherManager.shared
-                    .retrieveImage(with: url, options: kfRetrieveOptions)
-                withAnimation {
-                    posterImage = result.image
-                }
-            } catch {
-                logger.warning("Error loading image: \(error)")
-            }
-        }
     }
 }
 

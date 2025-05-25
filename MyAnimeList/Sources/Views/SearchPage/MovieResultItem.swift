@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct MovieResultItem: View {
     @Environment(SearchService.self) var service
@@ -13,7 +14,9 @@ struct MovieResultItem: View {
     
     var body: some View {
         HStack {
-            PosterView(url: movie.posterURL)
+            PosterView(url: movie.posterURL, diskCacheExpiration: .days(1))
+                .scaledToFit()
+                .clipShape(.rect(cornerRadius: 6))
                 .frame(width: 60, height: 90)
             VStack(alignment: .leading) {
                 HStack {

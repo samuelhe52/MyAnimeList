@@ -23,7 +23,6 @@ struct LibraryView: View {
 
     @AppStorage(.preferredMetadataLanguage) var language: Language = .japanese
     
-    
     init(store: LibraryStore) {
         self.store = store
     }
@@ -31,7 +30,7 @@ struct LibraryView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                LibraryScrollView(store: store,
+                LibraryTheaterView(store: store,
                                   scrolledID: $scrollState.scrolledID)
                 controls
             }
@@ -147,44 +146,6 @@ struct LibraryView: View {
     }
 }
 
-private struct LibraryScrollView: View {
-    let store: LibraryStore
-    @Binding var scrolledID: Int?
-
-    var body: some View {
-        GeometryReader { geometry in
-            let isHorizontal = geometry.size.width < geometry.size.height
-            if !store.library.isEmpty {
-                ScrollView(.horizontal) {
-                    LazyHStack {
-                        ForEach(store.library, id: \.tmdbID) { entry in
-                            AnimeEntryCard(entry: entry, onDelete: {
-                                store.deleteEntry(withID: entry.id)
-                            })
-                            .containerRelativeFrame(isHorizontal ? .horizontal : .vertical)
-                            .transition(.opacity)
-                            .onScrollVisibilityChange { _ in }
-                        }
-                    }.scrollTargetLayout()
-                }
-                .scrollPosition(id: $scrolledID)
-                .scrollTargetBehavior(.viewAligned)
-            } else {
-                Color.clear
-                    .overlay {
-                        Text("The library is empty.")
-                    }
-            }
-        }
-    }
-}
-
-// This is where we place debug-specific code.
-extension LibraryScrollView {
-    private func mockDelete(withID id: PersistentIdentifier) {
-        store.mockDeleteEntry(withID: id)
-    }
-}
 
 #Preview {
     // dataProvider could be changed to .forPreview for memory-only storage.

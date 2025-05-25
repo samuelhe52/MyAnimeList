@@ -7,6 +7,7 @@
 
 import SwiftUI
 import DataProvider
+import Kingfisher
 
 struct SeriesResultItem: View {
     @Environment(SearchService.self) var service
@@ -16,7 +17,9 @@ struct SeriesResultItem: View {
         
     var body: some View {
         HStack {
-            PosterView(url: series.posterURL)
+            PosterView(url: series.posterURL, diskCacheExpiration: .days(1))
+                .scaledToFit()
+                .clipShape(.rect(cornerRadius: 6))
                 .frame(width: 80, height: 120)
             VStack(alignment: .leading) {
                 infosAndSelection

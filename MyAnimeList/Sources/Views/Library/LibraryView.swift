@@ -23,10 +23,6 @@ struct LibraryView: View {
 
     @AppStorage(.preferredMetadataLanguage) var language: Language = .japanese
     
-    init(store: LibraryStore) {
-        self.store = store
-    }
-    
     var body: some View {
         NavigationStack {
             VStack {

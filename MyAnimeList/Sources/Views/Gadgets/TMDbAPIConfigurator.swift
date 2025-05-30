@@ -139,9 +139,12 @@ struct TMDbAPIConfigurator: View {
                     if !isEditing {
                         isTextFieldFocused = false
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        apiKey = apiKeyInput
-                        NotificationCenter.default.post(name: .TMDbAPIConfigurationDidChange, object: nil)
+                    await withCheckedContinuation { continuation in
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            apiKey = apiKeyInput
+                            NotificationCenter.default.post(name: .TMDbAPIConfigurationDidChange, object: nil)
+                            continuation.resume()
+                        }
                     }
                     return true
                 }

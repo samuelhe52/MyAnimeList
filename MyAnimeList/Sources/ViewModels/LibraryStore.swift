@@ -33,8 +33,8 @@ class LibraryStore {
         try? refreshLibrary()
     }
     
-    func refreshLibrary() throws {
-        let descriptor = FetchDescriptor<AnimeEntry>(sortBy: [SortDescriptor(\.dateSaved)])
+    func refreshLibrary(sortedBy sortDescriptor: SortDescriptor<AnimeEntry> = .init(\.dateSaved)) throws {
+        let descriptor = FetchDescriptor<AnimeEntry>(sortBy: [sortDescriptor])
         let entries = try dataProvider.sharedModelContainer.mainContext.fetch(descriptor)
         withAnimation {
             library = entries

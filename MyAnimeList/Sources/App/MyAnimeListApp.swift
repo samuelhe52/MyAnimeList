@@ -11,20 +11,19 @@ import DataProvider
 
 @main
 struct MyAnimeListApp: App {
-    let dataProvider = DataProvider.default
     @State var libraryStore: LibraryStore = .init(dataProvider: .default)
+    @State var keyStorage: TMDbAPIKeyStorage = .init()
     @AppStorage(.preferredMetadataLanguage) var language: Language = .japanese
-    @AppStorage(.tmdbAPIKey) var tmdbAPIKey: String?
 
     var body: some Scene {
         WindowGroup {
             ZStack {
-                if let tmdbAPIKey, !tmdbAPIKey.isEmpty {
+                if let key = keyStorage.key, !key.isEmpty {
                     LibraryView(store: libraryStore)
                         .onAppear { libraryStore.language = language }
                         .transition(.opacity.animation(.easeInOut(duration: 1)))
                 } else {
-                    TMDbAPIConfigurator()
+                    TMDbAPIConfigurator(keyStorage: keyStorage)
                         .transition(.opacity.animation(.easeInOut(duration: 1)))
                 }
             }

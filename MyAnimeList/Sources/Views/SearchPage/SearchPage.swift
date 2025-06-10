@@ -29,6 +29,7 @@ struct SearchPage: View {
                 results
             }
         }
+        .environment(service)
         .listStyle(.inset)
         .searchable(text: $service.query, prompt: "Search TV animation or movies...")
         .overlay(alignment: .bottom) {
@@ -45,14 +46,14 @@ struct SearchPage: View {
         if !service.seriesResults.isEmpty {
             Section("Series") {
                 ForEach(service.seriesResults.prefix(8), id: \.tmdbID) { series in
-                    SeriesResultItem(series: series).environment(service)
+                    SeriesResultItem(series: series)
                 }
             }
         }
         if !service.movieResults.isEmpty {
             Section("Movies") {
                 ForEach(service.movieResults.prefix(8), id: \.tmdbID) { movie in
-                    MovieResultItem(movie: movie).environment(service)
+                    MovieResultItem(movie: movie)
                 }
             }
         }

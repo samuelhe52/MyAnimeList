@@ -91,7 +91,7 @@ struct LibraryView: View {
             }
         })
         .sheet(isPresented: $changeAPIKey) {
-            TMDbAPIConfigurator(keyStorage: .init(), isEditing: true)
+            TMDbAPIConfigurator(isEditing: true)
                 .presentationDetents([.medium, .large])
         }
     }

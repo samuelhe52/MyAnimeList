@@ -8,28 +8,6 @@
 import Foundation
 import TMDb
 
-extension Array where Element == ImageMetadata {
-    /// Filters and sorts image metadata by quality criteria.
-    ///
-    /// - Returns: Array filtered to include only images with votes and Japanese language, sorted by height descending.
-    var filterAndSortByBestQuality: [ImageMetadata] {
-        self.filter { ($0.voteCount ?? 0) > 0 &&
-            ($0.voteAverage ?? 0) > 0 &&
-            $0.languageCode == Language.japanese.rawValue }
-            .sorted { $0.height > $1.height }
-    }
-    
-    /// Gets the highest quality image from the array.
-    ///
-    /// - Returns: The highest quality image from the array; If none meet the quality criteria, returns the first image.
-    var bestQuality: ImageMetadata? {
-        let filtered = filterAndSortByBestQuality
-        // Something is better than nothing when no images matching quality specifcations exist.
-        guard !filtered.isEmpty else { return self.first }
-        return filtered.first
-    }
-}
-
 extension Movie {
     /// Returns the basic information for the movie.
     ///
@@ -92,9 +70,7 @@ extension Movie {
     ///
     /// - Parameter client: The TMDb client used for image configuration.
     func posterURL(client: TMDb.TMDbClient) async throws -> URL? {
-        let imageResources = try await client.movies.images(forMovie: id)
-        let bestQualityBackdropPath = imageResources.posters.bestQuality?.filePath
-        return try await client.imagesConfiguration.posterURL(for: bestQualityBackdropPath)
+        return try await client.imagesConfiguration.posterURL(for: posterPath)
     }
     
     /// Gets URL for the primary logo image.
@@ -139,9 +115,7 @@ extension TVSeries {
     ///
     /// - Parameter client: The TMDb client used for image configuration.
     func posterURL(client: TMDbClient) async throws -> URL? {
-        let imageResources = try await client.tvSeries.images(forTVSeries: id)
-        let bestQualityBackdropPath = imageResources.posters.bestQuality?.filePath
-        return try await client.imagesConfiguration.posterURL(for: bestQualityBackdropPath)
+        return try await client.imagesConfiguration.posterURL(for: posterPath)
     }
     
     /// Gets URL for the primary backdrop image.
@@ -195,10 +169,7 @@ extension TVSeason {
                    logoURL: URL? = nil,
                    linkToDetails: URL? = nil,
                    parentSeriesID: Int) async throws -> BasicInfo {
-        let seasonPosterPath = try await client.tvSeasons
-            .images(forSeason: seasonNumber, inTVSeries: parentSeriesID)
-            .posters.bestQuality?.filePath
-        let seasonPoster: URL? = try await client.imagesConfiguration.posterURL(for: seasonPosterPath)
+        let seasonPoster: URL? = try await client.imagesConfiguration.posterURL(for: posterPath)
         return BasicInfo(
             name: name,
             overview: overview,
@@ -218,10 +189,7 @@ extension TVSeason {
     ///   - parentSeriesID: The ID of the parent TV series.
     ///   - client: The TMDb client used for image configuration.
     func posterURL(parentSeriesID: Int, client: TMDbClient) async throws -> URL? {
-        let seasonPosterPath = try await client.tvSeasons
-            .images(forSeason: seasonNumber, inTVSeries: parentSeriesID)
-            .posters.bestQuality?.filePath
-        return try await client.imagesConfiguration.posterURL(for: seasonPosterPath)
+        return try await client.imagesConfiguration.posterURL(for: posterPath)
     }
     
     var onAirDate: Date? { airDate }

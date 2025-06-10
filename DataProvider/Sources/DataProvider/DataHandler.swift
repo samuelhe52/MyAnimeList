@@ -16,6 +16,8 @@ public final actor DataHandler {
     /// - Throws: An error if the save operation fails.
     @discardableResult
     public func newEntry(_ entry: AnimeEntry) throws -> PersistentIdentifier {
+        // Ensure uniqueness of entries
+        guard self[entry.id, as: AnimeEntry.self] == nil else { return entry.id }
         modelContext.insert(entry)
         try modelContext.save()
         return entry.persistentModelID

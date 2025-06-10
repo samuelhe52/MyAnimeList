@@ -9,7 +9,7 @@ import SwiftUI
 import AlertToast
 
 struct TMDbAPIConfigurator: View {
-    var keyStorage: TMDbAPIKeyStorage
+    @Environment(TMDbAPIKeyStorage.self) var keyStorage
     @AppStorage(.tmdbAPIGFWBypass) var bypassGFW: Bool = false
     
     var isEditing: Bool = false
@@ -170,5 +170,7 @@ extension Notification.Name {
 }
 
 #Preview {
-    TMDbAPIConfigurator(keyStorage: .init())
+    @Previewable @State var keyStorage = TMDbAPIKeyStorage()
+    TMDbAPIConfigurator()
+        .environment(keyStorage)
 }

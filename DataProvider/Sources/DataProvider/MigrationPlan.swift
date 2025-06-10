@@ -10,21 +10,26 @@ import SwiftData
 
 enum MigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [SchemaV1.self, SchemaV2.self, SchemaV2_0_1.self, SchemaV2_1_0.self]
+        [SchemaV1.self,
+         SchemaV2.self,
+         SchemaV2_0_1.self,
+         SchemaV2_1_0.self,
+         SchemaV2_1_1.self]
     }
     
     static var stages: [MigrationStage] {
         [
             .lightweight(fromVersion: SchemaV1.self, toVersion: SchemaV2.self),
             .lightweight(fromVersion: SchemaV2.self, toVersion: SchemaV2_0_1.self),
-            .migrateV2_0_1toV2_1_0()
+            .migrateV2_0_1toV2_1_0(),
+            .lightweight(fromVersion: SchemaV2_1_0.self, toVersion: SchemaV2_1_1.self)
         ]
     }
 }
 
 extension MigrationStage {
     static func migrateV2_0_1toV2_1_0() -> MigrationStage {
-        var newEntries: [AnimeEntry] = []
+        var newEntries: [SchemaV2_1_0.AnimeEntry] = []
         
         return MigrationStage.custom(
             fromVersion: SchemaV2_0_1.self,

@@ -63,7 +63,7 @@ extension TMDbClient {
     /// - Parameter collection: The `ImageCollection` containing poster images.
     /// - Returns: Array of URLs for the highest quality poster images.
     func posters(from collection: ImageCollection) async -> [URL] {
-        return await urlsFromImageMetadata(resources: collection.posters.filterAndSortByBestQuality,
+        return await urlsFromImageMetadata(resources: collection.posters,
                                            imageType: .poster)
     }
     
@@ -72,7 +72,7 @@ extension TMDbClient {
     /// - Parameter collection: The `ImageCollection` containing backdrop images.
     /// - Returns: Array of URLs for the highest quality backdrop images.
     func backdrops(from collection: ImageCollection) async -> [URL] {
-        return await urlsFromImageMetadata(resources: collection.backdrops.filterAndSortByBestQuality,
+        return await urlsFromImageMetadata(resources: collection.backdrops,
                                            imageType: .backdrop)
     }
     
@@ -81,7 +81,7 @@ extension TMDbClient {
     /// - Parameter collection: The `ImageCollection` containing logo images.
     /// - Returns: Array of URLs for the highest quality logo images.
     func logos(from collection: ImageCollection) async -> [URL] {
-        return await urlsFromImageMetadata(resources: collection.logos.filterAndSortByBestQuality,
+        return await urlsFromImageMetadata(resources: collection.logos,
                                            imageType: .logo)
     }
 }

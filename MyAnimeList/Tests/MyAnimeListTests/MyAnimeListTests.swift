@@ -9,7 +9,7 @@ import Testing
 @testable import MyAnimeList
 
 struct MyAnimeListTests {
-    let fetcher: InfoFetcher = .bypassGFWForTMDbAPI
+    let fetcher: InfoFetcher = .init(bypassGFW: true)
     let language: Language = .japanese
     
     @Test func testFetchInfo() async throws {
@@ -24,9 +24,9 @@ struct MyAnimeListTests {
     }
 
     @Test func imageTest() async throws {
-        guard let result = try await fetcher.searchTVSeries(name: "Tamako market", language: language).first else { fatalError() }
+        guard let result = try await fetcher.searchTVSeries(name: "CLANNAD", language: language).first else { fatalError() }
         let images = try await fetcher.tmdbClient.tvSeries.images(forTVSeries: result.id)
-        images.posters.filter { $0.languageCode == "en" }.forEach {
+        images.posters.filter { $0.languageCode == "ja" }.forEach {
             print($0.filePath)
             print($0.languageCode ?? "nil")
             print($0.voteAverage ?? "nil")

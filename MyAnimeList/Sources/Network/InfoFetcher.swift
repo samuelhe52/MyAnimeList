@@ -21,7 +21,7 @@ final class InfoFetcher: Sendable {
     }
     
     init(bypassGFW: Bool) {
-        let key = UserDefaults.standard.string(forKey: .tmdbAPIKey)
+        let key = TMDbAPIKeyStorage().key
         if bypassGFW {
             self.tmdbClient = .init(apiKey: key ?? "",
                                     httpClient: RedirectingHTTPClient.bypassGFWForTMDbAPI)

@@ -22,6 +22,7 @@ struct LibraryView: View {
     @State private var newEntriesAddedToggle = false
 
     @AppStorage(.preferredMetadataLanguage) var language: Language = .japanese
+    @AppStorage(.tmdbAPIGFWBypass) var bypassGFW: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -33,6 +34,10 @@ struct LibraryView: View {
             .padding(.vertical)
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .sensoryFeedback(.success, trigger: newEntriesAddedToggle)
+            .sensoryFeedback(.lighterImpact, trigger: bypassGFW)
+            .onChange(of: bypassGFW) {
+                NotificationCenter.default.post(name: .TMDbAPIConfigurationDidChange, object: nil)
+            }
         }
     }
     
@@ -86,7 +91,7 @@ struct LibraryView: View {
             }
         })
         .sheet(isPresented: $changeAPIKey) {
-            TMDbAPIConfigurator(isEditing: true)
+            TMDbAPIConfigurator(keyStorage: .init(), isEditing: true)
                 .presentationDetents([.medium, .large])
         }
     }
@@ -108,14 +113,9 @@ struct LibraryView: View {
         }
     }
     
-    @AppStorage(.tmdbAPIGFWBypass) var bypassGFW: Bool = false
     private var apiConfigruation: some View {
         Menu("TMDB API", systemImage: "server.rack") {
             Toggle("Enable GFW Bypass", systemImage: "network", isOn: $bypassGFW)
-                .onChange(of: bypassGFW) {
-                    NotificationCenter.default.post(name: .TMDbAPIConfigurationDidChange, object: nil)
-                    ToastCenter.global.completionState = .completed(bypassGFW ? "Enabled" : "Disabled")
-                }
             Button("Change API Key", systemImage: "person.badge.key") { changeAPIKey = true }
         }
     }

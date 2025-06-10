@@ -19,7 +19,7 @@ struct GlobalToastsModifier: ViewModifier {
                            type: .systemImage("checkmark.circle", .green),
                            title: "Copied!")
             })
-            .sensoryFeedback(.success, trigger: center.copied) { !$0 && $1 }
+            .sensoryFeedback(.lighterImpact, trigger: center.copied) { !$0 && $1 }
             .toast(isPresenting: .constant(center.refreshingInfos), offsetY: 20, alert: {
                 AlertToast(displayMode: .hud,
                            type: .systemImage("arrow.clockwise.circle", .blue),

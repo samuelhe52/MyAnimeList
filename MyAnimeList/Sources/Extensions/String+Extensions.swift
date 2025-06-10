@@ -9,7 +9,6 @@ import Foundation
 
 // UserDefaults entry names
 extension String {
-    static let tmdbAPIKey = "TMDB_API_KEY"
     static let tmdbAPIGFWBypass = "TMDbAPIGFWBypass"
     static let preferredMetadataLanguage = "PreferredMetadataLanguage"
     static let searchPageLanguage = "SearchPageLanguage"

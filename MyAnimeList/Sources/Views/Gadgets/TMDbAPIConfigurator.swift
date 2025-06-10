@@ -9,8 +9,8 @@ import SwiftUI
 import AlertToast
 
 struct TMDbAPIConfigurator: View {
-    @AppStorage(.tmdbAPIGFWBypass) var gfwBypass: Bool = false
-    @AppStorage(.tmdbAPIKey) var apiKey: String?
+    var keyStorage: TMDbAPIKeyStorage
+    @AppStorage(.tmdbAPIGFWBypass) var bypassGFW: Bool = false
     
     var isEditing: Bool = false
     @State private var apiKeyInput: String = ""
@@ -61,16 +61,13 @@ struct TMDbAPIConfigurator: View {
                     .privacySensitive()
                 
                 HStack {
-                    Toggle(isOn: $gfwBypass) {
+                    Toggle(isOn: $bypassGFW) {
                         Label("Enable GFW Bypass", systemImage: "network").font(.caption)
                     }
                     .toggleStyle(.button)
                     .buttonStyle(.bordered)
-                    .onChange(of: gfwBypass) {
-                        NotificationCenter.default.post(name: .TMDbAPIConfigurationDidChange, object: nil)
-                    }
                     InfoTip(title: "About GFW Bypass",
-                            message: "GFW blocks the default API endpoint of The Movie Database (api.themoviedb.org). An alternative domain (api.tmdb.org) is not blocked.\nHowever it is not officially documented and should be avoided if a VPN or proxy setup is available.\n**Enabling this option allows MyAnimeList to use this alternative api endpoint. Use at your own risk.** ",
+                            message: "GFW blocks the default API endpoint of The Movie Database (api.themoviedb.org). An alternative domain (api.tmdb.org) is not blocked.\nHowever it is not officially documented and should be avoided if a VPN or proxy setup is available.\n**Enabling this option allows MyAnimeList to use this alternative api endpoint. Use at your own risk.**",
                             height: 150)
                 }
                 .padding(.top, 10)
@@ -105,7 +102,9 @@ struct TMDbAPIConfigurator: View {
             AlertToast(displayMode: !isEditing ? .hud : .banner(.pop), type: .complete(.green), title: "Key saved.")
         })
         .onAppear {
-            if isEditing { apiKeyInput = apiKey ?? "" }
+            if isEditing {
+                apiKeyInput = keyStorage.key ?? ""
+            }
         }
         .padding(.horizontal)
         .padding()
@@ -123,7 +122,7 @@ struct TMDbAPIConfigurator: View {
             status = .invalid
             return false
         }
-        let endpoint = gfwBypass ? "tmdb" : "themoviedb"
+        let endpoint = bypassGFW ? "tmdb" : "themoviedb"
         guard let url = URL(string: "https://api.\(endpoint).org/3/configuration?api_key=\(key)") else {
             return false
         }
@@ -133,29 +132,30 @@ struct TMDbAPIConfigurator: View {
         
         do {
             let (_, response) = try await URLSession.shared.data(for: request)
-            if let httpResponse = response as? HTTPURLResponse {
-                if httpResponse.statusCode == 200 {
-                    status = .valid
-                    if !isEditing {
-                        isTextFieldFocused = false
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
+                status = .invalid
+                return false
+            }
+            
+            status = .valid
+            if !isEditing {
+                isTextFieldFocused = false
+            }
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    let result = keyStorage.saveKey(apiKeyInput)
+                    if result {
+                        NotificationCenter.default.post(name: .TMDbAPIConfigurationDidChange, object: nil)
                     }
-                    await withCheckedContinuation { continuation in
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            apiKey = apiKeyInput
-                            NotificationCenter.default.post(name: .TMDbAPIConfigurationDidChange, object: nil)
-                            continuation.resume()
-                        }
-                    }
-                    return true
+                    continuation.resume()
                 }
             }
+            return true
         } catch {
             status = .invalid
             return false
         }
-        
-        status = .invalid
-        return false
     }
     
     enum KeyCheckStatus {
@@ -170,5 +170,5 @@ extension Notification.Name {
 }
 
 #Preview {
-    TMDbAPIConfigurator()
+    TMDbAPIConfigurator(keyStorage: .init())
 }

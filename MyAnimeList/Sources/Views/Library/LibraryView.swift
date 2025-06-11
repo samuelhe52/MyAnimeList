@@ -22,7 +22,6 @@ struct LibraryView: View {
     @State private var newEntriesAddedToggle = false
 
     @AppStorage(.preferredMetadataLanguage) var language: Language = .japanese
-    @AppStorage(.tmdbAPIGFWBypass) var bypassGFW: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -34,10 +33,6 @@ struct LibraryView: View {
             .padding(.vertical)
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .sensoryFeedback(.success, trigger: newEntriesAddedToggle)
-            .sensoryFeedback(.lighterImpact, trigger: bypassGFW)
-            .onChange(of: bypassGFW) {
-                NotificationCenter.default.post(name: .TMDbAPIConfigurationDidChange, object: nil)
-            }
         }
     }
     
@@ -114,10 +109,7 @@ struct LibraryView: View {
     }
     
     private var apiConfigruation: some View {
-        Menu("TMDB API", systemImage: "server.rack") {
-            Toggle("Enable GFW Bypass", systemImage: "network", isOn: $bypassGFW)
-            Button("Change API Key", systemImage: "person.badge.key") { changeAPIKey = true }
-        }
+        Button("Change API Key", systemImage: "person.badge.key") { changeAPIKey = true }
     }
     
     private var refreshInfosButton: some View {

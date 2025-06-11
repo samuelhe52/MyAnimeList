@@ -15,19 +15,10 @@ import Combine
 final class InfoFetcher: Sendable {
     let tmdbClient: TMDbClient
     
-    convenience init() {
-        let bypassGFW = UserDefaults.standard.bool(forKey: .tmdbAPIGFWBypass)
-        self.init(bypassGFW: bypassGFW)
-    }
-    
-    init(bypassGFW: Bool) {
+    init() {
         let key = TMDbAPIKeyStorage().key
-        if bypassGFW {
-            self.tmdbClient = .init(apiKey: key ?? "",
-                                    httpClient: RedirectingHTTPClient.bypassGFWForTMDbAPI)
-        } else {
-            self.tmdbClient = .init(apiKey: key ?? "")
-        }
+        self.tmdbClient = .init(apiKey: key ?? "",
+                                httpClient: RedirectingHTTPClient.relayServer)
     }
     
     func movie(_ tmdbID: Int, language: Language) async throws -> Movie {
@@ -122,5 +113,5 @@ enum Language: String, CaseIterable, CustomStringConvertible {
 }
 
 extension RedirectingHTTPClient {
-    static let bypassGFWForTMDbAPI: Self = .init(fromHost: "api.themoviedb.org", toHost: "api.tmdb.org")
+    static let relayServer: Self = .init(fromHost: "api.themoviedb.org", toHost: "tmdb-api.konakona52.com")
 }

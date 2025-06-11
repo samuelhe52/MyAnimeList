@@ -9,7 +9,7 @@ import Testing
 @testable import MyAnimeList
 
 struct MyAnimeListTests {
-    let fetcher: InfoFetcher = .init(bypassGFW: true)
+    let fetcher = InfoFetcher()
     let language: Language = .japanese
     
     @Test func testFetchInfo() async throws {

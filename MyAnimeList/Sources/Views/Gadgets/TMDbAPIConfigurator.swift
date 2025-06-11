@@ -10,7 +10,6 @@ import AlertToast
 
 struct TMDbAPIConfigurator: View {
     @Environment(TMDbAPIKeyStorage.self) var keyStorage
-    @AppStorage(.tmdbAPIGFWBypass) var bypassGFW: Bool = false
     
     var isEditing: Bool = false
     @State private var apiKeyInput: String = ""
@@ -59,18 +58,6 @@ struct TMDbAPIConfigurator: View {
                     .focused($isTextFieldFocused)
                     .textContentType(.password)
                     .privacySensitive()
-                
-                HStack {
-                    Toggle(isOn: $bypassGFW) {
-                        Label("Enable GFW Bypass", systemImage: "network").font(.caption)
-                    }
-                    .toggleStyle(.button)
-                    .buttonStyle(.bordered)
-                    InfoTip(title: "About GFW Bypass",
-                            message: "GFW blocks the default API endpoint of The Movie Database (api.themoviedb.org). An alternative domain (api.tmdb.org) is not blocked.\nHowever it is not officially documented and should be avoided if a VPN or proxy setup is available.\n**Enabling this option allows MyAnimeList to use this alternative api endpoint. Use at your own risk.**",
-                            height: 150)
-                }
-                .padding(.top, 10)
             }
             .padding(.horizontal)
             
@@ -122,8 +109,7 @@ struct TMDbAPIConfigurator: View {
             status = .invalid
             return false
         }
-        let endpoint = bypassGFW ? "tmdb" : "themoviedb"
-        guard let url = URL(string: "https://api.\(endpoint).org/3/configuration?api_key=\(key)") else {
+        guard let url = URL(string: "https://tmdb-api.konakona52.com/3/configuration?api_key=\(key)") else {
             return false
         }
         

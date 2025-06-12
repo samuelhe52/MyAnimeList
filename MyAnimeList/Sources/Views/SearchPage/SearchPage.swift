@@ -59,18 +59,18 @@ struct SearchPage: View {
         }
     }
     
+    @ViewBuilder
     private var submitMenu: some View {
-        Menu {
-            Text("\(service.registeredCount) selected")
-            Button("Add to library") {
+        if service.registeredCount != 0 {
+            Button("Add...") {
                 service.submit()
-            }.disabled(service.registeredCount == 0)
-        } label: {
-            Text("Add...")
+            }
+            .buttonStyle(.borderedProminent)
+            .buttonBorderShape(.capsule)
+            .shadow(color: .blue, radius: 8)
+            .tint(.blue)
+            .transition(.opacity.animation(.interactiveSpring(duration: 0.3)))
         }
-        .buttonStyle(.borderedProminent)
-        .buttonBorderShape(.capsule)
-        .shadow(color: .blue, radius: 8)
     }
     
     private func updateResults() {

@@ -65,7 +65,10 @@ class LibraryStore {
     
     private func createNewEntry(tmdbID id: Int, type: AnimeType) async throws {
         // No duplicate entries
-        guard library.map(\.tmdbID).contains(id) == false else { return }
+        guard library.map(\.tmdbID).contains(id) == false else {
+            logger.warning("Entry with id \(id) already exists. Returning...")
+            return
+        }
         let info = try await infoFetcher.fetchInfoFromTMDB(entryType: type,
                                                            tmdbID: id,
                                                            language: language)

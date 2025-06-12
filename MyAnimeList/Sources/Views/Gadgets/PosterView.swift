@@ -32,6 +32,7 @@ struct PosterView: View {
                     .resizable()
             } else {
                 ProgressView()
+                    .frame(minWidth: 100, minHeight: 100)
             }
         }
         .onChange(of: url, initial: true) {
@@ -42,7 +43,7 @@ struct PosterView: View {
     private func loadImage() async {
         let kfRetrieveOptions: KingfisherOptionsInfo = [
             .cacheOriginalImage,
-            .diskCacheExpiration(.days(90)),
+            .diskCacheExpiration(diskCacheExpiration),
             .onFailureImage(UIImage(named: "missing_image_resource"))
         ]
         

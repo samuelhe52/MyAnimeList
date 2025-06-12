@@ -34,6 +34,7 @@ class LibraryStore {
     }
     
     func refreshLibrary(sortedBy sortDescriptor: SortDescriptor<AnimeEntry> = .init(\.dateSaved)) throws {
+        logger.debug("Refreshing library...")
         let descriptor = FetchDescriptor<AnimeEntry>(sortBy: [sortDescriptor])
         let entries = try dataProvider.sharedModelContainer.mainContext.fetch(descriptor)
         withAnimation {
@@ -64,6 +65,7 @@ class LibraryStore {
     }
     
     private func createNewEntry(tmdbID id: Int, type: AnimeType) async throws {
+        logger.debug("Creating new entry with id: \(id), type: \(type)...")
         // No duplicate entries
         guard library.map(\.tmdbID).contains(id) == false else {
             logger.warning("Entry with id \(id) already exists. Returning...")
@@ -132,10 +134,15 @@ class LibraryStore {
                         let tmdbID = entry.tmdbID
                         let entryID = entry.id
                         let language = language
+                        let usingCustomPoster = entry.usingCustomPoster
+                        let originalPosterURL = entry.posterURL
                         group.addTask {
-                            let info = try await self.infoFetcher.fetchInfoFromTMDB(entryType: type,
+                            var info = try await self.infoFetcher.fetchInfoFromTMDB(entryType: type,
                                                                                     tmdbID: tmdbID,
                                                                                     language: language)
+                            if usingCustomPoster {
+                                info.posterURL = originalPosterURL
+                            }
                             return (entryID, info)
                         }
                     }

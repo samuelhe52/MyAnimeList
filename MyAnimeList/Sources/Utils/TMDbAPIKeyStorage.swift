@@ -33,7 +33,7 @@ class TMDbAPIKeyStorage {
         let status = SecItemAdd(query as CFDictionary, nil)
         if status == errSecSuccess {
             self.key = newKey
-            logger.debug("Successfully saved TMDb API key to keychain.")
+            logger.info("Successfully saved TMDb API key to keychain.")
         } else {
             logger.error("Failed to save TMDb API key to keychain. Status code: \(status)")
         }
@@ -50,9 +50,7 @@ class TMDbAPIKeyStorage {
         
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
-        if status == errSecSuccess {
-            logger.debug("Successfully retrieved TMDb API key from keychain.")
-        } else {
+        if status != errSecSuccess {
             logger.error("Failed to retrieve TMDb API key from keychain. Status code: \(status)")
         }
         

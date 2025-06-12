@@ -13,7 +13,7 @@ struct MyAnimeListTests {
     let language: Language = .japanese
     
     @Test func testFetchInfo() async throws {
-        guard let result = try await fetcher.searchTVSeries(name: "K-ON!", language: language).first else { fatalError() }
+        guard let result = try await fetcher.searchTVSeries(name: "Frieren", language: language).first else { fatalError() }
         let series = try await fetcher.tmdbClient.tvSeries
             .details(forTVSeries: result.id, language: language.rawValue)
         let seasons = series.seasons!

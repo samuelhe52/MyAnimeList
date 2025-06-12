@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 /// The current schema version used by the data provider.
-public typealias CurrentSchema = SchemaV2_2_0
+public typealias CurrentSchema = SchemaV2_2_1
 
 /// The current anime entry type used by the data provider.
 public typealias AnimeEntry = CurrentSchema.AnimeEntry
@@ -47,5 +47,10 @@ public final class DataProvider: Sendable {
             }
         }()
         dataHandler = .init(modelContainer: sharedModelContainer)
+    }
+    
+    public func dataHandlerCreator() -> @Sendable () async -> DataHandler {
+      let container = sharedModelContainer
+      return { DataHandler(modelContainer: container) }
     }
 }

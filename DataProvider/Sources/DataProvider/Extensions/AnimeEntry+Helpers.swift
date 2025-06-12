@@ -31,7 +31,7 @@ extension AnimeEntry {
     public var seasonNumber: Int? { type.seasonNumber }
     
     /// The TMDB ID for the parent series of this season, if this entry is of type `.season`
-    public var parentSeasonID: Int? { type.parentSeriesID }
+    public var parentSeriesID: Int? { type.parentSeriesID }
     
     /// - Note: `dateSaved` and `id` is not updated in this method.
     public func update(from other: AnimeEntry) {

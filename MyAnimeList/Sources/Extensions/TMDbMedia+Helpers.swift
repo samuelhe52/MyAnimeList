@@ -7,6 +7,9 @@
 
 import Foundation
 import TMDb
+import os
+
+fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "TMDbMediaMetadataFetching")
 
 extension Movie {
     /// Returns the basic information for the movie.
@@ -15,10 +18,12 @@ extension Movie {
     ///   - client: The TMDb client used to fetch image configuration.
     /// - Returns: A `BasicInfo` struct containing metadata about the movie.
     func basicInfo(client: TMDbClient) async throws -> BasicInfo {
+        logger.debug("Fetching basic info for movie \(self.id)")
         let posterURL = try await posterURL(client: client)
         let backdropURL = try await backdropURL(client: client)
         let logoURL = try await logoURL(client: client)
         
+        logger.info("Successfully fetched basic info for movie \(self.id)")
         return BasicInfo(
             name: title,
             overview: overview,
@@ -32,54 +37,30 @@ extension Movie {
         )
     }
     
-    /// Gets URLs for all poster images associated with the movie.
+    /// Gets URL for the backdrop image.
     ///
     /// - Parameter client: The TMDb client used for image configuration.
-    /// - Returns: Array of URLs for poster images.
-    func posterURLs(client: TMDb.TMDbClient) async throws -> [URL] {
-        let collection = try await client.movies.images(forMovie: id)
-        return await client.posters(from: collection)
+    func backdropURL(client: TMDb.TMDbClient, idealWidth: Int = .max) async throws -> URL? {
+        let url = try await client.imagesConfiguration.backdropURL(for: backdropPath, idealWidth: idealWidth)
+        return url
     }
     
-    /// Gets URLs for all backdrop images associated with the movie.
+    /// Gets URL for the poster image.
     ///
     /// - Parameter client: The TMDb client used for image configuration.
-    /// - Returns: Array of URLs for backdrop images.
-    func backdropURLs(client: TMDb.TMDbClient) async throws -> [URL] {
-        let collection = try await client.movies.images(forMovie: id)
-        return await client.backdrops(from: collection)
+    func posterURL(client: TMDb.TMDbClient, idealWidth: Int = .max) async throws -> URL? {
+        let url = try await client.imagesConfiguration.posterURL(for: posterPath, idealWidth: idealWidth)
+        return url
     }
     
-    /// Gets URLs for all logo images associated with the movie.
+    /// Gets URL for the logo image.
     ///
     /// - Parameter client: The TMDb client used for image configuration.
-    /// - Returns: Array of URLs for logo images.
-    func logoURLs(client: TMDb.TMDbClient) async throws -> [URL] {
-        let collection = try await client.movies.images(forMovie: id)
-        return await client.logos(from: collection)
-    }
-
-    /// Gets URL for the primary backdrop image.
-    ///
-    /// - Parameter client: The TMDb client used for image configuration.
-    func backdropURL(client: TMDb.TMDbClient) async throws -> URL? {
-        return try await client.imagesConfiguration.backdropURL(for: backdropPath)
-    }
-    
-    /// Gets URL for the best quality poster image.
-    ///
-    /// - Parameter client: The TMDb client used for image configuration.
-    func posterURL(client: TMDb.TMDbClient) async throws -> URL? {
-        return try await client.imagesConfiguration.posterURL(for: posterPath)
-    }
-    
-    /// Gets URL for the primary logo image.
-    ///
-    /// - Parameter client: The TMDb client used for image configuration.
-    func logoURL(client: TMDb.TMDbClient) async throws -> URL? {
+    func logoURL(client: TMDb.TMDbClient, idealWidth: Int = .max) async throws -> URL? {
         let imageResources = try await client.movies.images(forMovie: id)
         let logoPath = imageResources.logos.first?.filePath
-        return try await client.imagesConfiguration.logoURL(for: logoPath)
+        let url = try await client.imagesConfiguration.logoURL(for: logoPath, idealWidth: idealWidth)
+        return url
     }
     
     var name: String { title }
@@ -94,10 +75,12 @@ extension TVSeries {
     ///   - client: The TMDb client used to fetch image configuration.
     /// - Returns: A `BasicInfo` struct containing metadata about the TV series.
     func basicInfo(client: TMDbClient) async throws -> BasicInfo {
+        logger.debug("Fetching basic info for TV series \(self.id)")
         let posterURL = try await posterURL(client: client)
         let backdropURL = try await backdropURL(client: client)
         let logoURL = try await logoURL(client: client)
 
+        logger.info("Successfully fetched basic info for TV series \(self.id)")
         return BasicInfo(
             name: name,
             overview: overview,
@@ -111,42 +94,27 @@ extension TVSeries {
         )
     }
     
-    /// Gets URL for the best quality poster image.
+    /// Gets URL for the poster image.
     ///
     /// - Parameter client: The TMDb client used for image configuration.
     func posterURL(client: TMDbClient) async throws -> URL? {
         return try await client.imagesConfiguration.posterURL(for: posterPath)
     }
     
-    /// Gets URL for the primary backdrop image.
+    /// Gets URL for the backdrop image.
     ///
     /// - Parameter client: The TMDb client used for image configuration.
     func backdropURL(client: TMDbClient) async throws -> URL? {
         return try await client.imagesConfiguration.backdropURL(for: backdropPath)
     }
     
-    /// Gets URL for the primary logo image.
+    /// Gets URL for the logo image.
     ///
     /// - Parameter client: The TMDb client used for image configuration.
     func logoURL(client: TMDbClient) async throws -> URL? {
         let imageResources = try await client.tvSeries.images(forTVSeries: id)
         let logoPath = imageResources.logos.first?.filePath
         return try await client.imagesConfiguration.logoURL(for: logoPath)
-    }
-    
-    func posterURLs(client: TMDbClient) async throws -> [URL] {
-        let collection = try await client.movies.images(forMovie: id)
-        return await client.posters(from: collection)
-    }
-
-    func backdropURLs(client: TMDbClient) async throws -> [URL] {
-        let collection = try await client.movies.images(forMovie: id)
-        return await client.backdrops(from: collection)
-    }
-
-    func logoURLs(client: TMDbClient) async throws -> [URL] {
-        let collection = try await client.movies.images(forMovie: id)
-        return await client.logos(from: collection)
     }
     
     var onAirDate: Date? { firstAirDate }
@@ -169,7 +137,9 @@ extension TVSeason {
                    logoURL: URL? = nil,
                    linkToDetails: URL? = nil,
                    parentSeriesID: Int) async throws -> BasicInfo {
+        logger.debug("Fetching basic info for season \(self.seasonNumber) of series \(parentSeriesID)")
         let seasonPoster: URL? = try await client.imagesConfiguration.posterURL(for: posterPath)
+        logger.info("Successfully fetched basic info for season \(self.seasonNumber) of series \(parentSeriesID)")
         return BasicInfo(
             name: name,
             overview: overview,
@@ -189,7 +159,8 @@ extension TVSeason {
     ///   - parentSeriesID: The ID of the parent TV series.
     ///   - client: The TMDb client used for image configuration.
     func posterURL(parentSeriesID: Int, client: TMDbClient) async throws -> URL? {
-        return try await client.imagesConfiguration.posterURL(for: posterPath)
+        let url = try await client.imagesConfiguration.posterURL(for: posterPath)
+        return url
     }
     
     var onAirDate: Date? { airDate }

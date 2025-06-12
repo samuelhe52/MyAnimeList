@@ -96,6 +96,36 @@ final class InfoFetcher: Sendable {
         let season = try await tmdbClient.tvSeries.details(forTVSeries: tmdbID, language: language.rawValue)
         return try await season.basicInfo(client: tmdbClient)
     }
+    
+    func postersForMovie(for tmdbID: Int,idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
+        return try await tmdbClient.posterURLs(forMovie: tmdbID, idealWidth: idealWidth)
+    }
+
+    func backdropsForMovie(for tmdbID: Int,idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
+        return try await tmdbClient.backdropURLs(forMovie: tmdbID, idealWidth: idealWidth)
+    }
+
+    func logosForMovie(for tmdbID: Int,idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
+        return try await tmdbClient.logoURLs(forMovie: tmdbID, idealWidth: idealWidth)
+    }
+
+    func postersForSeries(seriesID tmdbID: Int,idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
+        return try await tmdbClient.posterURLs(forTVSeries: tmdbID, idealWidth: idealWidth)
+    }
+
+    func backdropsForSeries(for tmdbID: Int,idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
+        return try await tmdbClient.backdropURLs(forTVSeries: tmdbID, idealWidth: idealWidth)
+    }
+
+    func logosForSeries(for tmdbID: Int,idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
+        return try await tmdbClient.logoURLs(forTVSeries: tmdbID, idealWidth: idealWidth)
+    }
+    
+    func postersForSeason(forSeason seasonNumber: Int,
+                          inParentSeries parentSeriesID: Int,
+                          idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
+        return try await tmdbClient.posterURLs(forSeason: seasonNumber, inTVSeries: parentSeriesID, idealWidth: idealWidth)
+    }
 }
 
 enum Language: String, CaseIterable, CustomStringConvertible {

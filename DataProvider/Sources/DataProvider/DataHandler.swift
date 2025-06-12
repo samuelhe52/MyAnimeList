@@ -45,7 +45,7 @@ public final actor DataHandler {
     ///   - id: The persistent identifier of the entry to update.
     ///   - action: A closure that modifies the existing entry.
     /// - Throws: An error if the save operation fails or the closure throws.
-    public func updateEntry(id: PersistentIdentifier, _ action: (AnimeEntry) throws -> Void) throws {
+    public func updateEntry(id: PersistentIdentifier, _ action: @Sendable (AnimeEntry) throws -> Void) throws {
         guard let existing = self[id, as: AnimeEntry.self] else {
             logger.warning("Closure update failed - anime entry not found")
             return

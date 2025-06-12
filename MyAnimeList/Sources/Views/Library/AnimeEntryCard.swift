@@ -19,6 +19,7 @@ struct AnimeEntryCard: View {
     @State private var triggerDeleteHaptic: Bool = false
     @State private var showDeleteToast: Bool = false
     @State private var imageLoaded: Bool = false
+    @State private var showPosterSwitchingView = false
     var imageMissing: Bool { entry.posterURL == nil }
     
     init(entry: AnimeEntry, onDelete delete: @escaping () -> Void) {
@@ -50,12 +51,10 @@ struct AnimeEntryCard: View {
                 Button("Delete", systemImage: "trash", role: .destructive) {
                     showDeleteToast = true
                 }
-                if entry.isSeason {
-                    Button {
-                        Task { try await entry.switchPoster(language: .japanese) }
-                    } label: {
-                        Label(entry.useSeriesPoster ? "Use Season Poster" : "Use Series Poster", systemImage: "photo")
-                    }
+                Button {
+                    showPosterSwitchingView = true
+                } label: {
+                    Label("Switch Poster", systemImage: "photo")
                 }
                 Button("Poster URL", systemImage: "document.on.clipboard") {
                     UIPasteboard.general.string = entry.posterURL?.absoluteString ?? ""
@@ -63,6 +62,9 @@ struct AnimeEntryCard: View {
                 }
             }
             .sensoryFeedback(.success, trigger: triggerDeleteHaptic)
+            .sheet(isPresented: $showPosterSwitchingView) {
+                PosterSelectionView(entry: entry)
+            }
     }
 }
 

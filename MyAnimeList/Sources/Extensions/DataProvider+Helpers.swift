@@ -50,32 +50,6 @@ extension AnimeEntry {
                   linkToDetails: linkToDetails,
                   type: type)
     }
-    
-    /// Switches between season and series poster images.
-    ///
-    /// - Parameter language: The language to use for fetching images.
-    /// - Note: Only works for entries of type `.season`.
-    @MainActor
-    func switchPoster(language: Language) async throws {
-        switch type {
-        case .season(let seasonNumber, let parentSeriesID):
-            let fetcher = InfoFetcher()
-            if !useSeriesPoster {
-                let series = try await fetcher.tvSeries(parentSeriesID, language: language)
-                let url = try await series.posterURL(client: fetcher.tmdbClient)
-                useSeriesPoster = true
-                posterURL = url
-            } else {
-                let season = try await fetcher.tvSeason(parentSeriesID,
-                                                        seasonNumber: seasonNumber,
-                                                        language: language)
-                let url = try await season.posterURL(parentSeriesID: parentSeriesID, client: fetcher.tmdbClient)
-                useSeriesPoster = false
-                posterURL = url
-            }
-        default: return
-        }
-    }
 }
 
 extension DataHandler {

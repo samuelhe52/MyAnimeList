@@ -17,7 +17,13 @@ typealias Poster = ImageURLWithMetadata
 
 struct PosterSelectionView: View {
     var entry: AnimeEntry
-    let fetcher = InfoFetcher()
+    let fetcher: InfoFetcher
+    
+    init(entry: AnimeEntry, infoFetcher: InfoFetcher = .init()) {
+        self.entry = entry
+        self.fetcher = infoFetcher
+    }
+    
     @State var availablePosters: [Poster] = []
     @State var seriesPosters: [Poster] = []
     @State var previewPoster: Poster?
@@ -25,8 +31,18 @@ struct PosterSelectionView: View {
     @Environment(\.createDataHandler) var createDataHandler
     @Environment(\.dismiss) var dismiss
     @Namespace var preview
-    
-    let idealWidth = 200
+
+    private struct Constants {
+        static let navigationTitle: String = "Pick a poster"
+        static let gridItemMinSize: CGFloat = 100
+        static let gridItemMaxSize: CGFloat = 200
+        static let gridItemVerticalSpacing: CGFloat = 12
+        static let gridItemHorizontalSpacing: CGFloat = 12
+        static let idealWidth: Int = 200
+        static let pickerPadding: CGFloat = 5
+        static let posterCornerRadius: CGFloat = 5
+        static let cacheExpiration: StorageExpiration = .seconds(180)
+    }
     
     var body: some View {
         VStack {
@@ -36,39 +52,50 @@ struct PosterSelectionView: View {
                     Text("Series").tag(true)
                 }
                 .pickerStyle(.segmented)
+                .padding(.bottom, Constants.pickerPadding)
             }
             ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 100, maximum: 200))]) {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: Constants.gridItemMinSize, maximum: Constants.gridItemMaxSize),
+                                             spacing: Constants.gridItemHorizontalSpacing)],
+                          spacing: Constants.gridItemVerticalSpacing) {
                     ForEach(useSeriesPoster ? seriesPosters : availablePosters, id: \.url) { poster in
                         posterWithInfo(poster: poster)
+                            .transition(.opacity)
                             .onTapGesture {
                                 previewPoster = poster
                             }
                     }
                 }
-            }.animation(.default, value: useSeriesPoster)
+            }
+            .animation(.default, value: useSeriesPoster)
+            .animation(.default, value: availablePosters)
         }
+        .padding(.horizontal)
+        .navigationTitle(Constants.navigationTitle)
+        .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(item: $previewPoster) { poster in
             PosterPreview(previewPoster: poster, updatePoster: { url in
                 Task {
                     let handler = await createDataHandler()
                     try await handler?.updateEntry(id: entry.id) { entry in
                         entry.posterURL = url
+                        entry.usingCustomPoster = true
                     }
+                    logger.info("Updated poster for ID: \(entry.tmdbID)")
                     dismiss()
                 }
             })
-                .navigationTransition(.zoom(sourceID: poster.metadata.filePath,
-                                            in: preview))
+            .navigationTransition(.zoom(sourceID: poster.metadata.filePath,
+                                        in: preview))
         }
-        .padding()
         .onChange(of: useSeriesPoster) {
             Task {
                 if let tmdbID = entry.parentSeriesID,
-                useSeriesPoster {
+                   useSeriesPoster,
+                   seriesPosters.isEmpty {
                     seriesPosters = try await fetcher.postersForSeries(seriesID: tmdbID,
-                                                                       idealWidth: idealWidth)
-                    .filteredAndSorted
+                                                                       idealWidth: Constants.idealWidth)
+                    .filteredAndSorted()
                 }
             }
         }
@@ -84,7 +111,8 @@ struct PosterSelectionView: View {
         let width = poster.metadata.width
         let height = poster.metadata.height
         VStack {
-            PosterView(url: poster.url, diskCacheExpiration: .seconds(180))
+            PosterView(url: poster.url, diskCacheExpiration: Constants.cacheExpiration)
+                .clipShape(RoundedRectangle(cornerRadius: Constants.posterCornerRadius))
                 .aspectRatio(contentMode: .fit)
             Text("\(width) x \(height)")
                 .font(.caption)
@@ -98,15 +126,15 @@ struct PosterSelectionView: View {
             var posters: [Poster]
             switch entry.type {
             case .movie:
-                posters = try await fetcher.postersForMovie(for: entry.tmdbID, idealWidth: idealWidth)
+                posters = try await fetcher.postersForMovie(for: entry.tmdbID, idealWidth: Constants.idealWidth)
             case .series:
-                posters = try await fetcher.postersForSeries(seriesID: entry.tmdbID, idealWidth: idealWidth)
+                posters = try await fetcher.postersForSeries(seriesID: entry.tmdbID, idealWidth: Constants.idealWidth)
             case let .season(seasonNumber, parentSeriesID):
                 posters = try await fetcher.postersForSeason(forSeason: seasonNumber,
-                                                                         inParentSeries: parentSeriesID,
-                                                                         idealWidth: idealWidth)
+                                                             inParentSeries: parentSeriesID,
+                                                             idealWidth: Constants.idealWidth)
             }
-            availablePosters = posters.filteredAndSorted
+            availablePosters = posters.filteredAndSorted()
         } catch {
             logger.error("Error fetching available posters: \(error.localizedDescription)")
         }
@@ -121,6 +149,9 @@ struct PosterPreview: View {
     
     var body: some View {
         VStack {
+            Text("\(previewPoster.metadata.width) x \(previewPoster.metadata.height)")
+                .font(.caption)
+                .foregroundStyle(.gray)
             PosterView(url: previewPosterURL, diskCacheExpiration: .seconds(3600))
                 .aspectRatio(contentMode: .fit)
             Button("Use this poster") {
@@ -130,11 +161,11 @@ struct PosterPreview: View {
             .buttonBorderShape(.capsule)
         }
         .task {
-            previewPosterURL = await fetchPreviewImage()
+            previewPosterURL = await fetchPreviewURL()
         }
     }
     
-    private func fetchPreviewImage() async -> URL? {
+    private func fetchPreviewURL() async -> URL? {
         do {
             let path = previewPoster.metadata.filePath
             return try await fetcher
@@ -149,15 +180,17 @@ struct PosterPreview: View {
 }
 
 extension Array where Element == Poster {
-    var filteredAndSorted: [Poster] {
+    func filteredAndSorted(language: Language = .japanese) -> [Poster] {
         self
-            .filter { $0.metadata.languageCode == Language.japanese.rawValue }
+            .filter { $0.metadata.languageCode == language.rawValue }
             .sorted { $0.metadata.width > $1.metadata.width }
     }
 }
 
 #Preview {
     NavigationStack {
-        PosterSelectionView(entry: .init(name: "Frieren", type: .series, tmdbID: 209867))
+        PosterSelectionView(entry: .init(name: "Frieren",
+                                         type: .season(seasonNumber: 1, parentSeriesID: 209867),
+                                         tmdbID: 307972))
     }
 }

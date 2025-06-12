@@ -63,7 +63,9 @@ struct AnimeEntryCard: View {
             }
             .sensoryFeedback(.success, trigger: triggerDeleteHaptic)
             .sheet(isPresented: $showPosterSwitchingView) {
-                PosterSelectionView(entry: entry)
+                NavigationStack {
+                    PosterSelectionView(entry: entry)
+                }
             }
     }
 }

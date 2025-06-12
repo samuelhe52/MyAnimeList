@@ -7,6 +7,9 @@
 
 import Foundation
 import SwiftData
+import os
+
+fileprivate let logger = Logger(subsystem: .moduleIdentifier, category: "DataHandler")
 
 @ModelActor
 public final actor DataHandler {
@@ -16,8 +19,7 @@ public final actor DataHandler {
     /// - Throws: An error if the save operation fails.
     @discardableResult
     public func newEntry(_ entry: AnimeEntry) throws -> PersistentIdentifier {
-        // Ensure uniqueness of entries
-        guard self[entry.id, as: AnimeEntry.self] == nil else { return entry.id }
+        logger.debug("Creating new anime entry with ID: \(entry.tmdbID)")
         modelContext.insert(entry)
         try modelContext.save()
         return entry.persistentModelID
@@ -29,7 +31,11 @@ public final actor DataHandler {
     ///   - entry: The anime entry containing updated data.
     /// - Throws: An error if the save operation fails.
     public func updateEntry(id: PersistentIdentifier, entry: AnimeEntry) throws {
-        guard let existing = self[id, as: AnimeEntry.self] else { return }
+        guard let existing = self[id, as: AnimeEntry.self] else {
+            logger.warning("Update failed - anime entry not found")
+            return
+        }
+        logger.debug("Updating anime entry with ID: \(existing.tmdbID)")
         existing.update(from: entry)
         try modelContext.save()
     }
@@ -40,7 +46,11 @@ public final actor DataHandler {
     ///   - action: A closure that modifies the existing entry.
     /// - Throws: An error if the save operation fails or the closure throws.
     public func updateEntry(id: PersistentIdentifier, _ action: (AnimeEntry) throws -> Void) throws {
-        guard let existing = self[id, as: AnimeEntry.self] else { return }
+        guard let existing = self[id, as: AnimeEntry.self] else {
+            logger.warning("Closure update failed - anime entry not found")
+            return
+        }
+        logger.debug("Updating anime entry via closure with ID: \(existing.tmdbID)")
         try action(existing)
         try modelContext.save()
     }
@@ -49,7 +59,11 @@ public final actor DataHandler {
     /// - Parameter id: The persistent identifier of the entry to update.
     /// - Throws: An error if the save operation fails.
     public func markAsUnwatched(id: PersistentIdentifier) throws {
-        guard let entry = self[id, as: AnimeEntry.self] else { return }
+        guard let entry = self[id, as: AnimeEntry.self] else {
+            logger.warning("Unwatch marking failed - anime entry not found")
+            return
+        }
+        logger.debug("Marking entry as unwatched: \(entry.tmdbID)")
         entry.dateStarted = nil
         entry.dateFinished = nil
         try modelContext.save()
@@ -59,7 +73,11 @@ public final actor DataHandler {
     /// - Parameter id: The persistent identifier of the entry to update.
     /// - Throws: An error if the save operation fails.
     public func markAsWatching(id: PersistentIdentifier) throws {
-        guard let entry = self[id, as: AnimeEntry.self] else { return }
+        guard let entry = self[id, as: AnimeEntry.self] else {
+            logger.warning("Watching marking failed - anime entry not found")
+            return
+        }
+        logger.debug("Marking entry as watching: \(entry.tmdbID)")
         entry.dateStarted = .now
         entry.dateFinished = nil
         try modelContext.save()
@@ -70,7 +88,11 @@ public final actor DataHandler {
     /// - Throws: An error if the save operation fails.
     /// - Note: This method assumes that the entry has already been marked as currently watching. If it has not, the method will do nothing.
     public func markAsWatched(id: PersistentIdentifier) throws {
-        guard let entry = self[id, as: AnimeEntry.self] else { return }
+        guard let entry = self[id, as: AnimeEntry.self] else {
+            logger.warning("Watched marking failed - anime entry not found")
+            return
+        }
+        logger.debug("Marking entry as watched: \(entry.tmdbID)")
         guard entry.dateStarted != nil else { return }
         entry.dateFinished = .now
         try modelContext.save()
@@ -80,7 +102,11 @@ public final actor DataHandler {
     /// - Parameter id: The persistent identifier of the entry to update.
     /// - Throws: An error if the save operation fails.
     public func favorite(id: PersistentIdentifier) throws {
-        guard let entry = self[id, as: AnimeEntry.self] else { return }
+        guard let entry = self[id, as: AnimeEntry.self] else {
+            logger.warning("Favoriting failed - anime entry not found")
+            return
+        }
+        logger.debug("Marking entry as favorite: \(entry.tmdbID)")
         entry.favorite = true
         try modelContext.save()
     }
@@ -88,8 +114,12 @@ public final actor DataHandler {
     /// Unmarks an anime entry as a favorite.
     /// - Parameter id: The persistent identifier of the entry to update.
     /// - Throws: An error if the save operation fails.
-    public func unFavorite(id: PersistentIdentifier) throws {
-        guard let entry = self[id, as: AnimeEntry.self] else { return }
+    public func unfavorite(id: PersistentIdentifier) throws {
+        guard let entry = self[id, as: AnimeEntry.self] else {
+            logger.warning("Unfavoriting failed - anime entry not found")
+            return
+        }
+        logger.debug("Unmarking entry as favorite: \(entry.tmdbID)")
         entry.favorite = false
         try modelContext.save()
     }
@@ -98,7 +128,11 @@ public final actor DataHandler {
     /// - Parameter id: The persistent identifier of the entry to delete.
     /// - Throws: An error if the save operation fails.
     public func deleteEntry(id: PersistentIdentifier) throws {
-        guard let entry = self[id, as: AnimeEntry.self] else { return }
+        guard let entry = self[id, as: AnimeEntry.self] else {
+            logger.warning("Deletion failed - anime entry not found")
+            return
+        }
+        logger.debug("Deleting entry with ID: \(entry.tmdbID)")
         modelContext.delete(entry)
         try modelContext.save()
     }
@@ -106,6 +140,7 @@ public final actor DataHandler {
     /// Deletes all anime entries from the database.
     /// - Throws: An error if the save operation fails.
     public func deleteAllEntries() throws {
+        logger.debug("Deleting all anime entries")
         let descriptor = FetchDescriptor<AnimeEntry>()
         let allEntries = try modelContext.fetch(descriptor)
         for entry in allEntries {

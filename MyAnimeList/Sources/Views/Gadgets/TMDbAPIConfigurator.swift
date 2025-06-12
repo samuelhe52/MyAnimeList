@@ -26,7 +26,7 @@ struct TMDbAPIConfigurator: View {
         VStack(spacing: 30) {
             if !isEditing {
                 // Initial value absent, welcome
-                Image("app_icon")
+                Image(.appIcon)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 150, height: 150)

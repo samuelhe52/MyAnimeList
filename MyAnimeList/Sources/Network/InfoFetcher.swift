@@ -21,6 +21,10 @@ final class InfoFetcher: Sendable {
                                 httpClient: RedirectingHTTPClient.relayServer)
     }
     
+    init(client: TMDbClient) {
+        self.tmdbClient = client
+    }
+    
     func movie(_ tmdbID: Int, language: Language) async throws -> Movie {
         try await tmdbClient.movies.details(forMovie: tmdbID, language: language.rawValue)
     }

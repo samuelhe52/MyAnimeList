@@ -22,7 +22,7 @@ class TMDbAPIKeyStorage {
     }
 
     func saveKey(_ newKey: String) -> Bool {
-        let data = Data(newKey.utf8)
+        let data = Data(newKey.trimmingCharacters(in: .whitespacesAndNewlines).utf8)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: account,
@@ -59,6 +59,6 @@ class TMDbAPIKeyStorage {
               let key = String(data: data, encoding: .utf8) else {
             return nil
         }
-        return key
+        return key.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

@@ -14,7 +14,8 @@ enum MigrationPlan: SchemaMigrationPlan {
          SchemaV2.self,
          SchemaV2_0_1.self,
          SchemaV2_1_0.self,
-         SchemaV2_1_1.self]
+         SchemaV2_1_1.self,
+         SchemaV2_2_0.self]
     }
     
     static var stages: [MigrationStage] {
@@ -22,7 +23,8 @@ enum MigrationPlan: SchemaMigrationPlan {
             .lightweight(fromVersion: SchemaV1.self, toVersion: SchemaV2.self),
             .lightweight(fromVersion: SchemaV2.self, toVersion: SchemaV2_0_1.self),
             .migrateV2_0_1toV2_1_0(),
-            .lightweight(fromVersion: SchemaV2_1_0.self, toVersion: SchemaV2_1_1.self)
+            .lightweight(fromVersion: SchemaV2_1_0.self, toVersion: SchemaV2_1_1.self),
+            .lightweight(fromVersion: SchemaV2_1_1.self, toVersion: SchemaV2_2_0.self)
         ]
     }
 }

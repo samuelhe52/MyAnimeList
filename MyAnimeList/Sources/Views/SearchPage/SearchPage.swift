@@ -44,7 +44,7 @@ struct SearchPage: View {
     @ViewBuilder
     private var results: some View {
         if !service.seriesResults.isEmpty {
-            Section("Series") {
+            Section("TV Series") {
                 ForEach(service.seriesResults.prefix(8), id: \.tmdbID) { series in
                     SeriesResultItem(series: series)
                 }
@@ -62,7 +62,7 @@ struct SearchPage: View {
     @ViewBuilder
     private var submitMenu: some View {
         if service.registeredCount != 0 {
-            Button("Add...") {
+            Button("Add To Library...") {
                 service.submit()
             }
             .buttonStyle(.borderedProminent)

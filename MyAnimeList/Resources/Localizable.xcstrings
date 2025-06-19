@@ -27,12 +27,12 @@
         }
       }
     },
-    "Add..." : {
+    "Add To Library..." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "添加"
+            "value" : "加入资料库"
           }
         }
       }
@@ -136,7 +136,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "删除所有条目"
+            "value" : "删除所有动画"
           }
         }
       }
@@ -146,7 +146,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "删除所有条目"
+            "value" : "删除所有动画"
           }
         }
       }
@@ -156,7 +156,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "删除该条目？"
+            "value" : "删除该动画？"
           }
         }
       }
@@ -384,7 +384,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld 季"
+            "value" : "第 %lld 季"
           }
         }
       }

@@ -32,8 +32,9 @@ struct PosterSelectionView: View {
     @Environment(\.dismiss) var dismiss
     @Namespace var preview
 
+    @MainActor
     private struct Constants {
-        static let navigationTitle: String = "Pick a poster"
+        static let navigationTitle: LocalizedStringKey = "Pick a poster"
         static let gridItemMinSize: CGFloat = 100
         static let gridItemMaxSize: CGFloat = 200
         static let gridItemVerticalSpacing: CGFloat = 12
@@ -47,10 +48,10 @@ struct PosterSelectionView: View {
     var body: some View {
         VStack {
             if entry.isSeason {
-                Picker("", selection: $useSeriesPoster) {
+                Picker(selection: $useSeriesPoster) {
                     Text("Season").tag(false)
-                    Text("Series").tag(true)
-                }
+                    Text("TV Series").tag(true)
+                } label: { }
                 .pickerStyle(.segmented)
                 .padding(.bottom, Constants.pickerPadding)
             }

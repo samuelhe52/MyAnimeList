@@ -57,14 +57,14 @@ struct SeriesResultItem: View {
     
     @ViewBuilder
     private var resultOptionsView: some View {
-        Picker("", selection: $resultOption) {
+        Picker(selection: $resultOption) {
             ForEach(ResultOption.allCases, id: \.hashValue) { option in
                 switch option {
                 case .series: Text("Series").tag(option)
                 case .season: Text("Season").tag(option)
                 }
             }
-        }
+        } label: { }
         .pickerStyle(.segmented)
     }
     
@@ -147,7 +147,7 @@ fileprivate struct SeasonSelector: View {
                             selectedSeasonIDs.remove(season.tmdbID)
                         }
                     } label: {
-                        let title = seasonNumber != 0 ? "Season \(seasonNumber)" : "Specials"
+                        let title: LocalizedStringKey = seasonNumber != 0 ? "Season \(seasonNumber)" : "Specials"
                         if !selected {
                             Text(title)
                         } else {

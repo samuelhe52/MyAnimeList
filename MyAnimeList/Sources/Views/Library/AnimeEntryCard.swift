@@ -41,8 +41,8 @@ struct AnimeEntryCard: View {
             }
             .toast(isPresenting: $showDeleteToast, duration: 3, alert: {
                 AlertToast(displayMode: .alert, type: .regular,
-                           title: "Delete Entry?",
-                           subTitle: "Tap me to confirm.")
+                           titleResource: "Delete Entry?",
+                           subTitleResource: "Tap me to confirm.")
             }, onTap: {
                 delete()
                 triggerDeleteHaptic.toggle()
@@ -72,7 +72,8 @@ struct AnimeEntryCard: View {
 
 struct AnimeTypeIndicator: View {
     var type: AnimeType
-    var description: String {
+    
+    var description: LocalizedStringKey {
         switch type {
         case .movie: return "Movie"
         case .series: return "TV Series"

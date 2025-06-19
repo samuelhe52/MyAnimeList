@@ -22,7 +22,7 @@ struct SearchPage: View {
         List {
             Picker("Language", selection: $language) {
                 ForEach(Language.allCases, id: \.rawValue) {
-                    Text($0.description).tag($0)
+                    Text(LocalizedStringKey($0.description)).tag($0)
                 }
             }
             if service.status == .done {

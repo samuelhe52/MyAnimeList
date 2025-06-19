@@ -43,9 +43,9 @@ struct LibraryView: View {
                 .buttonBorderShape(.capsule)
             Menu {
                 apiConfigruation
-                checkCacheButton
+                checkDiskUsageButton
                 refreshInfosButton
-                clearAllButton
+                deleteAllButton
             } label: {
                 Image(systemName: "ellipsis").padding(.vertical, 7.5)
             }
@@ -60,13 +60,13 @@ struct LibraryView: View {
                 .navigationBarTitleDisplayMode(.inline)
             }
         }
-        .alert("Clear all entries?", isPresented: $showClearAllAlert) {
-            Button("Clear", role: .destructive) {
+        .alert("Delete all entries?", isPresented: $showClearAllAlert) {
+            Button("Delete", role: .destructive) {
                 store.clearLibrary()
             }
             Button("Cancel", role: .cancel) {}
         }
-        .alert("Disk Cache", isPresented: $showCacheAlert, presenting: cacheSizeResult,
+        .alert("Disk Usage", isPresented: $showCacheAlert, presenting: cacheSizeResult,
                actions: { result in
             switch result {
             case .success:
@@ -91,14 +91,14 @@ struct LibraryView: View {
         }
     }
     
-    private var clearAllButton: some View {
-        Button("Clear all", systemImage: "trash", role: .destructive) {
+    private var deleteAllButton: some View {
+        Button("Delete All Entries", systemImage: "trash", role: .destructive) {
             showClearAllAlert = true
         }
     }
     
-    private var checkCacheButton: some View {
-        Button("Check Cache", systemImage: "archivebox") {
+    private var checkDiskUsageButton: some View {
+        Button("Check Disk Usage", systemImage: "archivebox") {
             KingfisherManager.shared.cache.calculateDiskStorageSize { result in
                 DispatchQueue.main.async {
                     cacheSizeResult = result

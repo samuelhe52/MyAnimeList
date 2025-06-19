@@ -17,29 +17,29 @@ struct GlobalToastsModifier: ViewModifier {
             .toast(isPresenting: $center.copied, duration: 1.5, offsetY: 20, alert: {
                 AlertToast(displayMode: .hud,
                            type: .systemImage("checkmark.circle", .green),
-                           title: "Copied!")
+                           titleResource: "Copied!")
             })
             .sensoryFeedback(.lighterImpact, trigger: center.copied) { !$0 && $1 }
             .toast(isPresenting: .constant(center.refreshingInfos), offsetY: 20, alert: {
                 AlertToast(displayMode: .hud,
                            type: .systemImage("arrow.clockwise.circle", .blue),
-                           title: "Refreshing infos...")
+                           titleResource: "Refreshing infos...")
             })
             .toast(isPresenting: .constant(center.prefetchingImages), offsetY: 20, alert: {
                 AlertToast(displayMode: .hud,
                            type: .systemImage("photo.on.rectangle.angled", .blue),
-                           title: "Prefetching images...")
+                           titleResource: "Prefetching images...")
             })
             .toast(isPresenting: $center.regularCompleted, offsetY: 20, alert: {
                 AlertToast(displayMode: .hud,
                            type: .complete(.green),
-                           title: "Done")
+                           titleResource: "Done")
             })
             .sensoryFeedback(.success, trigger: center.regularCompleted) { !$0 && $1 }
             .toast(isPresenting: $center.regularFailed, offsetY: 20, alert: {
                 AlertToast(displayMode: .hud,
                            type: .error(.red),
-                           title: "An error occurred")
+                           titleResource: "An error occurred")
             })
             .sensoryFeedback(.error, trigger: center.regularFailed) { !$0 && $1 }
             .toast(item: $center.completionState, offsetY: 20, alert: { completion in

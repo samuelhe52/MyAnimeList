@@ -39,7 +39,7 @@ struct TMDbAPIConfigurator: View {
                     .fontWeight(.bold)
             } else {
                 // Initial value present, edit
-                Text("Change Key")
+                Text("Change API Key")
                     .font(.largeTitle)
                     .fontWeight(.bold)
             }
@@ -80,13 +80,13 @@ struct TMDbAPIConfigurator: View {
             Spacer()
         }
         .toast(isPresenting: .constant(checking), offsetY: 20, alert: {
-            AlertToast(displayMode: !isEditing ? .hud : .banner(.pop), type: .regular, title: "Checking key...")
+            AlertToast(displayMode: !isEditing ? .hud : .banner(.pop), type: .regular, titleResource: "Checking key...")
         })
         .toast(isPresenting: checkFailedBinding, offsetY: 20, alert: {
-            AlertToast(displayMode: !isEditing ? .hud : .banner(.pop), type: .error(.red), title: "Key check failed!")
+            AlertToast(displayMode: !isEditing ? .hud : .banner(.pop), type: .error(.red), titleResource: "Key check failed!")
         })
         .toast(isPresenting: checkSuccessBinding, offsetY: 20, alert: {
-            AlertToast(displayMode: !isEditing ? .hud : .banner(.pop), type: .complete(.green), title: "Key saved.")
+            AlertToast(displayMode: !isEditing ? .hud : .banner(.pop), type: .complete(.green), titleResource: "Key saved.")
         })
         .onAppear {
             if isEditing {

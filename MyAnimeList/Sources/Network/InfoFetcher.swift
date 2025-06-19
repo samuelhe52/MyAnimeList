@@ -9,6 +9,7 @@ import Foundation
 import TMDb
 import DataProvider
 import Combine
+import SwiftUICore
 
 /// A class for fetching media infos from TMDb.
 /// - Important: Setup proper monitoring mechanism for the `.tmdbAPIKey` key change in `UserDefaults` as this class does not provide a built-in monitor-and-refresh feature.

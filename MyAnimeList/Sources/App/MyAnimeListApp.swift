@@ -28,7 +28,7 @@ struct MyAnimeListApp: App {
                 }
             }
             .environment(keyStorage)
-            .environment(\.createDataHandler, DataProvider.default.dataHandlerCreator())
+            .environment(\.dataHandler, DataProvider.default.dataHandler)
             .globalToasts()
         }
     }

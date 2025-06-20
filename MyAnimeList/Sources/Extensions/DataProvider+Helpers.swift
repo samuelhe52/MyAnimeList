@@ -52,16 +52,18 @@ extension AnimeEntry {
     }
 }
 
-extension DataHandler {
-    /// Updates an existing anime entry with a `BasicInfo`.
-    ///
-    /// - Parameters:
-    ///   - id: The persistent identifier of the entry to update
-    ///   - info: The BasicInfo containing updated anime details
-    /// - Throws: Errors from the underlying data store operations
-    func updateEntry(id: PersistentIdentifier, info: BasicInfo) throws {
-        try updateEntry(id: id) { entry in
-            entry.update(from: info)
+extension DataProvider {
+    func generateEntriesForPreview() {
+        // Ensure we're in preview
+        guard inMemory else { return }
+        do {
+            try dataHandler.newEntry(AnimeEntry(name: "Frieren", type: .series, tmdbID: 209867))
+            try dataHandler.newEntry(AnimeEntry(name: "CLANNAD Season 1",
+                                                type: .season(seasonNumber: 1, parentSeriesID: 24835),
+                                                tmdbID: 35033))
+            try dataHandler.newEntry(AnimeEntry(name: "Koe no katachi", type: .movie, tmdbID: 378064))
+        } catch {
+            print("Error generating preview entries: \(error)")
         }
     }
 }

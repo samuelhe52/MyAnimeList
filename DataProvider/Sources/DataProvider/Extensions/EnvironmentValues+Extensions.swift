@@ -8,5 +8,5 @@
 import SwiftUI
 
 extension EnvironmentValues {
-    @Entry public var createDataHandler: @Sendable () async -> DataHandler? = { nil }
+    @Entry public var dataHandler: DataHandler? = nil
 }

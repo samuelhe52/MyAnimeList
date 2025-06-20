@@ -41,49 +41,46 @@ public final class DataHandler {
         return entry.persistentModelID
     }
     
-    /// Marks an anime entry as unwatched by clearing watch dates.
+    /// Marks an anime entry as `planToWatch`
     /// - Parameter id: The persistent identifier of the entry to update.
-    public func markEntryAsUnwatched(_ entry: AnimeEntry) {
+    public func markEntryAsPlanToWatch(_ entry: AnimeEntry) {
         logger.debug("Marking entry as unwatched: \(entry.tmdbID)")
-        entry.dateStarted = nil
-        entry.dateFinished = nil
+        entry.watchStatus = .planToWatch
     }
     
-    /// Marks an anime entry as currently watching by setting the start date to now.
-    /// - Parameter id: The persistent identifier of the entry to update.
+    /// Marks an anime entry as currently watching by the status to `.watching` setting the start date to now.
+    /// - Parameter entry: The entry to update.
     public func markEntryAsWatching(_ entry: AnimeEntry) {
         logger.debug("Marking entry as watching: \(entry.tmdbID)")
+        entry.watchStatus = .watching
         entry.dateStarted = .now
-        entry.dateFinished = nil
     }
     
-    /// Marks an anime entry as watched by setting the finish date to now.
-    /// - Parameter id: The persistent identifier of the entry to update.
+    /// Marks an anime entry as watched by setting the status to `.watched` and finish date to now.
+    /// - Parameter entry: The entry to update.
     /// - Note: If the entry hasn't been marked as currently watching yet, `dateStarted` will be set to `.now`
     public func markEntryAsWatched(_ entry: AnimeEntry) {
         logger.debug("Marking entry as watched: \(entry.tmdbID)")
-        if entry.dateStarted == nil {
-            entry.dateStarted = .now
-        }
+        entry.watchStatus = .watched
         entry.dateFinished = .now
     }
     
     /// Marks an anime entry as a favorite.
-    /// - Parameter id: The persistent identifier of the entry to update.
+    /// - Parameter entry: The entry to update.
     public func favorite(entry: AnimeEntry) {
         logger.debug("Marking entry as favorite: \(entry.tmdbID)")
         entry.favorite = true
     }
     
     /// Unmarks an anime entry as a favorite.
-    /// - Parameter id: The persistent identifier of the entry to update.
+    /// - Parameter entry: The entry to update.
     public func unfavorite(entry: AnimeEntry) {
         logger.debug("Unmarking entry as favorite: \(entry.tmdbID)")
         entry.favorite = false
     }
         
     /// Deletes a specific anime entry.
-    /// - Parameter id: The persistent identifier of the entry to delete.
+    /// - Parameter entry: The entry to delete.
     /// - Throws: An error if the save operation fails.
     public func deleteEntry(_ entry: AnimeEntry) throws {
         logger.debug("Deleting entry \(entry.tmdbID)")

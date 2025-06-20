@@ -122,10 +122,24 @@
       }
     },
     "Date Finished" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "到"
+          }
+        }
+      }
     },
     "Date Started" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从"
+          }
+        }
+      }
     },
     "Delete" : {
       "localizations" : {
@@ -184,6 +198,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "完成"
+          }
+        }
+      }
+    },
+    "Edit" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑"
           }
         }
       }
@@ -289,6 +313,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "选择海报"
+          }
+        }
+      }
+    },
+    "Plan to Watch" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "想看"
           }
         }
       }
@@ -425,9 +459,6 @@
         }
       }
     },
-    "Start / Finish" : {
-
-    },
     "Switch Poster" : {
       "localizations" : {
         "zh-Hans" : {
@@ -478,9 +509,6 @@
         }
       }
     },
-    "Unwatched" : {
-
-    },
     "Use this poster" : {
       "localizations" : {
         "zh-Hans" : {
@@ -501,11 +529,35 @@
         }
       }
     },
+    "Watch Status" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分类"
+          }
+        }
+      }
+    },
     "Watched" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已看完"
+          }
+        }
+      }
     },
     "Watching" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在看"
+          }
+        }
+      }
     },
     "Welcome" : {
       "localizations" : {

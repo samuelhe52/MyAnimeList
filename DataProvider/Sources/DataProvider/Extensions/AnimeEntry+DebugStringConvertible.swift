@@ -23,7 +23,7 @@ extension AnimeEntry {
           dateStarted: \(dateStarted?.description ?? "nil"),
           dateFinished: \(dateFinished?.description ?? "nil"),
           favorite: \(favorite),
-          status: \(status)
+          status: \(watchStatus)
         )
         """
     }

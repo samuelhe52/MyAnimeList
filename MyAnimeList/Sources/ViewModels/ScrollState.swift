@@ -16,7 +16,7 @@ class ScrollState {
         }
     }
 
-    private let writer: DebouncedIntUserDefaultsWriter
+    @ObservationIgnored private let writer: DebouncedIntUserDefaultsWriter
 
     init() {
         let persistedScrollPosition = UserDefaults.standard.integer(forKey: .persistedScrolledID)

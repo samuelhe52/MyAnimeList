@@ -17,11 +17,11 @@ fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "Library
 
 @Observable @MainActor
 class LibraryStore {
-    private let dataProvider: DataProvider
-    private var cancellables = Set<AnyCancellable>()
+    @ObservationIgnored private let dataProvider: DataProvider
+    @ObservationIgnored private var cancellables = Set<AnyCancellable>()
 
     private(set) var library: [AnimeEntry]
-    private var infoFetcher: InfoFetcher
+    @ObservationIgnored private var infoFetcher: InfoFetcher
     var language: Language = .japanese
     
     init(dataProvider: DataProvider) {

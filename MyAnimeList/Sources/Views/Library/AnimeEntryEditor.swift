@@ -8,6 +8,7 @@
 import SwiftUI
 import DataProvider
 import SwiftData
+import SHContainers
 
 typealias WatchedStatus = AnimeEntry.WatchStatus
 

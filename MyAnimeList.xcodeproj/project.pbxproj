@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9F1D86582DD9848100531E73 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 9F1D86572DD9848100531E73 /* Collections */; };
+		9F3CA9EF2E05820A002F1203 /* SHContainers in Frameworks */ = {isa = PBXBuildFile; productRef = 9F3CA9EE2E05820A002F1203 /* SHContainers */; };
 		9F3E71532DC6556500F2EC4A /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = 9F3E71522DC6556500F2EC4A /* AlertToast */; };
 		9F8D665F2D05609200CF355D /* TMDb in Frameworks */ = {isa = PBXBuildFile; productRef = 9F8D665E2D05609200CF355D /* TMDb */; };
 		9F93FC222DE202E10071FB56 /* DataProvider in Frameworks */ = {isa = PBXBuildFile; productRef = 9F93FC212DE202E10071FB56 /* DataProvider */; };
@@ -89,6 +90,7 @@
 				9FB6FEF12D8FCE5A00B423D0 /* Kingfisher in Frameworks */,
 				9F1D86582DD9848100531E73 /* Collections in Frameworks */,
 				9F8D665F2D05609200CF355D /* TMDb in Frameworks */,
+				9F3CA9EF2E05820A002F1203 /* SHContainers in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -161,6 +163,7 @@
 				9F3E71522DC6556500F2EC4A /* AlertToast */,
 				9F1D86572DD9848100531E73 /* Collections */,
 				9F93FC212DE202E10071FB56 /* DataProvider */,
+				9F3CA9EE2E05820A002F1203 /* SHContainers */,
 			);
 			productName = MyAnimeList;
 			productReference = 9F8D66302D055FEF00CF355D /* MyAnimeList.app */;
@@ -214,7 +217,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1610;
-				LastUpgradeCheck = 1630;
+				LastUpgradeCheck = 1640;
 				TargetAttributes = {
 					9F8D662F2D055FEF00CF355D = {
 						CreatedOnToolsVersion = 16.1;
@@ -244,6 +247,7 @@
 				9FB6FEEF2D8FCE5A00B423D0 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				9F3E71512DC6556500F2EC4A /* XCRemoteSwiftPackageReference "AlertToast" */,
 				9F1D86562DD9848100531E73 /* XCRemoteSwiftPackageReference "swift-collections" */,
+				9F3CA9ED2E05820A002F1203 /* XCRemoteSwiftPackageReference "SHContainers" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9F8D66312D055FEF00CF355D /* Products */;
@@ -324,6 +328,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -389,6 +394,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -618,6 +624,14 @@
 				minimumVersion = 1.1.4;
 			};
 		};
+		9F3CA9ED2E05820A002F1203 /* XCRemoteSwiftPackageReference "SHContainers" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/samuelhe52/SHContainers.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		9F3E71512DC6556500F2EC4A /* XCRemoteSwiftPackageReference "AlertToast" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/elai950/AlertToast";
@@ -649,6 +663,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9F1D86562DD9848100531E73 /* XCRemoteSwiftPackageReference "swift-collections" */;
 			productName = Collections;
+		};
+		9F3CA9EE2E05820A002F1203 /* SHContainers */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9F3CA9ED2E05820A002F1203 /* XCRemoteSwiftPackageReference "SHContainers" */;
+			productName = SHContainers;
 		};
 		9F3E71522DC6556500F2EC4A /* AlertToast */ = {
 			isa = XCSwiftPackageProductDependency;

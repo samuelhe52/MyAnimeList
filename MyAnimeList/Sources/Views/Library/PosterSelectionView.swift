@@ -28,7 +28,6 @@ struct PosterSelectionView: View {
     @State var seriesPosters: [Poster] = []
     @State var previewPoster: Poster?
     @State var useSeriesPoster: Bool = false
-    @Environment(\.createDataHandler) var createDataHandler
     @Environment(\.dismiss) var dismiss
     @Namespace var preview
 
@@ -76,15 +75,10 @@ struct PosterSelectionView: View {
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(item: $previewPoster) { poster in
             PosterPreview(previewPoster: poster, updatePoster: { url in
-                Task {
-                    let handler = await createDataHandler()
-                    try await handler?.updateEntry(id: entry.id) { entry in
-                        entry.posterURL = url
-                        entry.usingCustomPoster = true
-                    }
-                    logger.info("Updated poster for ID: \(entry.tmdbID)")
-                    dismiss()
-                }
+                entry.posterURL = url
+                entry.usingCustomPoster = true
+                logger.info("Updated poster for ID: \(entry.tmdbID)")
+                dismiss()
             })
             .navigationTransition(.zoom(sourceID: poster.metadata.filePath,
                                         in: preview))

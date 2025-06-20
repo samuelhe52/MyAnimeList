@@ -121,6 +121,12 @@
         }
       }
     },
+    "Date Finished" : {
+
+    },
+    "Date Started" : {
+
+    },
     "Delete" : {
       "localizations" : {
         "zh-Hans" : {
@@ -419,6 +425,9 @@
         }
       }
     },
+    "Start / Finish" : {
+
+    },
     "Switch Poster" : {
       "localizations" : {
         "zh-Hans" : {
@@ -469,6 +478,9 @@
         }
       }
     },
+    "Unwatched" : {
+
+    },
     "Use this poster" : {
       "localizations" : {
         "zh-Hans" : {
@@ -488,6 +500,12 @@
           }
         }
       }
+    },
+    "Watched" : {
+
+    },
+    "Watching" : {
+
     },
     "Welcome" : {
       "localizations" : {

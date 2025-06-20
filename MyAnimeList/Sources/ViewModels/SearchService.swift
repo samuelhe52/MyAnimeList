@@ -26,7 +26,7 @@ class SearchService {
     private(set) var movieResults: [BasicInfo] = []
     private(set) var seriesResults: [BasicInfo] = []
     
-    @ObservationIgnored private var resultsToSubmit: OrderedSet<SearchResult> = []
+    private var resultsToSubmit: OrderedSet<SearchResult> = []
     var processResults: (OrderedSet<SearchResult>) -> Void
     
     init(query: String = UserDefaults.standard.string(forKey: .searchPageQuery) ?? "",

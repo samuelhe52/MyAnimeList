@@ -22,7 +22,7 @@ struct LibraryTheaterView: View {
                     LazyHStack {
                         ForEach(store.library, id: \.tmdbID) { entry in
                             AnimeEntryCard(entry: entry, onDelete: {
-                                store.deleteEntry(withID: entry.id)
+                                store.deleteEntry(entry)
                             })
                             .containerRelativeFrame(isHorizontal ? .horizontal : .vertical)
                             .transition(.opacity)
@@ -44,7 +44,7 @@ struct LibraryTheaterView: View {
 
 // This is where we place debug-specific code.
 extension LibraryTheaterView {
-    private func mockDelete(withID id: PersistentIdentifier) {
-        store.mockDeleteEntry(withID: id)
+    private func mockDelete(entry: AnimeEntry) {
+        store.mockDeleteEntry(entry)
     }
 }

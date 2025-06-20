@@ -49,7 +49,7 @@ class LibraryStore {
                 do {
                     try self?.refreshLibrary()
                 } catch {
-                    print(error)
+                    logger.error("Error refreshing library: \(error)")
                 }
             }
             .store(in: &cancellables)
@@ -75,7 +75,7 @@ class LibraryStore {
                                                            tmdbID: id,
                                                            language: language)
         let entry = AnimeEntry(fromInfo: info)
-        try await dataProvider.dataHandler.newEntry(entry)
+        try dataProvider.dataHandler.newEntry(entry)
     }
     
     /// Creates a new `AnimeEntry` from a TMDB ID and adds it to the library.
@@ -95,28 +95,25 @@ class LibraryStore {
     
     /// Creates new `AnimeEntry` instances from search results and adds them to the library.
     /// - Returns: `true` if no error occurred; otherwise `false`.
-    func newEntryFromSearchResults<Sources>(_ results: Sources) async -> Bool
-    where Sources: Collection<SearchResult> {
+    func newEntryFromSearchResults<Sources: Collection<SearchResult>>(_ results: Sources) async -> Bool {
         do {
             for result in results {
                 try await createNewEntry(tmdbID: result.tmdbID, type: result.type)
             }
             return true
         } catch {
-            logger.error("Error creating new entries: \(error)")
+            logger.error("Error creating new entries from search results: \(error)")
             ToastCenter.global.completionState = .failed(error.localizedDescription)
             return false
         }
     }
     
-    func updateEntry(_ entry: AnimeEntry, id: PersistentIdentifier) {
-        Task {
-            do {
-                try await dataProvider.dataHandler.updateEntry(id: id, entry: entry)
-            } catch {
-                logger.error("Error updating entry: \(error)")
-                ToastCenter.global.completionState = .failed(error.localizedDescription)
-            }
+    /// Creates new `AnimeEntry` instances from a `BasicInfo` and adds it to the library.
+    func newEntryFromBasicInfo(_ info: BasicInfo) {
+        do {
+            try dataProvider.dataHandler.newEntry(.init(fromInfo: info))
+        } catch {
+            logger.error("Error creating new entry from BasicInfo: \(error)")
         }
     }
     
@@ -153,7 +150,9 @@ class LibraryStore {
                 }
 
                 for (id, info) in fetchedInfos {
-                    try await dataProvider.dataHandler.updateEntry(id: id, info: info)
+                    if let entry = library[id] {
+                        entry.update(from: info)
+                    }
                 }
             } catch {
                 logger.error("Error refreshing infos: \(error)")
@@ -182,25 +181,21 @@ class LibraryStore {
         prefetcher.start()
     }
     
-    func deleteEntry(withID id: PersistentIdentifier) {
-        Task {
-            do {
-                try await dataProvider.dataHandler.deleteEntry(id: id)
-            } catch {
-                logger.error("Failed to delete entry: \(error)")
-                ToastCenter.global.completionState = .failed(error.localizedDescription)
-            }
+    func deleteEntry(_ entry: AnimeEntry) {
+        do {
+            try dataProvider.dataHandler.deleteEntry(entry)
+        } catch {
+            logger.error("Failed to delete entry: \(error)")
+            ToastCenter.global.completionState = .failed(error.localizedDescription)
         }
     }
     
     func clearLibrary() {
-        Task {
-            do {
-                try await dataProvider.dataHandler.deleteAllEntries()
-            } catch {
-                logger.error("Error clearing library: \(error)")
-                ToastCenter.global.completionState = .failed(error.localizedDescription)
-            }
+        do {
+            try dataProvider.dataHandler.deleteAllEntries()
+        } catch {
+            logger.error("Error clearing library: \(error)")
+            ToastCenter.global.completionState = .failed(error.localizedDescription)
         }
     }
 }
@@ -208,9 +203,8 @@ class LibraryStore {
 // This is where we place debug-specific code.
 extension LibraryStore {
     /// Mock delete, doesn't really touch anything in the persisted data model. Restores after 1.5 seconds.
-    func mockDeleteEntry(withID id: PersistentIdentifier) {
-        if let index = library.firstIndex(where: { $0.id == id }) {
-            let entry = library[index]
+    func mockDeleteEntry(_ entry: AnimeEntry) {
+        if let index = library.firstIndex(where: { $0.id == entry.id }) {
             library.remove(at: index)
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
                 self?.library.insert(entry, at: index)

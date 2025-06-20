@@ -8,6 +8,7 @@
 import SwiftUI
 import Kingfisher
 import SwiftData
+import DataProvider
 import Collections
 
 struct LibraryView: View {
@@ -140,15 +141,10 @@ struct LibraryView: View {
     // Uncomment the task below to generate template entries.
     @Previewable let store = LibraryStore(dataProvider: .default)
     LibraryView(store: store)
-//        .task {
-//            await withTaskGroup(of: Void.self) { group in
-//                for index in 0..<50 {
-//                    group.addTask {
-//                        let info = AnimeEntry.template(id: index).basicInfo
-//                        try? await store.newEntryFromInfo(info: info)
-//                    }
-//                }
-//                await group.waitForAll()
+//        .onAppear {
+//            for index in 0..<50 {
+//                let info = AnimeEntry.template(id: index).basicInfo
+//                store.newEntryFromBasicInfo(info)
 //            }
 //        }
 }

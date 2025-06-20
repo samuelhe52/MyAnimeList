@@ -1,5 +1,5 @@
 {
-  "originHash" : "1313f4c6803b46618cf47a03d3511bbbf20cc6414c19838b38b870f2cff70ba0",
+  "originHash" : "ba69936667c169c6393d0dbef7f491b59f85035ecec5a7c582628b18bd9d3610",
   "pins" : [
     {
       "identity" : "alerttoast",
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "4c6b067f96953ee19526e49e4189403a2be21fb3",
         "version" : "8.3.1"
+      }
+    },
+    {
+      "identity" : "shcontainers",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/samuelhe52/SHContainers.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "86fce75d5a1f595076888f25ccbf6ccc9ba7c241"
       }
     },
     {

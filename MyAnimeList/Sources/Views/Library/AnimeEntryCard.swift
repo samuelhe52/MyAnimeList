@@ -19,7 +19,8 @@ struct AnimeEntryCard: View {
     @State private var triggerDeleteHaptic: Bool = false
     @State private var showDeleteToast: Bool = false
     @State private var imageLoaded: Bool = false
-    @State private var showPosterSwitchingView = false
+    @State private var showPosterSwitchingView: Bool = false
+    @State private var showEditor: Bool = false
     var imageMissing: Bool { entry.posterURL == nil }
     
     init(entry: AnimeEntry, onDelete delete: @escaping () -> Void) {
@@ -60,11 +61,19 @@ struct AnimeEntryCard: View {
                     UIPasteboard.general.string = entry.posterURL?.absoluteString ?? ""
                     ToastCenter.global.copied = true
                 }
+                Button("Edit", systemImage: "pencil") {
+                    showEditor = true
+                }
             }
             .sensoryFeedback(.success, trigger: triggerDeleteHaptic)
             .sheet(isPresented: $showPosterSwitchingView) {
                 NavigationStack {
                     PosterSelectionView(entry: entry)
+                }
+            }
+            .sheet(isPresented: $showEditor) {
+                NavigationStack {
+                    AnimeEntryEditor(entry: entry)
                 }
             }
     }

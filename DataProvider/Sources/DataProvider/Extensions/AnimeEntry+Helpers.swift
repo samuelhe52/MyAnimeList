@@ -9,15 +9,6 @@ import Foundation
 import SwiftData
 
 extension AnimeEntry {
-    /// Status for this entry: `wantToWatch`, `watching` or `watched`.
-    public var status: Status {
-        if dateStarted == nil && dateFinished == nil {
-            return .unwatched
-        } else if dateStarted != nil && dateFinished == nil {
-            return .watching
-        } else { return .watched }
-    }
-    
     /// Whether this entry is a season from a series.
     public var isSeason: Bool {
         switch self.type {

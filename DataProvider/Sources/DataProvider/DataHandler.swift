@@ -21,7 +21,7 @@ public final class DataHandler {
         self.modelContainer = modelContainer
     }
     
-    subscript<T: PersistentModel>(_ id: PersistentIdentifier, as type: T.Type) -> T? {
+    public subscript<T: PersistentModel>(_ id: PersistentIdentifier, as type: T.Type) -> T? {
         get {
             let descriptor = FetchDescriptor(predicate: #Predicate<T> { $0.persistentModelID == id })
             let model = try? modelContext.fetch(descriptor).first

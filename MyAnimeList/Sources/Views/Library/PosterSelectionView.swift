@@ -33,7 +33,6 @@ struct PosterSelectionView: View {
 
     @MainActor
     private struct Constants {
-        static let navigationTitle: LocalizedStringKey = "Pick a poster"
         static let gridItemMinSize: CGFloat = 100
         static let gridItemMaxSize: CGFloat = 200
         static let gridItemVerticalSpacing: CGFloat = 12
@@ -71,7 +70,6 @@ struct PosterSelectionView: View {
             .animation(.default, value: availablePosters)
         }
         .padding(.horizontal)
-        .navigationTitle(Constants.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(item: $previewPoster) { poster in
             PosterPreview(previewPoster: poster, updatePoster: { url in

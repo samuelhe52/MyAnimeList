@@ -9,13 +9,24 @@ import SwiftUI
 import DataProvider
 import SwiftData
 import SHContainers
+import AlertToast
 
 typealias WatchedStatus = AnimeEntry.WatchStatus
 
 struct AnimeEntryEditor: View {
     @Environment(\.dataHandler) var dataHandler
+    @Environment(\.undoManager) var undoManager
     @Environment(\.locale) var locale
+    @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) var modelContext
     @Bindable var entry: AnimeEntry
+    
+    @State var showPosterSelectionView: Bool = false
+    @State var showFavoritedToast: Bool = false
+    
+    init(entry: AnimeEntry) {
+        self.entry = entry
+    }
     
     private var dateStartedBinding: Binding<Date> {
         .init(get: {
@@ -33,8 +44,11 @@ struct AnimeEntryEditor: View {
         })
     }
     
+    @State var showNavigationTitle: Bool = false
+    
     var body: some View {
-        SHForm {
+        SHForm(alignment: .leading) {
+            navigationHeader
             SHSection("Watch Status", alignment: .center) {
                 AnimeEntryWatchedStatusPicker(entry: entry)
                     .pickerStyle(.segmented)
@@ -57,9 +71,91 @@ struct AnimeEntryEditor: View {
                 }
             }
         }
-        .navigationTitle(entry.name)
+        .navigationTitle(showNavigationTitle ? entry.name : "")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Done", action: dismissAction)
+            }
+        }
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear { print(locale.identifier) }
+        .fullScreenCover(isPresented: $showPosterSelectionView) {
+            NavigationStack {
+                PosterSelectionView(entry: entry)
+                    .navigationTitle("Change Poster")
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") {
+                                showPosterSelectionView = false
+                            }
+                        }
+                    }
+            }
+        }
+        .toast(isPresenting: $showFavoritedToast, duration: 1.5, offsetY: 35, alert: {
+            let favoritedMessage: LocalizedStringResource = "Favorited"
+            let unFavoritedMessage: LocalizedStringResource = "Unfavorited"
+            return AlertToast(displayMode: .hud,
+                       type: .systemImage(entry.favorite ? "star.circle.fill" : "star.slash.fill", .primary),
+                       titleResource: entry.favorite ? favoritedMessage : unFavoritedMessage)
+        })
+        .sensoryFeedback(.lighterImpact, trigger: entry.favorite)
+    }
+    
+    var navigationHeader: some View {
+        HStack(alignment: .top) {
+            Menu {
+                Button("Change Poster", systemImage: "photo") {
+                    showPosterSelectionView = true
+                }
+            } label: {
+                PosterView(url: entry.posterURL, diskCacheExpiration: .days(90))
+                    .aspectRatio(contentMode: .fit)
+                    .clipShape(.rect(cornerRadius: 6))
+                    .frame(width: 120)
+            }
+            .menuStyle(.borderlessButton)
+            VStack(alignment: .leading) {
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(entry.name)
+                            .font(.title2)
+                            .onScrollVisibilityChange { visible in
+                                showNavigationTitle = !visible
+                            }
+                        if let onAirDate = entry.onAirDate {
+                            Text(onAirDate.formatted(date: .abbreviated, time: .omitted))
+                                .font(.caption)
+                                .padding(.bottom, 5)
+                        }
+                    }
+                    Spacer()
+                    Button {
+                        withAnimation(.spring(duration: 0.2)) {
+                            entry.favorite.toggle()
+                            showFavoritedToast = true
+                        }
+                    } label: {
+                        Image(systemName: entry.favorite ? "star.circle.fill" : "star.circle")
+                            .font(.title2)
+                    }
+                    .buttonStyle(.borderless)
+                }
+                if let overview = entry.overview {
+                    Text(overview)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+    
+    func dismissAction() {
+        do {
+            try modelContext.save()
+        } catch {
+            ToastCenter.global.completionState = .failed(error.localizedDescription)
+        }
+        dismiss()
     }
 }
 
@@ -79,11 +175,13 @@ struct AnimeEntryWatchedStatusPicker: View {
 #Preview {
     @Previewable @State var dataProvider = DataProvider.forPreview
     @Previewable @State var entry: AnimeEntry = .template(id: 1)
-    AnimeEntryEditor(entry: entry)
-        .environment(\.dataHandler, dataProvider.dataHandler)
-        .onAppear {
-            dataProvider.generateEntriesForPreview()
-            let entries = try? dataProvider.getAllModels(ofType: AnimeEntry.self)
-            entry = entries?.first ?? .template(id: 124)
-        }
+    NavigationStack {
+        AnimeEntryEditor(entry: entry)
+            .environment(\.dataHandler, dataProvider.dataHandler)
+            .onAppear {
+                dataProvider.generateEntriesForPreview()
+                let entries = try? dataProvider.getAllModels(ofType: AnimeEntry.self)
+                entry = entries?.first ?? .template(id: 124)
+            }
+    }
 }

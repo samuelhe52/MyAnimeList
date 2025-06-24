@@ -68,6 +68,16 @@
         }
       }
     },
+    "Change Poster" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更换海报"
+          }
+        }
+      }
+    },
     "Check Disk Usage" : {
       "localizations" : {
         "zh-Hans" : {
@@ -223,6 +233,16 @@
         }
       }
     },
+    "Favorited" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已特别收藏"
+          }
+        }
+      }
+    },
     "Japanese" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -308,6 +328,7 @@
       }
     },
     "Pick a poster" : {
+      "extractionState" : "manual",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -505,6 +526,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "TV 动画"
+          }
+        }
+      }
+    },
+    "Unfavorited" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消特别收藏"
           }
         }
       }

@@ -69,6 +69,7 @@ struct AnimeEntryCard: View {
             .sheet(isPresented: $showPosterSwitchingView) {
                 NavigationStack {
                     PosterSelectionView(entry: entry)
+                        .navigationTitle("Pick a poster")
                 }
             }
             .sheet(isPresented: $showEditor) {

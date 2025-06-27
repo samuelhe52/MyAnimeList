@@ -35,7 +35,10 @@ class LibraryStore {
     
     func refreshLibrary(sortedBy sortDescriptor: SortDescriptor<AnimeEntry> = .init(\.dateSaved)) throws {
         logger.debug("Refreshing library...")
-        let descriptor = FetchDescriptor<AnimeEntry>(sortBy: [sortDescriptor])
+        let descriptor = FetchDescriptor<AnimeEntry>(
+            predicate: #Predicate { $0.onDisplay },
+            sortBy: [sortDescriptor]
+        )
         let entries = try dataProvider.sharedModelContainer.mainContext.fetch(descriptor)
         withAnimation {
             library = entries
@@ -68,13 +71,18 @@ class LibraryStore {
         logger.debug("Creating new entry with id: \(id), type: \(type)...")
         // No duplicate entries
         guard library.map(\.tmdbID).contains(id) == false else {
-            logger.warning("Entry with id \(id) already exists. Returning...")
+            library[id].onDisplay = true
+            logger.warning("Entry with id \(id) already exists. Setting `onDisplay` to `true` and Returning...")
             return
         }
         let info = try await infoFetcher.fetchInfoFromTMDB(entryType: type,
                                                            tmdbID: id,
                                                            language: language)
         let entry = AnimeEntry(fromInfo: info)
+        if let parentSeriesID = entry.parentSeriesID,
+           let parentSeriesEntry = library.first(where: { $0.tmdbID == parentSeriesID }) {
+            entry.parentSeriesEntry = parentSeriesEntry
+        }
         try dataProvider.dataHandler.newEntry(entry)
     }
     
@@ -152,6 +160,16 @@ class LibraryStore {
                 for (id, info) in fetchedInfos {
                     if let entry = library[id] {
                         entry.update(from: info)
+                        if let parentSeriesID = entry.parentSeriesID {
+                            if let parentSeriesEntry = library[parentSeriesID] {
+                                entry.parentSeriesEntry = parentSeriesEntry
+                            } else {
+                                let parentSeriesInfo = try await infoFetcher.tvSeriesInfo(tmdbID: parentSeriesID, language: language)
+                                let parentSeriesEntry = AnimeEntry(fromInfo: parentSeriesInfo)
+                                parentSeriesEntry.onDisplay = false
+                                entry.parentSeriesEntry = parentSeriesEntry
+                            }
+                        }
                     }
                 }
             } catch {

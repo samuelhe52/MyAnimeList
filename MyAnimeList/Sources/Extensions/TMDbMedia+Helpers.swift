@@ -18,12 +18,12 @@ extension Movie {
     ///   - client: The TMDb client used to fetch image configuration.
     /// - Returns: A `BasicInfo` struct containing metadata about the movie.
     func basicInfo(client: TMDbClient) async throws -> BasicInfo {
-        logger.debug("Fetching basic info for movie \(self.id)")
+        logger.debug("Fetching basic info for movie \(self.id), name: \(name)")
         let posterURL = try await posterURL(client: client)
         let backdropURL = try await backdropURL(client: client)
         let logoURL = try await logoURL(client: client)
         
-        logger.info("Successfully fetched basic info for movie \(self.id)")
+        logger.info("Successfully fetched basic info for movie \(self.id), name: \(name)")
         return BasicInfo(
             name: title,
             overview: overview,
@@ -75,12 +75,12 @@ extension TVSeries {
     ///   - client: The TMDb client used to fetch image configuration.
     /// - Returns: A `BasicInfo` struct containing metadata about the TV series.
     func basicInfo(client: TMDbClient) async throws -> BasicInfo {
-        logger.debug("Fetching basic info for TV series \(self.id)")
+        logger.debug("Fetching basic info for TV series \(self.id), name: \(name)")
         let posterURL = try await posterURL(client: client)
         let backdropURL = try await backdropURL(client: client)
         let logoURL = try await logoURL(client: client)
 
-        logger.info("Successfully fetched basic info for TV series \(self.id)")
+        logger.info("Successfully fetched basic info for TV series \(self.id), name: \(name)")
         return BasicInfo(
             name: name,
             overview: overview,
@@ -137,9 +137,9 @@ extension TVSeason {
                    logoURL: URL? = nil,
                    linkToDetails: URL? = nil,
                    parentSeriesID: Int) async throws -> BasicInfo {
-        logger.debug("Fetching basic info for season \(self.seasonNumber) of series \(parentSeriesID)")
+        logger.debug("Fetching basic info for season \(self.seasonNumber) of series \(parentSeriesID), name: \(name)")
         let seasonPoster: URL? = try await client.imagesConfiguration.posterURL(for: posterPath)
-        logger.info("Successfully fetched basic info for season \(self.seasonNumber) of series \(parentSeriesID)")
+        logger.info("Successfully fetched basic info for season \(self.seasonNumber) of series \(parentSeriesID), name: \(name)")
         return BasicInfo(
             name: name,
             overview: overview,

@@ -26,6 +26,11 @@ extension SchemaV2_3_1 {
         /// The unique TMDB id for this entry.
         public var tmdbID: Int
         
+        public var parentSeriesEntry: AnimeEntry? = nil
+        
+        /// Whether this entry should be displayed to user.
+        public var onDisplay: Bool = true
+        
         // MARK: User-specific properties
         
         /// Date saved to library.

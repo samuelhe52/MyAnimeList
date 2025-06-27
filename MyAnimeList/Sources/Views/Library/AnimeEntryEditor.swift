@@ -114,48 +114,77 @@ struct AnimeEntryEditor: View {
                     .frame(width: 120)
             }
             .menuStyle(.borderlessButton)
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     VStack(alignment: .leading) {
-                        Text(entry.name)
-                            .font(.title2)
-                            .onScrollVisibilityChange { visible in
-                                showNavigationTitle = !visible
-                            }
-                        if let onAirDate = entry.onAirDate {
-                            Text(monthAndYearDateFormatter.string(from: onAirDate))
-                                .font(.caption)
-                                .padding(.bottom, 5)
-                        }
+                        name
+                        seasonNumberAndDate
                     }
                     Spacer()
-                    Button {
-                        withAnimation(.spring(duration: 0.2)) {
-                            entry.favorite.toggle()
-                            showFavoritedToast = true
-                        }
-                    } label: {
-                        Image(systemName: entry.favorite ? "star.circle.fill" : "star.circle")
-                            .font(.title2)
-                    }
-                    .buttonStyle(.borderless)
+                    favoriteButton
                 }
                 if let overview = entry.overview {
                     Text(overview)
-                        .font(.caption)
+                        .font(.caption2)
                         .foregroundStyle(.secondary)
-                        .lineLimit(8)
+                        .frame(height: 140)
                 }
             }
         }
     }
     
+    @ViewBuilder
+    var seasonNumberAndDate: some View {
+        HStack(alignment: .center) {
+            if let seasonNumber = entry.seasonNumber {
+                Text("Season \(seasonNumber)")
+            }
+            if let onAirDate = entry.onAirDate {
+                Text(monthAndYearDateFormatter.string(from: onAirDate))
+            }
+        }
+        .font(.caption)
+    }
+    
+    @ViewBuilder
+    var name: some View {
+        if let parentSeriesName {
+            Text(parentSeriesName)
+                .font(.headline)
+                .onScrollVisibilityChange { visible in
+                    showNavigationTitle = !visible
+                }
+                .lineLimit(1)
+        } else {
+            Text(entry.name)
+                .font(.title3)
+                .onScrollVisibilityChange { visible in
+                    showNavigationTitle = !visible
+                }
+                .lineLimit(1)
+        }
+    }
+    
+    var favoriteButton: some View {
+        Button {
+            withAnimation(.spring(duration: 0.2)) {
+                entry.favorite.toggle()
+                showFavoritedToast = true
+            }
+        } label: {
+            Image(systemName: entry.favorite ? "star.circle.fill" : "star.circle")
+                .font(.title2)
+        }
+        .buttonStyle(.borderless)
+    }
+    
     var monthAndYearDateFormatter: DateFormatter {
         let formatter = DateFormatter()
-        formatter.locale = .current
-        formatter.dateFormat = "MMM YYYY"
+        formatter.dateFormat = "YYYY.MM"
         return formatter
     }
+    
+    var parentSeriesName: String? { entry.parentSeriesEntry?.name }
     
     func dismissAction() {
         do {

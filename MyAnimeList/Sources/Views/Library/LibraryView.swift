@@ -12,7 +12,7 @@ import DataProvider
 import Collections
 
 struct LibraryView: View {
-    var store: LibraryStore
+    @Bindable var store: LibraryStore
     
     @State private var isSearching = false
     @State private var changeAPIKey = false
@@ -21,8 +21,8 @@ struct LibraryView: View {
     @State private var cacheSizeResult: Result<UInt, KingfisherError>? = nil
     @State private var scrollState = ScrollState()
     @State private var newEntriesAddedToggle = false
-
-    @AppStorage(.preferredMetadataLanguage) var language: Language = .japanese
+    
+    @AppStorage(.useCurrentLocaleForAnimeInfoLanguage) var useCurrentLocaleForAnimeInfoLanguage: Bool = true
     
     var body: some View {
         NavigationStack {
@@ -46,14 +46,24 @@ struct LibraryView: View {
                 apiConfigruation
                 checkDiskUsageButton
                 refreshInfosButton
+                Divider()
+                Toggle("Follow System", systemImage: "gear", isOn: $useCurrentLocaleForAnimeInfoLanguage)
+                preferredAnimeInfoLanguagePicker
+                Divider()
                 deleteAllButton
             } label: {
                 Image(systemName: "ellipsis").padding(.vertical, 7.5)
             }
             .labelStyle(.iconOnly)
             .buttonBorderShape(.circle)
+            .menuActionDismissBehavior(.disabled)
         }
         .buttonStyle(.bordered)
+        .onChange(of: useCurrentLocaleForAnimeInfoLanguage) {
+            if useCurrentLocaleForAnimeInfoLanguage {
+                store.language = .current
+            }
+        }
         .sheet(isPresented: $isSearching) {
             NavigationStack {
                 SearchPage { processResults($0) }
@@ -61,7 +71,7 @@ struct LibraryView: View {
                 .navigationBarTitleDisplayMode(.inline)
             }
         }
-        .alert("Delete all entries?", isPresented: $showClearAllAlert) {
+        .alert("Delete all animes?", isPresented: $showClearAllAlert) {
             Button("Delete", role: .destructive) {
                 store.clearLibrary()
             }
@@ -92,8 +102,20 @@ struct LibraryView: View {
         }
     }
     
+    private var preferredAnimeInfoLanguagePicker: some View {
+        Picker(selection: $store.language) {
+            ForEach(Language.allCases, id: \.rawValue) { language in
+                Text(language.localizedStringResource).tag(language)
+            }
+        } label: {
+            Label("Anime Info Language", systemImage: "globe")
+        }
+        .disabled(useCurrentLocaleForAnimeInfoLanguage)
+        .pickerStyle(.menu)
+    }
+    
     private var deleteAllButton: some View {
-        Button("Delete All Entries", systemImage: "trash", role: .destructive) {
+        Button("Delete All Animes", systemImage: "trash", role: .destructive) {
             showClearAllAlert = true
         }
     }

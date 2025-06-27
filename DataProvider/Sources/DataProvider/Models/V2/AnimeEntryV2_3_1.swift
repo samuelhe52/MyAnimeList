@@ -11,7 +11,7 @@ import SwiftData
 extension SchemaV2_3_1 {
     @Model
     public final class AnimeEntry {
-        // MARK: Metadata
+        // MARK: Anime Info
         public var name: String
         public var overview: String?
         public var onAirDate: Date?

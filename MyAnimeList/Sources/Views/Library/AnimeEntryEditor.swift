@@ -148,27 +148,24 @@ struct AnimeEntryEditor: View {
     
     @ViewBuilder
     var name: some View {
-        if let parentSeriesName {
-            Text(parentSeriesName)
-                .font(.headline)
-                .onScrollVisibilityChange { visible in
-                    showNavigationTitle = !visible
-                }
-                .lineLimit(1)
-        } else {
-            Text(entry.name)
-                .font(.title3)
-                .onScrollVisibilityChange { visible in
-                    showNavigationTitle = !visible
-                }
-                .lineLimit(1)
+        Group {
+            if let parentSeriesName {
+                Text(parentSeriesName)
+            } else {
+                Text(entry.name)
+            }
         }
+        .font(.headline)
+        .onScrollVisibilityChange { visible in
+            showNavigationTitle = !visible
+        }
+        .lineLimit(1)
     }
     
     var favoriteButton: some View {
         Button {
             withAnimation(.spring(duration: 0.2)) {
-                entry.favorite.toggle()
+                dataHandler?.toggleFavorite(entry: entry)
                 showFavoritedToast = true
             }
         } label: {

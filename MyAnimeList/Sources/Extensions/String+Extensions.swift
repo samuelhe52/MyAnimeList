@@ -9,7 +9,8 @@ import Foundation
 
 // UserDefaults entry names
 extension String {
-    static let preferredMetadataLanguage = "PreferredMetadataLanguage"
+    static let preferredAnimeInfoLanguage = "PreferredAnimeInfoLanguage"
+    static let useCurrentLocaleForAnimeInfoLanguage = "UseCurrentLocaleForAnimeInfoLanguage"
     static let searchPageLanguage = "SearchPageLanguage"
     static let searchPageQuery = "SearchPageQuery"
     static let persistedScrolledID = "PersistedScrolledID"

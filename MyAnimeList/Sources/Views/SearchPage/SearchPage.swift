@@ -21,8 +21,8 @@ struct SearchPage: View {
     var body: some View {
         List {
             Picker("Language", selection: $language) {
-                ForEach(Language.allCases, id: \.rawValue) {
-                    Text(LocalizedStringKey($0.description)).tag($0)
+                ForEach(Language.allCases, id: \.rawValue) { language in
+                    Text(language.localizedStringResource).tag(language)
                 }
             }
             if service.status == .done {

@@ -102,27 +102,27 @@ final class InfoFetcher: Sendable {
         return try await season.basicInfo(client: tmdbClient)
     }
     
-    func postersForMovie(for tmdbID: Int,idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
+    func postersForMovie(for tmdbID: Int, idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
         return try await tmdbClient.posterURLs(forMovie: tmdbID, idealWidth: idealWidth)
     }
 
-    func backdropsForMovie(for tmdbID: Int,idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
+    func backdropsForMovie(for tmdbID: Int, idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
         return try await tmdbClient.backdropURLs(forMovie: tmdbID, idealWidth: idealWidth)
     }
 
-    func logosForMovie(for tmdbID: Int,idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
+    func logosForMovie(for tmdbID: Int, idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
         return try await tmdbClient.logoURLs(forMovie: tmdbID, idealWidth: idealWidth)
     }
 
-    func postersForSeries(seriesID tmdbID: Int,idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
+    func postersForSeries(seriesID tmdbID: Int, idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
         return try await tmdbClient.posterURLs(forTVSeries: tmdbID, idealWidth: idealWidth)
     }
 
-    func backdropsForSeries(for tmdbID: Int,idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
+    func backdropsForSeries(for tmdbID: Int, idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
         return try await tmdbClient.backdropURLs(forTVSeries: tmdbID, idealWidth: idealWidth)
     }
 
-    func logosForSeries(for tmdbID: Int,idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
+    func logosForSeries(for tmdbID: Int, idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {
         return try await tmdbClient.logoURLs(forTVSeries: tmdbID, idealWidth: idealWidth)
     }
     
@@ -133,12 +133,20 @@ final class InfoFetcher: Sendable {
     }
 }
 
-enum Language: String, CaseIterable, CustomStringConvertible {
+enum Language: String, CaseIterable, CustomLocalizedStringResourceConvertible {
     case english = "en"
     case chinese = "zh"
     case japanese = "ja"
     
-    var description: String {
+    static var current: Language {
+        if let languageCodeID = Locale.current.language.languageCode?.identifier {
+            return Language(rawValue: languageCodeID) ?? .english
+        } else {
+            return .english
+        }
+    }
+    
+    var localizedStringResource: LocalizedStringResource {
         switch self {
         case .chinese: return "Chinese"
         case .english: return "English"

@@ -9,14 +9,14 @@ import Foundation
 import TMDb
 import os
 
-fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "TMDbMediaMetadataFetching")
+fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "TMDbMediaInfoFetching")
 
 extension Movie {
     /// Returns the basic information for the movie.
     ///
     /// - Parameters:
     ///   - client: The TMDb client used to fetch image configuration.
-    /// - Returns: A `BasicInfo` struct containing metadata about the movie.
+    /// - Returns: A `BasicInfo` struct containing info about the movie.
     func basicInfo(client: TMDbClient) async throws -> BasicInfo {
         logger.debug("Fetching basic info for movie \(self.id), name: \(name)")
         let posterURL = try await posterURL(client: client)
@@ -39,26 +39,45 @@ extension Movie {
     
     /// Gets URL for the backdrop image.
     ///
-    /// - Parameter client: The TMDb client used for image configuration.
+    /// - Parameters:
+    ///     - client: The TMDb client used for image configuration。
+    ///     - idealWidth: The preferred width of the returned image. The actual image may be larger.
     func backdropURL(client: TMDb.TMDbClient, idealWidth: Int = .max) async throws -> URL? {
+        let imageResources = try await client.movies.images(forMovie: id)
+        let backdropPath = imageResources.backdrops
+            .filter { $0.languageCode == Language.japanese.rawValue }
+            .first?
+            .filePath
         let url = try await client.imagesConfiguration.backdropURL(for: backdropPath, idealWidth: idealWidth)
         return url
     }
     
     /// Gets URL for the poster image.
     ///
-    /// - Parameter client: The TMDb client used for image configuration.
+    /// - Parameters:
+    ///     - client: The TMDb client used for image configuration.
+    ///     - idealWidth: The preferred width of the returned image. The actual image may be larger.
     func posterURL(client: TMDb.TMDbClient, idealWidth: Int = .max) async throws -> URL? {
+        let imageResources = try await client.movies.images(forMovie: id)
+        let posterPath = imageResources.posters
+            .filter { $0.languageCode == Language.japanese.rawValue }
+            .first?
+            .filePath
         let url = try await client.imagesConfiguration.posterURL(for: posterPath, idealWidth: idealWidth)
         return url
     }
     
     /// Gets URL for the logo image.
     ///
-    /// - Parameter client: The TMDb client used for image configuration.
+    /// - Parameters:
+    ///     - client: The TMDb client used for image configuration.
+    ///     - idealWidth: The preferred width of the returned image. The actual image may be larger.
     func logoURL(client: TMDb.TMDbClient, idealWidth: Int = .max) async throws -> URL? {
         let imageResources = try await client.movies.images(forMovie: id)
-        let logoPath = imageResources.logos.first?.filePath
+        let logoPath = imageResources.logos
+            .filter { $0.languageCode == Language.japanese.rawValue }
+            .first? 
+            .filePath
         let url = try await client.imagesConfiguration.logoURL(for: logoPath, idealWidth: idealWidth)
         return url
     }
@@ -73,7 +92,7 @@ extension TVSeries {
     ///
     /// - Parameters:
     ///   - client: The TMDb client used to fetch image configuration.
-    /// - Returns: A `BasicInfo` struct containing metadata about the TV series.
+    /// - Returns: A `BasicInfo` struct containing info about the TV series.
     func basicInfo(client: TMDbClient) async throws -> BasicInfo {
         logger.debug("Fetching basic info for TV series \(self.id), name: \(name)")
         let posterURL = try await posterURL(client: client)
@@ -96,25 +115,44 @@ extension TVSeries {
     
     /// Gets URL for the poster image.
     ///
-    /// - Parameter client: The TMDb client used for image configuration.
-    func posterURL(client: TMDbClient) async throws -> URL? {
-        return try await client.imagesConfiguration.posterURL(for: posterPath)
+    /// - Parameters
+    //     - client: The TMDb client used for image configuration.
+    ///     - idealWidth: The preferred width of the returned image. The actual image may be larger.
+    func posterURL(client: TMDbClient, idealWidth: Int = .max) async throws -> URL? {
+        let imageResources = try await client.tvSeries.images(forTVSeries: id)
+        let posterPath = imageResources.posters
+            .filter { $0.languageCode == Language.japanese.rawValue }
+            .first?
+            .filePath
+        return try await client.imagesConfiguration.posterURL(for: posterPath, idealWidth: idealWidth)
     }
     
     /// Gets URL for the backdrop image.
     ///
-    /// - Parameter client: The TMDb client used for image configuration.
-    func backdropURL(client: TMDbClient) async throws -> URL? {
-        return try await client.imagesConfiguration.backdropURL(for: backdropPath)
+    /// - Parameters:
+    ///     - client: The TMDb client used for image configuration.
+    ///     - idealWidth: The preferred width of the returned image. The actual image may be larger.
+    func backdropURL(client: TMDbClient, idealWidth: Int = .max) async throws -> URL? {
+        let imageResources = try await client.tvSeries.images(forTVSeries: id)
+        let backdropPath = imageResources.backdrops
+            .filter { $0.languageCode == Language.japanese.rawValue }
+            .first?
+            .filePath
+        return try await client.imagesConfiguration.backdropURL(for: backdropPath, idealWidth: idealWidth)
     }
     
     /// Gets URL for the logo image.
     ///
-    /// - Parameter client: The TMDb client used for image configuration.
-    func logoURL(client: TMDbClient) async throws -> URL? {
+    /// - Parameters:
+    ///     - client: The TMDb client used for image configuration.
+    ///     - idealWidth: The preferred width of the returned image. The actual image may be larger.
+    func logoURL(client: TMDbClient, idealWidth: Int = .max) async throws -> URL? {
         let imageResources = try await client.tvSeries.images(forTVSeries: id)
-        let logoPath = imageResources.logos.first?.filePath
-        return try await client.imagesConfiguration.logoURL(for: logoPath)
+        let logoPath = imageResources.logos
+            .filter { $0.languageCode == Language.japanese.rawValue }
+            .first?
+            .filePath
+        return try await client.imagesConfiguration.logoURL(for: logoPath, idealWidth: idealWidth)
     }
     
     var onAirDate: Date? { firstAirDate }
@@ -131,7 +169,7 @@ extension TVSeason {
     ///   - logoURL: A logo URL that the returned `BasicInfo` uses. Default to nil since seasons don't have their own logos.
     ///   - linkToDetails: A homepage URL for this season. Default to nil since seasons don't have their own homepages.
     ///   - parentSeriesID: This season's parent series' TMDB ID.
-    /// - Returns: A `BasicInfo` struct containing metadata about the TV season.
+    /// - Returns: A `BasicInfo` struct containing info about the TV season.
     func basicInfo(client: TMDbClient,
                    backdropURL: URL? = nil,
                    logoURL: URL? = nil,
@@ -158,9 +196,14 @@ extension TVSeason {
     /// - Parameters:
     ///   - parentSeriesID: The ID of the parent TV series.
     ///   - client: The TMDb client used for image configuration.
-    func posterURL(parentSeriesID: Int, client: TMDbClient) async throws -> URL? {
-        let url = try await client.imagesConfiguration.posterURL(for: posterPath)
-        return url
+    ///   - idealWidth: The preferred width of the returned image. The actual image may be larger.
+    func posterURL(parentSeriesID: Int, client: TMDbClient, idealWidth: Int = .max) async throws -> URL? {
+        let imageResources = try await client.tvSeasons.images(forSeason: seasonNumber, inTVSeries: parentSeriesID)
+        let posterPath = imageResources.posters
+            .filter { $0.languageCode == Language.japanese.rawValue }
+            .first?
+            .filePath
+        return try await client.imagesConfiguration.posterURL(for: posterPath, idealWidth: idealWidth)
     }
     
     var onAirDate: Date? { airDate }

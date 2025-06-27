@@ -22,7 +22,7 @@ class LibraryStore {
 
     private(set) var library: [AnimeEntry]
     @ObservationIgnored private var infoFetcher: InfoFetcher
-    var language: Language = .japanese
+    var language: Language = .current
     
     init(dataProvider: DataProvider) {
         self.dataProvider = dataProvider

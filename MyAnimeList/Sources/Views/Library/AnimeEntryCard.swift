@@ -42,7 +42,7 @@ struct AnimeEntryCard: View {
             }
             .toast(isPresenting: $showDeleteToast, duration: 3, alert: {
                 AlertToast(displayMode: .alert, type: .regular,
-                           titleResource: "Delete Entry?",
+                           titleResource: "Delete Anime?",
                            subTitleResource: "Tap me to confirm.")
             }, onTap: {
                 delete()

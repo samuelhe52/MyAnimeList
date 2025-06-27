@@ -13,7 +13,7 @@ import DataProvider
 struct MyAnimeListApp: App {
     @State var libraryStore: LibraryStore = .init(dataProvider: .default)
     @State var keyStorage: TMDbAPIKeyStorage = .init()
-    @AppStorage(.preferredMetadataLanguage) var language: Language = .japanese
+    @AppStorage(.preferredAnimeInfoLanguage) var language: Language = .current
 
     var body: some Scene {
         WindowGroup {

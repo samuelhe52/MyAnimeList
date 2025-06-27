@@ -95,7 +95,7 @@ struct AnimeEntryEditor: View {
             let favoritedMessage: LocalizedStringResource = "Favorited"
             let unFavoritedMessage: LocalizedStringResource = "Unfavorited"
             return AlertToast(displayMode: .hud,
-                       type: .systemImage(entry.favorite ? "star.circle.fill" : "star.slash.fill", .primary),
+                       type: .systemImage(entry.favorite ? "star.fill" : "star.slash.fill", .primary),
                        titleResource: entry.favorite ? favoritedMessage : unFavoritedMessage)
         })
         .sensoryFeedback(.lighterImpact, trigger: entry.favorite)
@@ -123,7 +123,7 @@ struct AnimeEntryEditor: View {
                                 showNavigationTitle = !visible
                             }
                         if let onAirDate = entry.onAirDate {
-                            Text(onAirDate.formatted(date: .abbreviated, time: .omitted))
+                            Text(monthAndYearDateFormatter.string(from: onAirDate))
                                 .font(.caption)
                                 .padding(.bottom, 5)
                         }
@@ -144,9 +144,17 @@ struct AnimeEntryEditor: View {
                     Text(overview)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .lineLimit(8)
                 }
             }
         }
+    }
+    
+    var monthAndYearDateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = .current
+        formatter.dateFormat = "MMM YYYY"
+        return formatter
     }
     
     func dismissAction() {

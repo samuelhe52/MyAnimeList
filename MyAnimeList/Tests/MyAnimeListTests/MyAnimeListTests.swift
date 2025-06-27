@@ -7,6 +7,7 @@
 
 import Testing
 @testable import MyAnimeList
+@testable import DataProvider
 
 struct MyAnimeListTests {
     let fetcher = InfoFetcher()
@@ -16,11 +17,9 @@ struct MyAnimeListTests {
         guard let result = try await fetcher.searchTVSeries(name: "Frieren", language: language).first else { fatalError() }
         let series = try await fetcher.tmdbClient.tvSeries
             .details(forTVSeries: result.id, language: language.rawValue)
-        let seasons = series.seasons!
-        print(series.id)
-        for season in seasons {
-            print("name: \(season.name), id:\(season.id)")
-        }
+        let info = try await series.basicInfo(client: fetcher.tmdbClient)
+        let entry = AnimeEntry(fromInfo: info)
+        print(entry.debugDescription)
     }
 
     @Test func imageTest() async throws {

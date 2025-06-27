@@ -67,6 +67,10 @@ struct GlobalToastsModifier: ViewModifier {
 }
 
 extension View {
+    /// Attach globalToasts to this view. It is advised to use this modifer on the root view.
+    ///
+    /// - Note:
+    /// Should not be used when a modal view is being presented.
     func globalToasts(center: ToastCenter = .global) -> some View {
         self.modifier(GlobalToastsModifier(center: center))
     }

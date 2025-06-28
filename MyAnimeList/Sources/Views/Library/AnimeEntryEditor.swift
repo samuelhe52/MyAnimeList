@@ -49,26 +49,16 @@ struct AnimeEntryEditor: View {
     var body: some View {
         SHForm(alignment: .leading) {
             navigationHeader
+            SHSection("Notes") {
+                PlaceholderTextEditor(text: $entry.notes,
+                                      placeholder: "Write some thoughts...")
+                .frame(minHeight: 100, maxHeight: 200)
+            }
             SHSection("Watch Status", alignment: .center) {
                 AnimeEntryWatchedStatusPicker(entry: entry)
                     .pickerStyle(.segmented)
-                HStack {
-                    Spacer()
-                    DatePicker(selection: dateStartedBinding, displayedComponents: [.date]) {
-                        Text("Date Started")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }.datePickerStyle(VerticalDatePickerStyle())
-                    Image(systemName: "ellipsis")
-                        .alignmentGuide(VerticalAlignment.center) { _ in -6 }
-                        .foregroundStyle(.secondary)
-                    DatePicker(selection: dateFinishedBinding, displayedComponents: [.date]) {
-                        Text("Date Finished")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }.datePickerStyle(VerticalDatePickerStyle())
-                    Spacer()
-                }
+                AnimeEntryDatePickers(dateStarted: dateStartedBinding,
+                                      dateFinished: dateFinishedBinding)
             }
         }
         .navigationTitle(showNavigationTitle ? entry.name : "")
@@ -156,7 +146,7 @@ struct AnimeEntryEditor: View {
             }
         }
         .font(.headline)
-        .onScrollVisibilityChange { visible in
+        .onScrollVisibilityChange(threshold: 0.2) { visible in
             showNavigationTitle = !visible
         }
         .lineLimit(1)
@@ -203,6 +193,31 @@ struct AnimeEntryWatchedStatusPicker: View {
             Text("Watching").tag(WatchedStatus.watching)
             Text("Watched").tag(WatchedStatus.watched)
         } label: { }
+    }
+}
+
+struct AnimeEntryDatePickers: View {
+    @Binding var dateStarted: Date
+    @Binding var dateFinished: Date
+    
+    var body: some View {
+        HStack {
+            Spacer()
+            DatePicker(selection: $dateStarted, displayedComponents: [.date]) {
+                Text("Date Started")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }.datePickerStyle(VerticalDatePickerStyle())
+            Image(systemName: "ellipsis")
+                .alignmentGuide(VerticalAlignment.center) { _ in -6 }
+                .foregroundStyle(.secondary)
+            DatePicker(selection: $dateFinished, displayedComponents: [.date]) {
+                Text("Date Finished")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }.datePickerStyle(VerticalDatePickerStyle())
+            Spacer()
+        }
     }
 }
 

@@ -15,18 +15,8 @@ fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "AnimeEn
 
 struct AnimeEntryCard: View {
     var entry: AnimeEntry
-    var delete: () -> Void
-    @State private var triggerDeleteHaptic: Bool = false
-    @State private var showDeleteToast: Bool = false
     @State private var imageLoaded: Bool = false
-    @State private var showPosterSwitchingView: Bool = false
-    @State private var showEditor: Bool = false
     var imageMissing: Bool { entry.posterURL == nil }
-    
-    init(entry: AnimeEntry, onDelete delete: @escaping () -> Void) {
-        self.entry = entry
-        self.delete = delete
-    }
     
     var body: some View {
         PosterView(url: entry.posterURL, diskCacheExpiration: .days(90), imageLoaded: $imageLoaded)
@@ -37,46 +27,6 @@ struct AnimeEntryCard: View {
                     .opacity(imageLoaded ? 1 : 0)
             }
             .padding()
-            .onTapGesture {
-                showDeleteToast = false
-            }
-            .toast(isPresenting: $showDeleteToast, duration: 3, alert: {
-                AlertToast(displayMode: .alert, type: .regular,
-                           titleResource: "Delete Anime?",
-                           subTitleResource: "Tap me to confirm.")
-            }, onTap: {
-                delete()
-                triggerDeleteHaptic.toggle()
-            })
-            .contextMenu {
-                Button("Delete", systemImage: "trash", role: .destructive) {
-                    showDeleteToast = true
-                }
-                Button {
-                    showPosterSwitchingView = true
-                } label: {
-                    Label("Switch Poster", systemImage: "photo")
-                }
-                Button("Poster URL", systemImage: "document.on.clipboard") {
-                    UIPasteboard.general.string = entry.posterURL?.absoluteString ?? ""
-                    ToastCenter.global.copied = true
-                }
-                Button("Edit", systemImage: "pencil") {
-                    showEditor = true
-                }
-            }
-            .sensoryFeedback(.success, trigger: triggerDeleteHaptic)
-            .sheet(isPresented: $showPosterSwitchingView) {
-                NavigationStack {
-                    PosterSelectionView(entry: entry)
-                        .navigationTitle("Pick a poster")
-                }
-            }
-            .sheet(isPresented: $showEditor) {
-                NavigationStack {
-                    AnimeEntryEditor(entry: entry)
-                }
-            }
     }
 }
 
@@ -101,5 +51,5 @@ struct AnimeTypeIndicator: View {
 }
 
 #Preview {
-    AnimeEntryCard(entry: .template()) {}
+    AnimeEntryCard(entry: .template())
 }

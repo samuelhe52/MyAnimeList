@@ -19,10 +19,15 @@ fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "Library
 class LibraryStore {
     @ObservationIgnored private let dataProvider: DataProvider
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
-
-    private(set) var library: [AnimeEntry]
+    
+    var libraryOnDisplay: [AnimeEntry] {
+        filterAndSort(library)
+    }
+    private var library: [AnimeEntry]
     @ObservationIgnored private var infoFetcher: InfoFetcher
     var language: Language = .current
+    var filters: [AnimeFilter] = []
+    var sortDescriptor: SortDescriptor<AnimeEntry> = .init(\.dateSaved, order: .forward)
     
     init(dataProvider: DataProvider) {
         self.dataProvider = dataProvider
@@ -33,12 +38,9 @@ class LibraryStore {
         try? refreshLibrary()
     }
     
-    func refreshLibrary(sortedBy sortDescriptor: SortDescriptor<AnimeEntry> = .init(\.dateSaved)) throws {
-        logger.debug("Refreshing library...")
-        let descriptor = FetchDescriptor<AnimeEntry>(
-            predicate: #Predicate { $0.onDisplay },
-            sortBy: [sortDescriptor]
-        )
+    func refreshLibrary() throws {
+        logger.debug("[\(Date().debugDescription)] Refreshing library...")
+        let descriptor = FetchDescriptor<AnimeEntry>(predicate: #Predicate { $0.onDisplay })
         let entries = try dataProvider.sharedModelContainer.mainContext.fetch(descriptor)
         withAnimation {
             library = entries
@@ -71,17 +73,23 @@ class LibraryStore {
         logger.debug("Creating new entry with id: \(id), type: \(type)...")
         // No duplicate entries
         guard library.map(\.tmdbID).contains(id) == false else {
-            library[id].onDisplay = true
-            logger.warning("Entry with id \(id) already exists. Setting `onDisplay` to `true` and Returning...")
+            library.entryWithID(id)?.onDisplay = true
+            logger.warning("Entry with id \(id) already exists. Setting `onDisplay` to `true` and returning...")
             return
         }
         let info = try await infoFetcher.fetchInfoFromTMDB(entryType: type,
                                                            tmdbID: id,
                                                            language: language)
         let entry = AnimeEntry(fromInfo: info)
-        if let parentSeriesID = entry.parentSeriesID,
-           let parentSeriesEntry = library.first(where: { $0.tmdbID == parentSeriesID }) {
-            entry.parentSeriesEntry = parentSeriesEntry
+        if let parentSeriesID = entry.parentSeriesID {
+            if let parentSeriesEntry = library.first(where: { $0.tmdbID == parentSeriesID }) {
+                entry.parentSeriesEntry = parentSeriesEntry
+            } else {
+                let parentSeriesEntry = try await AnimeEntry.generateParentSeriesEntry(parentSeriesID: parentSeriesID,
+                                                                                       fetcher: infoFetcher,
+                                                                                       infoLanguage: language)
+                entry.parentSeriesEntry = parentSeriesEntry
+            }
         }
         try dataProvider.dataHandler.newEntry(entry)
     }
@@ -131,7 +139,7 @@ class LibraryStore {
             defer { ToastCenter.global.refreshingInfos = false }
             ToastCenter.global.refreshingInfos = true
             var fetchedInfos: [(PersistentIdentifier, BasicInfo)] = []
-
+            
             do {
                 try await withThrowingTaskGroup(of: (PersistentIdentifier, BasicInfo).self) { group in
                     for entry in library {
@@ -151,23 +159,25 @@ class LibraryStore {
                             return (entryID, info)
                         }
                     }
-
+                    
                     for try await result in group {
                         fetchedInfos.append(result)
                     }
                 }
-
+                
                 for (id, info) in fetchedInfos {
                     if let entry = library[id] {
                         entry.update(from: info)
                         if let parentSeriesID = entry.parentSeriesID {
-                            if let parentSeriesEntry = library[parentSeriesID] {
+                            if let parentSeriesEntry = library.entryWithID(parentSeriesID) {
                                 entry.parentSeriesEntry = parentSeriesEntry
                             } else {
-                                let parentSeriesInfo = try await infoFetcher.tvSeriesInfo(tmdbID: parentSeriesID, language: language)
-                                let parentSeriesEntry = AnimeEntry(fromInfo: parentSeriesInfo)
-                                parentSeriesEntry.onDisplay = false
-                                entry.parentSeriesEntry = parentSeriesEntry
+                                if let parentSeriesID = entry.parentSeriesID {
+                                    let parentSeriesEntry = try await AnimeEntry.generateParentSeriesEntry(parentSeriesID: parentSeriesID,
+                                                                                                           fetcher: infoFetcher,
+                                                                                                           infoLanguage: language)
+                                    entry.parentSeriesEntry = parentSeriesEntry
+                                }
                             }
                         }
                     }
@@ -215,6 +225,29 @@ class LibraryStore {
             logger.error("Error clearing library: \(error)")
             ToastCenter.global.completionState = .failed(error.localizedDescription)
         }
+    }
+    
+    func filterAndSort(_ entries: [AnimeEntry]) -> [AnimeEntry] {
+        let sorted = entries
+            .sorted(using: sortDescriptor)
+        return sorted.filter { entry in
+            filters.allSatisfy { filter in
+                filter.evaluate(entry)
+            }
+        }
+    }
+    
+    struct AnimeFilter: Sendable {
+        static let favorited = AnimeFilter { $0.favorite }
+        static let watched = AnimeFilter { $0.watchStatus == WatchedStatus.watched }
+        static let planToWatch = AnimeFilter { $0.watchStatus == .planToWatch }
+        static let watching = AnimeFilter { $0.watchStatus == .watching }
+        
+        init(evaluate: @escaping @Sendable (AnimeEntry) -> Bool) {
+            self.evaluate = evaluate
+        }
+        
+        let evaluate: @Sendable (AnimeEntry) -> Bool
     }
 }
 

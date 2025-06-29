@@ -26,37 +26,28 @@ struct LibraryView: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
-                LibraryTheaterView(store: store,
-                                  scrolledID: $scrollState.scrolledID)
-                controls
-            }
-            .padding(.vertical)
-            .ignoresSafeArea(.keyboard, edges: .bottom)
-            .sensoryFeedback(.success, trigger: newEntriesAddedToggle)
+            Color(.secondarySystemBackground)
+                .ignoresSafeArea(.all)
+                .overlay {
+                    VStack {
+                        LibraryTheaterView(store: store,
+                                           scrolledID: $scrollState.scrolledID)
+                        controls
+                    }
+                    .padding(.vertical)
+                    .ignoresSafeArea(.keyboard, edges: .bottom)
+                    .sensoryFeedback(.success, trigger: newEntriesAddedToggle)
+                }
         }
     }
     
     @ViewBuilder
     private var controls: some View {
-        HStack{
+        HStack {
+            filterAndSort
             Button("Search...") { isSearching = true }
                 .buttonBorderShape(.capsule)
-            Menu {
-                apiConfigruation
-                checkDiskUsageButton
-                refreshInfosButton
-                Divider()
-                Toggle("Follow System", systemImage: "gear", isOn: $useCurrentLocaleForAnimeInfoLanguage)
-                preferredAnimeInfoLanguagePicker
-                Divider()
-                deleteAllButton
-            } label: {
-                Image(systemName: "ellipsis").padding(.vertical, 7.5)
-            }
-            .labelStyle(.iconOnly)
-            .buttonBorderShape(.circle)
-            .menuActionDismissBehavior(.disabled)
+            settings
         }
         .buttonStyle(.bordered)
         .onChange(of: useCurrentLocaleForAnimeInfoLanguage) {
@@ -100,6 +91,37 @@ struct LibraryView: View {
             TMDbAPIConfigurator(isEditing: true)
                 .presentationDetents([.medium, .large])
         }
+    }
+    
+    private var filterAndSort: some View {
+        Menu {
+            
+        } label: {
+            Image(systemName: "arrow.up.arrow.down")
+                .font(.system(size: 16))
+                .padding(1.5)
+        }
+        .labelStyle(.iconOnly)
+        .buttonBorderShape(.circle)
+        .menuActionDismissBehavior(.disabled)
+    }
+    
+    private var settings: some View {
+        Menu {
+            apiConfigruation
+            checkDiskUsageButton
+            refreshInfosButton
+            Divider()
+            Toggle("Follow System", systemImage: "gear", isOn: $useCurrentLocaleForAnimeInfoLanguage)
+            preferredAnimeInfoLanguagePicker
+            Divider()
+            deleteAllButton
+        } label: {
+            Image(systemName: "ellipsis").padding(.vertical, 7.5)
+        }
+        .labelStyle(.iconOnly)
+        .buttonBorderShape(.circle)
+        .menuActionDismissBehavior(.disabled)
     }
     
     private var preferredAnimeInfoLanguagePicker: some View {

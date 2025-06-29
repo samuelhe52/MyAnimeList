@@ -41,6 +41,9 @@ struct AnimeEntryEditor: View {
             entry.dateFinished ?? .now
         }, set: {
             entry.dateFinished = $0
+            if $0 < .now {
+                entry.watchStatus = .watched
+            }
         })
     }
     
@@ -113,7 +116,12 @@ struct AnimeEntryEditor: View {
                     Spacer()
                     favoriteButton
                 }
-                if let overview = entry.overview {
+                if let overview = entry.overview, overview != "" {
+                    Text(overview)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .frame(height: 140)
+                } else if let overview = entry.parentSeriesEntry?.overview {
                     Text(overview)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
@@ -203,7 +211,9 @@ struct AnimeEntryDatePickers: View {
     var body: some View {
         HStack {
             Spacer()
-            DatePicker(selection: $dateStarted, displayedComponents: [.date]) {
+            DatePicker(selection: $dateStarted,
+                       in: Date.distantPast...dateFinished,
+                       displayedComponents: [.date]) {
                 Text("Date Started")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -211,7 +221,9 @@ struct AnimeEntryDatePickers: View {
             Image(systemName: "ellipsis")
                 .alignmentGuide(VerticalAlignment.center) { _ in -6 }
                 .foregroundStyle(.secondary)
-            DatePicker(selection: $dateFinished, displayedComponents: [.date]) {
+            DatePicker(selection: $dateFinished,
+                       in: dateStarted...Date.distantFuture,
+                       displayedComponents: [.date]) {
                 Text("Date Finished")
                     .font(.footnote)
                     .foregroundStyle(.secondary)

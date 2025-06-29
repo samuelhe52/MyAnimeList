@@ -41,7 +41,7 @@ extension AnimeEntry {
 }
 
 extension Collection where Element == AnimeEntry {
-    public subscript(id: Int) -> AnimeEntry? {
+    public func entryWithID(_ id: Int) -> AnimeEntry? {
         guard id != 0 else { return nil }
         return self.first { $0.tmdbID == id }
     }

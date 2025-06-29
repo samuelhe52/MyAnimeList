@@ -26,13 +26,24 @@ class LibraryStore {
     private var library: [AnimeEntry]
     @ObservationIgnored private var infoFetcher: InfoFetcher
     var language: Language = .current
-    var filters: [AnimeFilter] = []
-    var sortDescriptor: SortDescriptor<AnimeEntry> = .init(\.dateSaved, order: .forward)
+    var filters: Set<AnimeFilter> = []
+    
+    var sortStrategy: AnimeSortStrategy = .dateStarted {
+        willSet {
+            UserDefaults.standard.setValue(newValue.rawValue, forKey: .librarySortStrategy)
+            logger.debug("Updated sort strategy to \(newValue.rawValue)")
+        }
+    }
+    var sortReversed: Bool = false
     
     init(dataProvider: DataProvider) {
         self.dataProvider = dataProvider
         self.library = []
         self.infoFetcher = .init()
+        if let sortStrategyRawValue = UserDefaults.standard.string(forKey: .librarySortStrategy),
+           let strategy = AnimeSortStrategy(rawValue: sortStrategyRawValue) {
+            self.sortStrategy = strategy
+        }
         setupUpdateLibrary()
         setupTMDbAPIConfigurationChangeMonitor()
         try? refreshLibrary()
@@ -228,26 +239,72 @@ class LibraryStore {
     }
     
     func filterAndSort(_ entries: [AnimeEntry]) -> [AnimeEntry] {
-        let sorted = entries
-            .sorted(using: sortDescriptor)
-        return sorted.filter { entry in
-            filters.allSatisfy { filter in
-                filter.evaluate(entry)
+        let sorted: [AnimeEntry]
+        if !sortReversed {
+            sorted = entries
+                .sorted(by: sortStrategy.compare)
+        } else {
+            sorted = entries
+                .sorted(by: sortStrategy.compare)
+                .reversed()
+        }
+        if filters.isEmpty {
+            return sorted
+        } else {
+            return sorted.filter { entry in
+                filters.contains { filter in
+                    filter.evaluate(entry)
+                }
             }
         }
     }
     
-    struct AnimeFilter: Sendable {
-        static let favorited = AnimeFilter { $0.favorite }
-        static let watched = AnimeFilter { $0.watchStatus == WatchedStatus.watched }
-        static let planToWatch = AnimeFilter { $0.watchStatus == .planToWatch }
-        static let watching = AnimeFilter { $0.watchStatus == .watching }
+    struct AnimeFilter: Sendable, CaseIterable, Equatable, Hashable {
+        static let favorited = AnimeFilter("Favorited") { $0.favorite }
+        static let watched = AnimeFilter("Watched") { $0.watchStatus == WatchedStatus.watched }
+        static let planToWatch = AnimeFilter("Plan to Watch") { $0.watchStatus == .planToWatch }
+        static let watching = AnimeFilter("Watching") { $0.watchStatus == .watching }
         
-        init(evaluate: @escaping @Sendable (AnimeEntry) -> Bool) {
+        private init(_ name: LocalizedStringResource, evaluate: @escaping @Sendable (AnimeEntry) -> Bool) {
+            self.name = name
             self.evaluate = evaluate
         }
-        
+                
+        let name: LocalizedStringResource
         let evaluate: @Sendable (AnimeEntry) -> Bool
+        
+        static var allCases: [LibraryStore.AnimeFilter] { [.favorited, .watched, .planToWatch, .watching] }
+        
+        static func == (lhs: LibraryStore.AnimeFilter, rhs: LibraryStore.AnimeFilter) -> Bool {
+            lhs.name == rhs.name
+        }
+        
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(name.key)
+        }
+    }
+    
+    enum AnimeSortStrategy: String, CaseIterable, CustomLocalizedStringResourceConvertible, Codable {
+        case dateSaved, dateStarted, dateFinished
+        
+        func compare(_ lhs: AnimeEntry, _ rhs: AnimeEntry) -> Bool {
+            switch self {
+            case .dateSaved:
+                return lhs.dateSaved < rhs.dateSaved
+            case .dateStarted:
+                return lhs.dateStarted ?? .distantFuture < rhs.dateStarted ?? .distantFuture
+            case .dateFinished:
+                return lhs.dateFinished ?? .distantFuture < rhs.dateFinished ?? .distantFuture
+            }
+        }
+        
+        var localizedStringResource: LocalizedStringResource {
+            switch self {
+            case .dateFinished: "Date Finished"
+            case .dateSaved: "Date Saved"
+            case .dateStarted: "Date Started"
+            }
+        }
     }
 }
 

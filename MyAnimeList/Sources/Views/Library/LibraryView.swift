@@ -30,7 +30,7 @@ struct LibraryView: View {
                 .ignoresSafeArea(.all)
                 .overlay {
                     VStack {
-                        LibraryTheaterView(store: store,
+                        LibraryGalleryView(store: store,
                                            scrolledID: $scrollState.scrolledID)
                         controls
                     }
@@ -95,7 +95,30 @@ struct LibraryView: View {
     
     private var filterAndSort: some View {
         Menu {
-            
+            Toggle(isOn: $store.sortReversed) { Text("Reversed") }
+            Picker("Sort", selection: $store.sortStrategy) {
+                ForEach(LibraryStore.AnimeSortStrategy.allCases, id: \.self) { strategy in
+                    Text(strategy.localizedStringResource).tag(strategy)
+                }
+            }.pickerStyle(.menu)
+            Divider()
+            Menu("Filter") {
+                ForEach(LibraryStore.AnimeFilter.allCases, id: \.self) { filter in
+                    Toggle(isOn: .init(get: {
+                        return store.filters.contains(filter)
+                    }, set: {
+                        if $0 {
+                            store.filters.insert(filter)
+                        } else {
+                            store.filters.remove(filter)
+                        }
+                    }), label: { Text(filter.name) })
+                }
+                Divider()
+                Toggle("All", isOn: .init(get: { store.filters.isEmpty }, set: {
+                    if $0 { store.filters.removeAll() }
+                }))
+            }
         } label: {
             Image(systemName: "arrow.up.arrow.down")
                 .font(.system(size: 16))
@@ -178,7 +201,6 @@ struct LibraryView: View {
         }
     }
 }
-
 
 #Preview {
     // dataProvider could be changed to .forPreview for memory-only storage.

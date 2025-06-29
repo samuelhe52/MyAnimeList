@@ -55,6 +55,22 @@
         }
       }
     },
+    "All" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてを表示"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示所有"
+          }
+        }
+      }
+    },
     "An error occurred" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -230,7 +246,23 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "到"
+            "value" : "完成日期"
+          }
+        }
+      }
+    },
+    "Date Saved" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存日"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存日期"
           }
         }
       }
@@ -246,7 +278,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "从"
+            "value" : "开始日期"
           }
         }
       }
@@ -393,6 +425,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已特别收藏"
+          }
+        }
+      }
+    },
+    "Filter" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フィルター"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "过滤"
           }
         }
       }
@@ -676,6 +724,22 @@
         }
       }
     },
+    "Reversed" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逆順"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "倒序"
+          }
+        }
+      }
+    },
     "Search TMDB" : {
       "localizations" : {
         "ja" : {
@@ -784,6 +848,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已占用：%.2f MB"
+          }
+        }
+      }
+    },
+    "Sort" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ソート方式"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "排序"
           }
         }
       }

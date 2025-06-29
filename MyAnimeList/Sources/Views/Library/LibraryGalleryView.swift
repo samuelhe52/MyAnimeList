@@ -1,5 +1,5 @@
 //
-//  LibraryTheaterView.swift
+//  LibraryGalleryView.swift
 //  MyAnimeList
 //
 //  Created by Samuel He on 2025/5/25.
@@ -10,16 +10,9 @@ import Foundation
 import DataProvider
 import AlertToast
 
-struct LibraryTheaterView: View {
+struct LibraryGalleryView: View {
     let store: LibraryStore
     @Binding var scrolledID: Int?
-    
-    @State private var switchingPosterForEntry: AnimeEntry? = nil
-    @State private var editingEntry: AnimeEntry? = nil
-    @State private var triggerDeleteHaptic: Bool = false
-    @State private var showDeleteToast: Bool = false
-    
-    @GestureState private var dragUpOffset: CGFloat = 0
     
     var body: some View {
         GeometryReader { geometry in
@@ -28,7 +21,7 @@ struct LibraryTheaterView: View {
                 ScrollView(.horizontal) {
                     LazyHStack {
                         ForEach(store.libraryOnDisplay, id: \.tmdbID) { entry in
-                            entryCard(entry: entry)
+                            AnimeEntryCardWrapper(entry: entry, delete: { store.deleteEntry($0) })
                                 .containerRelativeFrame(isHorizontal ? .horizontal : .vertical)
                                 .transition(.opacity)
                                 .onScrollVisibilityChange { _ in }
@@ -44,40 +37,49 @@ struct LibraryTheaterView: View {
                     }
             }
         }
-        .sheet(item: $switchingPosterForEntry) { entry in
-            NavigationStack {
-                PosterSelectionView(entry: entry)
-                    .navigationTitle("Pick a poster")
-            }
-        }
-        .sheet(item: $editingEntry) { entry in
-            NavigationStack {
-                AnimeEntryEditor(entry: entry)
-            }
-        }
     }
+}
+
+fileprivate struct AnimeEntryCardWrapper: View {
+    var entry: AnimeEntry
+    let delete: (AnimeEntry) -> Void
     
-    @ViewBuilder
-    func entryCard(entry: AnimeEntry) -> some View {
+    @State private var triggerDeleteHaptic: Bool = false
+    @State private var showDeleteToast: Bool = false
+    @State private var isEditing: Bool = false
+    @State private var isSwitchingPoster: Bool = false
+    
+    var body: some View {
         AnimeEntryCard(entry: entry)
             .onTapGesture {
                 showDeleteToast = false
             }
             .onTapGesture(count: 2) {
-                editingEntry = entry
+                isEditing = true
             }
             .toast(isPresenting: $showDeleteToast, duration: 3, alert: {
                 AlertToast(displayMode: .alert, type: .regular,
                            titleResource: "Delete Anime?",
                            subTitleResource: "Tap me to confirm.")
             }, onTap: {
-                store.deleteEntry(entry)
+                delete(entry)
                 triggerDeleteHaptic.toggle()
             })
             .contextMenu {
                 contextMenu(entry: entry)
             }
             .sensoryFeedback(.success, trigger: triggerDeleteHaptic)
+            .sheet(isPresented: $isEditing) {
+                NavigationStack {
+                    AnimeEntryEditor(entry: entry)
+                }
+            }
+            .sheet(isPresented: $isSwitchingPoster) {
+                NavigationStack {
+                    PosterSelectionView(entry: entry)
+                        .navigationTitle("Pick a poster")
+                }
+            }
     }
     
     @ViewBuilder
@@ -86,7 +88,7 @@ struct LibraryTheaterView: View {
             showDeleteToast = true
         }
         Button {
-            switchingPosterForEntry = entry
+            isSwitchingPoster = true
         } label: {
             Label("Switch Poster", systemImage: "photo")
         }
@@ -95,13 +97,13 @@ struct LibraryTheaterView: View {
             ToastCenter.global.copied = true
         }
         Button("Edit", systemImage: "pencil") {
-            editingEntry = entry
+            isEditing = true
         }
     }
 }
 
 // This is where we place debug-specific code.
-extension LibraryTheaterView {
+extension LibraryGalleryView {
     private func mockDelete(entry: AnimeEntry) {
         store.mockDeleteEntry(entry)
     }

@@ -51,6 +51,15 @@ extension AnimeEntry {
                   linkToDetails: linkToDetails,
                   type: type)
     }
+    
+    static func generateParentSeriesEntry(parentSeriesID: Int,
+                                          fetcher: InfoFetcher,
+                                          infoLanguage language: Language) async throws -> sending AnimeEntry {
+        let parentSeriesInfo = try await fetcher.tvSeriesInfo(tmdbID: parentSeriesID, language: language)
+        let parentSeriesEntry = AnimeEntry(fromInfo: parentSeriesInfo)
+        parentSeriesEntry.onDisplay = false
+        return parentSeriesEntry
+    }
 }
 
 extension DataProvider {

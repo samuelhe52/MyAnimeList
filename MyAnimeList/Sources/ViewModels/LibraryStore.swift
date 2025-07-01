@@ -96,9 +96,10 @@ class LibraryStore {
             if let parentSeriesEntry = library.first(where: { $0.tmdbID == parentSeriesID }) {
                 entry.parentSeriesEntry = parentSeriesEntry
             } else {
-                let parentSeriesEntry = try await AnimeEntry.generateParentSeriesEntry(parentSeriesID: parentSeriesID,
-                                                                                       fetcher: infoFetcher,
-                                                                                       infoLanguage: language)
+                let parentSeriesEntry = try await AnimeEntry
+                    .generateParentSeriesEntryForSeason(parentSeriesID: parentSeriesID,
+                                                        fetcher: infoFetcher,
+                                                        infoLanguage: language)
                 entry.parentSeriesEntry = parentSeriesEntry
             }
         }
@@ -184,9 +185,10 @@ class LibraryStore {
                                 entry.parentSeriesEntry = parentSeriesEntry
                             } else {
                                 if let parentSeriesID = entry.parentSeriesID {
-                                    let parentSeriesEntry = try await AnimeEntry.generateParentSeriesEntry(parentSeriesID: parentSeriesID,
-                                                                                                           fetcher: infoFetcher,
-                                                                                                           infoLanguage: language)
+                                    let parentSeriesEntry = try await AnimeEntry
+                                        .generateParentSeriesEntryForSeason(parentSeriesID: parentSeriesID,
+                                                                            fetcher: infoFetcher,
+                                                                            infoLanguage: language)
                                     entry.parentSeriesEntry = parentSeriesEntry
                                 }
                             }

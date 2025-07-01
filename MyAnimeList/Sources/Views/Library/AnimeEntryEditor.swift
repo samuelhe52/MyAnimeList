@@ -29,7 +29,7 @@ struct AnimeEntryEditor: View {
     }
     
     private var dateStartedBinding: Binding<Date> {
-        .init(get: {
+        Binding(get: {
             entry.dateStarted ?? .now
         }, set: {
             entry.dateStarted = $0
@@ -37,12 +37,24 @@ struct AnimeEntryEditor: View {
     }
     
     private var dateFinishedBinding: Binding<Date> {
-        .init(get: {
+        Binding(get: {
             entry.dateFinished ?? .now
         }, set: {
             entry.dateFinished = $0
             if $0 < .now {
                 entry.watchStatus = .watched
+            }
+        })
+    }
+    
+    private var watchedStatusBinding: Binding<WatchedStatus> {
+        Binding(get: {
+            entry.watchStatus
+        }, set: {
+            entry.watchStatus = $0
+            switch $0 {
+            case .watched: entry.dateFinished = .now
+            default: break
             }
         })
     }
@@ -58,7 +70,7 @@ struct AnimeEntryEditor: View {
                 .frame(minHeight: 100, maxHeight: 200)
             }
             SHSection("Watch Status", alignment: .center) {
-                AnimeEntryWatchedStatusPicker(entry: entry)
+                AnimeEntryWatchedStatusPicker(status: watchedStatusBinding)
                     .pickerStyle(.segmented)
                 AnimeEntryDatePickers(dateStarted: dateStartedBinding,
                                       dateFinished: dateFinishedBinding)
@@ -101,7 +113,7 @@ struct AnimeEntryEditor: View {
                     showPosterSelectionView = true
                 }
             } label: {
-                PosterView(url: entry.posterURL, diskCacheExpiration: .days(90))
+                PosterView(url: entry.posterURL, diskCacheExpiration: .longTerm)
                     .aspectRatio(contentMode: .fit)
                     .clipShape(.rect(cornerRadius: 6))
                     .frame(width: 120)
@@ -116,12 +128,7 @@ struct AnimeEntryEditor: View {
                     Spacer()
                     favoriteButton
                 }
-                if let overview = entry.overview, overview != "" {
-                    Text(overview)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .frame(height: 140)
-                } else if let overview = entry.parentSeriesEntry?.overview {
+                if let overview = entry.displayOverview {
                     Text(overview)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
@@ -146,18 +153,12 @@ struct AnimeEntryEditor: View {
     
     @ViewBuilder
     var name: some View {
-        Group {
-            if let parentSeriesName {
-                Text(parentSeriesName)
-            } else {
-                Text(entry.name)
+        Text(entry.displayName)
+            .font(.headline)
+            .onScrollVisibilityChange(threshold: 0.2) { visible in
+                showNavigationTitle = !visible
             }
-        }
-        .font(.headline)
-        .onScrollVisibilityChange(threshold: 0.2) { visible in
-            showNavigationTitle = !visible
-        }
-        .lineLimit(1)
+            .lineLimit(1)
     }
     
     var favoriteButton: some View {
@@ -192,11 +193,11 @@ struct AnimeEntryEditor: View {
 }
 
 struct AnimeEntryWatchedStatusPicker: View {
-    @Bindable var entry: AnimeEntry
+    @Binding var status: WatchedStatus
     @Environment(\.dataHandler) var dataHandler
     
     var body: some View {
-        Picker(selection: $entry.watchStatus) {
+        Picker(selection: $status) {
             Text("Plan to Watch").tag(WatchedStatus.planToWatch)
             Text("Watching").tag(WatchedStatus.watching)
             Text("Watched").tag(WatchedStatus.watched)

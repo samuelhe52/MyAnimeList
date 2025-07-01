@@ -19,7 +19,7 @@ struct AnimeEntryCard: View {
     var imageMissing: Bool { entry.posterURL == nil }
     
     var body: some View {
-        PosterView(url: entry.posterURL, diskCacheExpiration: .days(90), imageLoaded: $imageLoaded)
+        PosterView(url: entry.posterURL, diskCacheExpiration: .longTerm, imageLoaded: $imageLoaded)
             .scaledToFit()
             .clipShape(.rect(cornerRadius: 10))
             .overlay(alignment: .bottomTrailing) {

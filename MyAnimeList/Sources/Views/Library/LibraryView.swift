@@ -23,33 +23,35 @@ struct LibraryView: View {
     @State private var newEntriesAddedToggle = false
     
     @AppStorage(.useCurrentLocaleForAnimeInfoLanguage) var useCurrentLocaleForAnimeInfoLanguage: Bool = true
+    @AppStorage(.libraryViewStyle) var libraryViewStyle: LibraryViewStyle = .gallery
     
     var body: some View {
         NavigationStack {
-            Color(.secondarySystemBackground)
-                .ignoresSafeArea(.all)
-                .overlay {
-                    VStack {
-                        LibraryGalleryView(store: store,
-                                           scrolledID: $scrollState.scrolledID)
-                        controls
-                    }
-                    .padding(.vertical)
-                    .ignoresSafeArea(.keyboard, edges: .bottom)
-                    .sensoryFeedback(.success, trigger: newEntriesAddedToggle)
-                }
+            switch libraryViewStyle {
+            case .gallery:
+                LibraryGalleryView(store: store,
+                                   scrolledID: $scrollState.scrolledID)
+                .sensoryFeedback(.success, trigger: newEntriesAddedToggle)
+            case .list:
+                LibraryListView(store: store)
+            }
         }
+        .overlay(alignment: .bottom) {
+            controls
+                .padding(5)
+                .offset(y: -25)
+        }
+        .animation(.default, value: libraryViewStyle)
     }
     
     @ViewBuilder
     private var controls: some View {
         HStack {
-            filterAndSort
+            viewOptions
             Button("Search...") { isSearching = true }
-                .buttonBorderShape(.capsule)
+                .buttonStyle(customButtonStyle(in: .capsule))
             settings
         }
-        .buttonStyle(.bordered)
         .onChange(of: useCurrentLocaleForAnimeInfoLanguage) {
             if useCurrentLocaleForAnimeInfoLanguage {
                 store.language = .current
@@ -93,14 +95,22 @@ struct LibraryView: View {
         }
     }
     
-    private var filterAndSort: some View {
+    private var viewOptions: some View {
         Menu {
-            Toggle(isOn: $store.sortReversed) { Text("Reversed") }
+            Picker("View Style", selection: $libraryViewStyle) {
+                ForEach(LibraryViewStyle.allCases, id: \.self) { style in
+                    Label(style.nameKey, systemImage: style.systemImageName).tag(style)
+                }
+            }
+            .menuActionDismissBehavior(.enabled)
+            Divider()
+            Toggle("Reversed", systemImage: "arrow.counterclockwise.circle", isOn: $store.sortReversed)
             Picker("Sort", selection: $store.sortStrategy) {
                 ForEach(LibraryStore.AnimeSortStrategy.allCases, id: \.self) { strategy in
                     Text(strategy.localizedStringResource).tag(strategy)
                 }
-            }.pickerStyle(.menu)
+            }
+            .pickerStyle(.menu)
             Divider()
             Menu("Filter") {
                 ForEach(LibraryStore.AnimeFilter.allCases, id: \.self) { filter in
@@ -125,7 +135,7 @@ struct LibraryView: View {
                 .padding(1.5)
         }
         .labelStyle(.iconOnly)
-        .buttonBorderShape(.circle)
+        .buttonStyle(customButtonStyle(in: .circle))
         .menuActionDismissBehavior(.disabled)
     }
     
@@ -143,7 +153,7 @@ struct LibraryView: View {
             Image(systemName: "ellipsis").padding(.vertical, 7.5)
         }
         .labelStyle(.iconOnly)
-        .buttonBorderShape(.circle)
+        .buttonStyle(customButtonStyle(in: .circle))
         .menuActionDismissBehavior(.disabled)
     }
     
@@ -200,17 +210,37 @@ struct LibraryView: View {
             }
         }
     }
+    
+    private func customButtonStyle<S: Shape>(in shape: S) -> CustomBGBorderedButtonStyle<Material, S> {
+        CustomBGBorderedButtonStyle(.ultraThinMaterial, backgroundIn: shape)
+    }
+    
+    enum LibraryViewStyle: String, CaseIterable {
+        case gallery
+        case list
+        
+        var nameKey: LocalizedStringKey {
+            switch self {
+            case .gallery: "Gallery"
+            case .list: "List"
+            }
+        }
+        
+        var systemImageName: String {
+            switch self {
+            case .gallery: "photo.on.rectangle.angled"
+            case .list: "list.bullet.rectangle.portrait"
+            }
+        }
+    }
 }
 
 #Preview {
     // dataProvider could be changed to .forPreview for memory-only storage.
     // Uncomment the task below to generate template entries.
-    @Previewable let store = LibraryStore(dataProvider: .default)
+    @Previewable let store = LibraryStore(dataProvider: .forPreview)
     LibraryView(store: store)
-//        .onAppear {
-//            for index in 0..<50 {
-//                let info = AnimeEntry.template(id: index).basicInfo
-//                store.newEntryFromBasicInfo(info)
-//            }
-//        }
+        .onAppear {
+            DataProvider.forPreview.generateEntriesForPreview()
+        }
 }

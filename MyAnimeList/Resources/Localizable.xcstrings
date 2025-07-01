@@ -17,6 +17,22 @@
         }
       }
     },
+    "%lld Anime" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld アニメ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 部动画"
+          }
+        }
+      }
+    },
     "%lld x %lld" : {
       "localizations" : {
         "en" : {
@@ -461,6 +477,22 @@
         }
       }
     },
+    "Gallery" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ギャラリー"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画廊"
+          }
+        }
+      }
+    },
     "Japanese" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -541,6 +573,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "语言"
+          }
+        }
+      }
+    },
+    "List" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リスト"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "列表"
           }
         }
       }
@@ -1008,6 +1056,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "验证密钥"
+          }
+        }
+      }
+    },
+    "View Style" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "表示スタイル"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示形式"
           }
         }
       }

@@ -40,7 +40,7 @@ struct PosterSelectionView: View {
         static let idealWidth: Int = 200
         static let pickerPadding: CGFloat = 5
         static let posterCornerRadius: CGFloat = 5
-        static let cacheExpiration: StorageExpiration = .seconds(180)
+        static let cacheExpiration: StorageExpiration = .transient
     }
     
     var body: some View {
@@ -145,7 +145,7 @@ struct PosterPreview: View {
             Text("\(previewPoster.metadata.width) x \(previewPoster.metadata.height)")
                 .font(.caption)
                 .foregroundStyle(.gray)
-            PosterView(url: previewPosterURL, diskCacheExpiration: .seconds(3600))
+            PosterView(url: previewPosterURL, diskCacheExpiration: .shortTerm)
                 .aspectRatio(contentMode: .fit)
             Button("Use this poster") {
                 updatePoster(previewPosterURL)

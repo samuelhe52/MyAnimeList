@@ -66,7 +66,7 @@ fileprivate struct AnimeEntryCardWrapper: View {
                 triggerDeleteHaptic.toggle()
             })
             .contextMenu {
-                contextMenu(entry: entry)
+                contextMenu(for: entry)
             }
             .sensoryFeedback(.success, trigger: triggerDeleteHaptic)
             .sheet(isPresented: $isEditing) {
@@ -83,7 +83,7 @@ fileprivate struct AnimeEntryCardWrapper: View {
     }
     
     @ViewBuilder
-    func contextMenu(entry: AnimeEntry) -> some View {
+    func contextMenu(for entry: AnimeEntry) -> some View {
         Button("Delete", systemImage: "trash", role: .destructive) {
             showDeleteToast = true
         }

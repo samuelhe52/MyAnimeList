@@ -15,6 +15,7 @@ extension String {
     static let searchPageQuery = "SearchPageQuery"
     static let persistedScrolledID = "PersistedScrolledID"
     static let librarySortStrategy = "LibrarySortStrategy"
+    static let libraryViewStyle = "LibraryViewStyle"
 }
 
 extension String {

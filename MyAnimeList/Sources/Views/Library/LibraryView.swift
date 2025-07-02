@@ -32,12 +32,12 @@ struct LibraryView: View {
             mainContent
                 .toolbar {
                     ToolbarItem(placement: .bottomBar) {
-                            Picker("View Style", selection: $libraryViewStyle) {
-                                ForEach(LibraryViewStyle.allCases, id: \.self) { style in
-                                    Label(style.nameKey, systemImage: style.systemImageName).tag(style)
-                                }
+                        Picker("View Style", selection: $libraryViewStyle) {
+                            ForEach(LibraryViewStyle.allCases, id: \.self) { style in
+                                Label(style.nameKey, systemImage: style.systemImageName).tag(style)
                             }
                         }
+                    }
                     ToolbarItemGroup(placement: .status) {
                         sortOptions
                         filterOptions
@@ -55,7 +55,6 @@ struct LibraryView: View {
                     }
                 }
                 .sensoryFeedback(.success, trigger: newEntriesAddedToggle)
-                .animation(.default, value: libraryViewStyle)
         }
     }
     
@@ -81,6 +80,8 @@ struct LibraryView: View {
                                scrolledID: $scrollState.scrolledID)
             .ignoresSafeArea(.keyboard)
             .scenePadding(.vertical)
+            .navigationTitle("\(store.libraryOnDisplay.count) Anime")
+            .navigationBarTitleDisplayMode(.inline)
         case .list:
             LibraryListView(store: store)
         }

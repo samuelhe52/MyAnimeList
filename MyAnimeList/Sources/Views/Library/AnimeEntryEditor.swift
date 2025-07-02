@@ -54,6 +54,7 @@ struct AnimeEntryEditor: View {
             entry.watchStatus = $0
             switch $0 {
             case .watched: entry.dateFinished = .now
+            case .watching: entry.dateStarted = .now
             default: break
             }
         })

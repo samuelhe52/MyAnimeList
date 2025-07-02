@@ -13,6 +13,7 @@ import Collections
 
 struct LibraryView: View {
     @Bindable var store: LibraryStore
+    @Environment(\.dataHandler) var dataHandler
     
     @State private var isSearching = false
     @State private var changeAPIKey = false
@@ -21,47 +22,99 @@ struct LibraryView: View {
     @State private var cacheSizeResult: Result<UInt, KingfisherError>? = nil
     @State private var scrollState = ScrollState()
     @State private var newEntriesAddedToggle = false
+    @State private var favoriteToggle = false
     
     @AppStorage(.useCurrentLocaleForAnimeInfoLanguage) var useCurrentLocaleForAnimeInfoLanguage: Bool = true
     @AppStorage(.libraryViewStyle) var libraryViewStyle: LibraryViewStyle = .gallery
     
     var body: some View {
         NavigationStack {
-            switch libraryViewStyle {
-            case .gallery:
-                LibraryGalleryView(store: store,
-                                   scrolledID: $scrollState.scrolledID)
+            mainContent
+                .toolbar {
+                    ToolbarItem(placement: .bottomBar) {
+                            Picker("View Style", selection: $libraryViewStyle) {
+                                ForEach(LibraryViewStyle.allCases, id: \.self) { style in
+                                    Label(style.nameKey, systemImage: style.systemImageName).tag(style)
+                                }
+                            }
+                        }
+                    ToolbarItemGroup(placement: .status) {
+                        sortOptions
+                        filterOptions
+                    }
+                    ToolbarItem(placement: .bottomBar) {
+                        if let scrolledID = scrollState.scrolledID,
+                           let entry = store.libraryOnDisplay.entryWithID(scrolledID) {
+                            toggleFavoriteButton(for: entry)
+                                .disabled(libraryViewStyle != .gallery)
+                        }
+                    }
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        searchButton
+                        settings
+                    }
+                }
                 .sensoryFeedback(.success, trigger: newEntriesAddedToggle)
-            case .list:
-                LibraryListView(store: store)
+                .animation(.default, value: libraryViewStyle)
+        }
+    }
+    
+    private func toggleFavoriteButton(for entry: AnimeEntry) -> some View {
+        Button {
+            dataHandler?.toggleFavorite(entry: entry)
+            favoriteToggle.toggle()
+        } label: {
+            if entry.favorite {
+                Image(systemName: "heart.fill")
+            } else {
+                Image(systemName: "heart")
             }
         }
-        .overlay(alignment: .bottom) {
-            controls
-                .padding(5)
-                .offset(y: -25)
-        }
-        .animation(.default, value: libraryViewStyle)
+        .sensoryFeedback(.impact, trigger: favoriteToggle)
     }
     
     @ViewBuilder
-    private var controls: some View {
-        HStack {
-            viewOptions
-            Button("Search...") { isSearching = true }
-                .buttonStyle(customButtonStyle(in: .capsule))
-            settings
+    private var mainContent: some View {
+        switch libraryViewStyle {
+        case .gallery:
+            LibraryGalleryView(store: store,
+                               scrolledID: $scrollState.scrolledID)
+            .ignoresSafeArea(.keyboard)
+            .scenePadding(.vertical)
+        case .list:
+            LibraryListView(store: store)
         }
+    }
+    
+    private var searchButton: some View {
+        Button("Search...", systemImage: "magnifyingglass.circle") { isSearching = true }
+            .sheet(isPresented: $isSearching) {
+                NavigationStack {
+                    SearchPage { processResults($0) }
+                        .navigationTitle("Search TMDB")
+                        .navigationBarTitleDisplayMode(.inline)
+                }
+            }
+    }
+    
+    @ViewBuilder
+    private var settings: some View {
+        Menu {
+            deleteAllButton
+            Divider()
+            Toggle("Follow System", systemImage: "gear", isOn: $useCurrentLocaleForAnimeInfoLanguage)
+            preferredAnimeInfoLanguagePicker
+            Divider()
+            apiConfigruation
+            checkDiskUsageButton
+            refreshInfosButton
+        } label: {
+            Image(systemName: "ellipsis.circle").padding(.vertical, 7.5)
+        }
+        .menuOrder(.priority)
         .onChange(of: useCurrentLocaleForAnimeInfoLanguage) {
             if useCurrentLocaleForAnimeInfoLanguage {
                 store.language = .current
-            }
-        }
-        .sheet(isPresented: $isSearching) {
-            NavigationStack {
-                SearchPage { processResults($0) }
-                .navigationTitle("Search TMDB")
-                .navigationBarTitleDisplayMode(.inline)
             }
         }
         .alert("Delete all animes?", isPresented: $showClearAllAlert) {
@@ -95,15 +148,8 @@ struct LibraryView: View {
         }
     }
     
-    private var viewOptions: some View {
+    private var sortOptions: some View {
         Menu {
-            Picker("View Style", selection: $libraryViewStyle) {
-                ForEach(LibraryViewStyle.allCases, id: \.self) { style in
-                    Label(style.nameKey, systemImage: style.systemImageName).tag(style)
-                }
-            }
-            .menuActionDismissBehavior(.enabled)
-            Divider()
             Toggle("Reversed", systemImage: "arrow.counterclockwise.circle", isOn: $store.sortReversed)
             Picker("Sort", selection: $store.sortStrategy) {
                 ForEach(LibraryStore.AnimeSortStrategy.allCases, id: \.self) { strategy in
@@ -111,50 +157,32 @@ struct LibraryView: View {
                 }
             }
             .pickerStyle(.menu)
-            Divider()
-            Menu("Filter") {
-                ForEach(LibraryStore.AnimeFilter.allCases, id: \.self) { filter in
-                    Toggle(isOn: .init(get: {
-                        return store.filters.contains(filter)
-                    }, set: {
-                        if $0 {
-                            store.filters.insert(filter)
-                        } else {
-                            store.filters.remove(filter)
-                        }
-                    }), label: { Text(filter.name) })
-                }
-                Divider()
-                Toggle("All", isOn: .init(get: { store.filters.isEmpty }, set: {
-                    if $0 { store.filters.removeAll() }
-                }))
-            }
         } label: {
             Image(systemName: "arrow.up.arrow.down")
                 .font(.system(size: 16))
                 .padding(1.5)
         }
-        .labelStyle(.iconOnly)
-        .buttonStyle(customButtonStyle(in: .circle))
         .menuActionDismissBehavior(.disabled)
     }
     
-    private var settings: some View {
-        Menu {
-            apiConfigruation
-            checkDiskUsageButton
-            refreshInfosButton
+    private var filterOptions: some View {
+        Menu("Filter", systemImage: "line.3.horizontal.decrease") {
+            ForEach(LibraryStore.AnimeFilter.allCases, id: \.self) { filter in
+                Toggle(isOn: .init(get: {
+                    return store.filters.contains(filter)
+                }, set: {
+                    if $0 {
+                        store.filters.insert(filter)
+                    } else {
+                        store.filters.remove(filter)
+                    }
+                }), label: { Text(filter.name) })
+            }
             Divider()
-            Toggle("Follow System", systemImage: "gear", isOn: $useCurrentLocaleForAnimeInfoLanguage)
-            preferredAnimeInfoLanguagePicker
-            Divider()
-            deleteAllButton
-        } label: {
-            Image(systemName: "ellipsis").padding(.vertical, 7.5)
+            Toggle("All", isOn: .init(get: { store.filters.isEmpty }, set: {
+                if $0 { store.filters.removeAll() }
+            }))
         }
-        .labelStyle(.iconOnly)
-        .buttonStyle(customButtonStyle(in: .circle))
-        .menuActionDismissBehavior(.disabled)
     }
     
     private var preferredAnimeInfoLanguagePicker: some View {
@@ -243,4 +271,5 @@ struct LibraryView: View {
         .onAppear {
             DataProvider.forPreview.generateEntriesForPreview()
         }
+        .environment(\.dataHandler, DataProvider.forPreview.dataHandler)
 }

@@ -228,8 +228,10 @@ struct LibraryView: View {
     private func processResults(_ results: OrderedSet<SearchResult>) {
         isSearching = false
         Task {
+            ToastCenter.global.loading = true
             let success = await store.newEntryFromSearchResults(results)
             if success {
+                ToastCenter.global.loading = false
                 withAnimation {
                     newEntriesAddedToggle.toggle()
                     if let id = results.first?.tmdbID {

@@ -63,6 +63,14 @@ struct GlobalToastsModifier: ViewModifier {
                 case .partialComplete: return .warning
                 }
             }
+            .toast(isPresenting: $center.loading,
+                   duration: 0,
+                   tapToDismiss: false,
+                   offsetY: 20) {
+                return AlertToast(displayMode: .hud,
+                                  type: .systemImage("arrow.clockwise.circle", .blue),
+                                  titleResource: "Loading...")
+            }
     }
 }
 

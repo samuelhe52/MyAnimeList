@@ -17,6 +17,7 @@ class ToastCenter: ObservableObject {
     
     var copied: Bool = false
     var refreshingInfos: Bool = false
+    var loading: Bool = false
     var prefetchingImages: Bool = false
     var regularCompleted: Bool = false
     var regularFailed: Bool = false

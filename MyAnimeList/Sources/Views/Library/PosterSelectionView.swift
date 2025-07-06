@@ -18,6 +18,7 @@ typealias Poster = ImageURLWithMetadata
 struct PosterSelectionView: View {
     var entry: AnimeEntry
     let fetcher: InfoFetcher
+    @State private var imageLoadState: ImageLoadState = .loading
     
     init(entry: AnimeEntry, infoFetcher: InfoFetcher = .init()) {
         self.entry = entry
@@ -50,25 +51,32 @@ struct PosterSelectionView: View {
                     Text("Season").tag(false)
                     Text("TV Series").tag(true)
                 } label: { }
-                .pickerStyle(.segmented)
-                .padding(.bottom, Constants.pickerPadding)
+                    .pickerStyle(.segmented)
+                    .padding(.bottom, Constants.pickerPadding)
             }
-            ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: Constants.gridItemMinSize, maximum: Constants.gridItemMaxSize),
-                                             spacing: Constants.gridItemHorizontalSpacing)],
-                          spacing: Constants.gridItemVerticalSpacing) {
-                    ForEach(useSeriesPoster ? seriesPosters : availablePosters, id: \.url) { poster in
-                        posterWithInfo(poster: poster)
-                            .transition(.opacity)
-                            .onTapGesture {
-                                previewPoster = poster
-                            }
+            switch imageLoadState {
+            case .loading:
+                ProgressView()
+            case .loaded:
+                ScrollView {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: Constants.gridItemMinSize, maximum: Constants.gridItemMaxSize),
+                                                 spacing: Constants.gridItemHorizontalSpacing)],
+                              spacing: Constants.gridItemVerticalSpacing) {
+                        ForEach(useSeriesPoster ? seriesPosters : availablePosters, id: \.url) { poster in
+                            posterWithInfo(poster: poster)
+                                .transition(.opacity)
+                                .onTapGesture {
+                                    previewPoster = poster
+                                }
+                        }
                     }
                 }
+            case .error(let error):
+                Text("Error loading posters: \(error.localizedDescription)")
             }
-            .animation(.default, value: useSeriesPoster)
-            .animation(.default, value: availablePosters)
         }
+        .animation(.default.delay(0.5), value: useSeriesPoster)
+        .animation(.default, value: availablePosters)
         .padding(.horizontal)
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(item: $previewPoster) { poster in
@@ -83,12 +91,21 @@ struct PosterSelectionView: View {
         }
         .onChange(of: useSeriesPoster) {
             Task {
+                imageLoadState = .loading
                 if let tmdbID = entry.parentSeriesID,
                    useSeriesPoster,
                    seriesPosters.isEmpty {
-                    seriesPosters = try await fetcher.postersForSeries(seriesID: tmdbID,
-                                                                       idealWidth: Constants.idealWidth)
-                    .filteredAndSorted()
+                    do {
+                        seriesPosters = try await fetcher.postersForSeries(seriesID: tmdbID,
+                                                                           idealWidth: Constants.idealWidth)
+                        .filteredAndSorted()
+                        imageLoadState = .loaded
+                    } catch {
+                        logger.error("Error fetching posters: \(error.localizedDescription)")
+                        imageLoadState = .error(error)
+                    }
+                } else {
+                    fatalError()
                 }
             }
         }
@@ -116,6 +133,7 @@ struct PosterSelectionView: View {
     
     private func fetchImages() async {
         do {
+            imageLoadState = .loading
             var posters: [Poster]
             switch entry.type {
             case .movie:
@@ -128,9 +146,17 @@ struct PosterSelectionView: View {
                                                              idealWidth: Constants.idealWidth)
             }
             availablePosters = posters.filteredAndSorted()
+            imageLoadState = .loaded
         } catch {
-            logger.error("Error fetching available posters: \(error.localizedDescription)")
+            logger.error("Error fetching posters: \(error.localizedDescription)")
+            imageLoadState = .error(error)
         }
+    }
+    
+    private enum ImageLoadState {
+        case loading
+        case loaded
+        case error(Error)
     }
 }
 

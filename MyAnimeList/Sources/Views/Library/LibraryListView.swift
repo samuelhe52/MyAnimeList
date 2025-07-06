@@ -100,10 +100,11 @@ struct LibraryListView: View {
     
     @ViewBuilder
     private func deleteButton(for entry: AnimeEntry) -> some View {
-        Button("Delete", systemImage: "trash", role: .destructive) {
+        Button("Delete", systemImage: "trash") {
             deletingEntry = entry
             isDeletingEntry = true
         }
+        .tint(.red)
     }
     
     @ViewBuilder

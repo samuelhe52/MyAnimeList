@@ -25,8 +25,16 @@ struct SearchPage: View {
                     Text(language.localizedStringResource).tag(language)
                 }
             }
-            if service.status == .done {
-                results
+            switch service.status {
+            case .loading:
+                HStack(alignment: .center) {
+                    Spacer()
+                    ProgressView()
+                    Spacer()
+                }
+                .frame(height: 100)
+            case .loaded: results
+            case .error(let error): Text(error.localizedDescription)
             }
         }
         .environment(service)

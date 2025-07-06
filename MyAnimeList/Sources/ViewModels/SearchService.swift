@@ -21,7 +21,7 @@ struct SearchResult: Hashable {
 @Observable @MainActor
 class SearchService {
     let fetcher: InfoFetcher = .init()
-    private(set) var status: Status = .idle
+    private(set) var status: Status = .loading
     var query: String
     private(set) var movieResults: [BasicInfo] = []
     private(set) var seriesResults: [BasicInfo] = []
@@ -73,7 +73,7 @@ class SearchService {
         guard !query.isEmpty else { return }
         Task {
             let currentQuery = query
-            status = .fetching
+            status = .loading
             do {
                 let movies = try await fetcher.searchMovies(name: currentQuery, language: language)
                 let tvSeries = try await fetcher.searchTVSeries(name: currentQuery, language: language)
@@ -104,8 +104,9 @@ class SearchService {
                 }
             } catch {
                 logger.error("Error in fetching search results: \(error)")
+                status = .error(error)
             }
-            status = .done
+            status = .loaded
         }
         
         func fetchSeasons(seriesInfo info: BasicInfo, language: Language) async throws -> [BasicInfo] {
@@ -130,9 +131,23 @@ class SearchService {
         }
     }
     
-    enum Status: Equatable {
-        case idle
-        case fetching
-        case done
+    enum Status {
+        case loading
+        case loaded
+        case error(Error)
+    }
+}
+
+extension SearchService.Status: Equatable {
+    static func == (lhs: SearchService.Status, rhs: SearchService.Status) -> Bool {
+        switch (lhs, rhs) {
+        case (.loading, .loading), (.loaded, .loaded):
+            return true
+        case (.error(let e1), .error(let e2)):
+            return (e1 as NSError).domain == (e2 as NSError).domain &&
+                   (e1 as NSError).code == (e2 as NSError).code
+        default:
+            return false
+        }
     }
 }

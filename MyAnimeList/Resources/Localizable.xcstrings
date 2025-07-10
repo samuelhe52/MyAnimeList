@@ -87,6 +87,22 @@
         }
       }
     },
+    "Already in library." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すでにライブラリーにあります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已加入资料库。"
+          }
+        }
+      }
+    },
     "An error occurred" : {
       "extractionState" : "manual",
       "localizations" : {

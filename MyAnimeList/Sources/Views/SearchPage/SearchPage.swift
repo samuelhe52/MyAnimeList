@@ -11,11 +11,19 @@ import Collections
 
 struct SearchPage: View {
     @State var service: SearchService
+    @Environment(\.dismiss) var dismiss
     @AppStorage(.searchPageLanguage) private var language: Language = .english
     
+    private let onDuplicateTapped: (Int) -> Void
+    private let checkDuplicate: (Int) -> Bool
+    
     init(query: String = UserDefaults.standard.string(forKey: .searchPageQuery) ?? "",
+         onDuplicateTapped: @escaping (_ tappedID: Int) -> Void,
+         checkDuplicate: @escaping (_ tmdbID: Int) -> Bool,
          processResults: @escaping (OrderedSet<SearchResult>) -> Void) {
         self._service = .init(initialValue: .init(query: query, processResults: processResults))
+        self.onDuplicateTapped = onDuplicateTapped
+        self.checkDuplicate = checkDuplicate
     }
 
     var body: some View {
@@ -25,17 +33,7 @@ struct SearchPage: View {
                     Text(language.localizedStringResource).tag(language)
                 }
             }
-            switch service.status {
-            case .loading:
-                HStack(alignment: .center) {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                }
-                .frame(height: 100)
-            case .loaded: results
-            case .error(let error): Text(error.localizedDescription)
-            }
+            resultsView
         }
         .environment(service)
         .listStyle(.inset)
@@ -50,22 +48,53 @@ struct SearchPage: View {
     }
     
     @ViewBuilder
+    private var resultsView: some View {
+        switch service.status {
+        case .loading:
+            HStack(alignment: .center) {
+                Spacer()
+                ProgressView()
+                Spacer()
+            }
+            .frame(height: 100)
+        case .loaded:
+            results
+        case .error(let error):
+            Text(error.localizedDescription)
+        }
+    }
+    
+    @ViewBuilder
     private var results: some View {
         if !service.seriesResults.isEmpty {
             Section("TV Series") {
                 ForEach(service.seriesResults.prefix(8), id: \.tmdbID) { series in
+                    let isDuplicate = checkDuplicate(series.tmdbID)
                     SeriesResultItem(series: series)
+                        .indicateAlreadyAdded(added: isDuplicate,
+                                              message: alreadyAddedMessage)
+                        .onTapGesture {
+                            if isDuplicate { onDuplicateTapped(series.tmdbID) }
+                        }
                 }
             }
         }
         if !service.movieResults.isEmpty {
             Section("Movies") {
                 ForEach(service.movieResults.prefix(8), id: \.tmdbID) { movie in
+                    let isDuplicate = checkDuplicate(movie.tmdbID)
                     MovieResultItem(movie: movie)
+                        .indicateAlreadyAdded(added: isDuplicate,
+                                              message: alreadyAddedMessage)
+                        .onTapGesture {
+                            if isDuplicate { onDuplicateTapped(movie.tmdbID) }
+                        }
                 }
             }
         }
     }
+    
+    private var alreadyAddedMessage: LocalizedStringKey { "Already in library." }
     
     @ViewBuilder
     private var submitMenu: some View {
@@ -86,10 +115,42 @@ struct SearchPage: View {
     }
 }
 
+fileprivate struct AlreadyAddedIndicatorModifier: ViewModifier {
+    var added: Bool
+    var message: LocalizedStringKey
+    
+    func body(content: Content) -> some View {
+        if added {
+            content
+                .blur(radius: 3)
+                .disabled(true)
+                .overlay {
+                    Text(message)
+                        .multilineTextAlignment(.center)
+                        .padding(10)
+                        .background(.ultraThinMaterial, in: .buttonBorder)
+                        .font(.callout)
+                }
+        } else {
+            content
+        }
+    }
+}
+
+fileprivate extension View {
+    func indicateAlreadyAdded(added: Bool = false,
+                              message: LocalizedStringKey) -> some View {
+        modifier(AlreadyAddedIndicatorModifier(added: added, message: message))
+    }
+}
+
 #Preview {
     NavigationStack {
-        SearchPage(query: "K-on!") { results in
+        SearchPage(query: "K-on!",
+                   onDuplicateTapped: { _ in },
+                   checkDuplicate: { _ in true },
+                   processResults: { results in
             print(results)
-        }
+        })
     }
 }

@@ -15,49 +15,59 @@ struct LibraryListView: View {
     @State var isDeletingEntry: Bool = false
     @State var editingEntry: AnimeEntry?
     @State var switchingPosterForEntry: AnimeEntry?
-    
+    @Binding var scrolledID: Int?
+    @Binding var highlightedEntryID: Int?
+        
     var body: some View {
-        List(store.libraryOnDisplay) { entry in
-            HStack {
-                PosterView(url: entry.posterURL, diskCacheExpiration: .longTerm)
-                    .scaledToFit()
-                    .clipShape(.rect(cornerRadius: 6))
-                    .frame(width: 80, height: 120)
-                info(entry: entry)
+        ScrollViewReader { proxy in
+            List(store.libraryOnDisplay, id: \.tmdbID) { entry in
+                HStack {
+                    PosterView(url: entry.posterURL, diskCacheExpiration: .longTerm)
+                        .scaledToFit()
+                        .clipShape(.rect(cornerRadius: 6))
+                        .frame(width: 80, height: 120)
+                    info(entry: entry)
+                }
+                .highlightEffect(showHighlight: showHighlightBinding(for: entry), delay: 0.2)
+                .contextMenu(menuItems: { contextMenu(for: entry) }, preview: {
+                    PosterView(url: entry.posterURL, diskCacheExpiration: .longTerm)
+                        .scaledToFit()
+                })
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    deleteButton(for: entry)
+                }
+                .swipeActions(edge: .leading) {
+                    editButton(for: entry)
+                        .tint(.blue)
+                }
+                .onTapGesture(count: 2) { editingEntry = entry }
             }
-            .contextMenu(menuItems: { contextMenu(for: entry) }, preview: {
-                PosterView(url: entry.posterURL, diskCacheExpiration: .longTerm)
-                    .scaledToFit()
+            .animation(.default, value: store.sortReversed)
+            .animation(.default, value: store.sortStrategy)
+            .animation(.default, value: store.filters)
+            .navigationTitle("\(store.libraryOnDisplay.count) Anime")
+            .alert("Delete Anime?",
+                   isPresented: $isDeletingEntry,
+                   presenting: deletingEntry,
+                   actions: { entry in
+                Button("Delete", role: .destructive) { store.deleteEntry(entry) }
+                Button("Cancel", role: .cancel) {}
             })
-            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                deleteButton(for: entry)
+            .sheet(item: $switchingPosterForEntry) { entry in
+                NavigationStack {
+                    PosterSelectionView(entry: entry)
+                        .navigationTitle("Pick a poster")
+                }
             }
-            .swipeActions(edge: .leading) {
-                editButton(for: entry)
-                    .tint(.blue)
+            .sheet(item: $editingEntry) { entry in
+                NavigationStack {
+                    AnimeEntryEditor(entry: entry)
+                }
             }
-            .onTapGesture(count: 2) { editingEntry = entry }
-        }
-        .animation(.default, value: store.sortReversed)
-        .animation(.default, value: store.sortStrategy)
-        .animation(.default, value: store.filters)
-        .navigationTitle("\(store.libraryOnDisplay.count) Anime")
-        .alert("Delete Anime?",
-               isPresented: $isDeletingEntry,
-               presenting: deletingEntry,
-               actions: { entry in
-            Button("Delete", role: .destructive) { store.deleteEntry(entry) }
-            Button("Cancel", role: .cancel) {}
-        })
-        .sheet(item: $switchingPosterForEntry) { entry in
-            NavigationStack {
-                PosterSelectionView(entry: entry)
-                    .navigationTitle("Pick a poster")
-            }
-        }
-        .sheet(item: $editingEntry) { entry in
-            NavigationStack {
-                AnimeEntryEditor(entry: entry)
+            .onChange(of: scrolledID, initial: true) {
+                if let scrolledID {
+                    proxy.scrollTo(scrolledID)
+                }
             }
         }
     }
@@ -100,7 +110,14 @@ struct LibraryListView: View {
     
     @ViewBuilder
     private func deleteButton(for entry: AnimeEntry) -> some View {
-        Button("Delete", systemImage: "trash") {
+        Button("Delete", systemImage: "trash") {        
+            if let index = store.libraryOnDisplay.firstIndex(of: entry) {
+                if index != 0 {
+                    scrolledID = store.libraryOnDisplay[index - 1].tmdbID
+                } else {
+                    scrolledID = store.libraryOnDisplay.last?.tmdbID
+                }
+            }
             deletingEntry = entry
             isDeletingEntry = true
         }
@@ -112,5 +129,15 @@ struct LibraryListView: View {
         Button("Edit", systemImage: "pencil") {
             editingEntry = entry
         }
+    }
+    
+    private func showHighlightBinding(for entry: AnimeEntry) -> Binding<Bool> {
+        Binding(get: {
+            entry.tmdbID == highlightedEntryID
+        }, set: {
+            if !$0 {
+                highlightedEntryID = nil
+            }
+        })
     }
 }

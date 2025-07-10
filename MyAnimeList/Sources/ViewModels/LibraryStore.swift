@@ -80,14 +80,18 @@ class LibraryStore {
             .store(in: &cancellables)
     }
     
+    func isDuplicate(tmdbID: Int) -> Bool {
+        return library.map(\.tmdbID).contains(tmdbID)
+    }
+    
     private func createNewEntry(tmdbID id: Int, type: AnimeType) async throws {
-        logger.debug("Creating new entry with id: \(id), type: \(type)...")
         // No duplicate entries
         guard library.map(\.tmdbID).contains(id) == false else {
             library.entryWithID(id)?.onDisplay = true
             logger.warning("Entry with id \(id) already exists. Setting `onDisplay` to `true` and returning...")
             return
         }
+        logger.debug("Creating new entry with id: \(id), type: \(type)...")
         let info = try await infoFetcher.fetchInfoFromTMDB(entryType: type,
                                                            tmdbID: id,
                                                            language: language)

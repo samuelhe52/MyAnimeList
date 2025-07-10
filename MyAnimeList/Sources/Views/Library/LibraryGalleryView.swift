@@ -21,7 +21,16 @@ struct LibraryGalleryView: View {
                 ScrollView(.horizontal) {
                     LazyHStack {
                         ForEach(store.libraryOnDisplay, id: \.tmdbID) { entry in
-                            AnimeEntryCardWrapper(entry: entry, delete: { store.deleteEntry($0) })
+                            AnimeEntryCardWrapper(entry: entry, delete: {
+                                if let index = store.libraryOnDisplay.firstIndex(of: entry) {
+                                    if index != 0 {
+                                        scrolledID = store.libraryOnDisplay[index - 1].tmdbID
+                                    } else {
+                                        scrolledID = store.libraryOnDisplay.last?.tmdbID
+                                    }
+                                }
+                                store.deleteEntry($0)
+                            })
                                 .containerRelativeFrame(isHorizontal ? .horizontal : .vertical)
                                 .transition(.opacity)
                                 .onScrollVisibilityChange { _ in }

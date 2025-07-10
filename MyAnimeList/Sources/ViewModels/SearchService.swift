@@ -47,6 +47,10 @@ class SearchService {
     func unregister(_ result: SearchResult) { resultsToSubmit.remove(result) }
     /// Removes a result corresponding to the provided `BasicInfo` from the submission queue if it is present.
     func unregister(info: BasicInfo) { resultsToSubmit.remove(.init(tmdbID: info.tmdbID, type: info.type)) }
+    /// Removes all series/movie results
+    func clearAll() {
+        resultsToSubmit.removeAll()
+    }
     
     private func fetchPosterURLs(from items: [(tmdbID: Int, path: URL?)]) async throws -> [(tmdbID: Int, url: URL?)] {
         return try await withThrowingTaskGroup(of: (tmdbID: Int, url: URL?).self) { group in

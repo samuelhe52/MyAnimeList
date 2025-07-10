@@ -23,6 +23,7 @@ struct LibraryView: View {
     @State private var scrollState = ScrollState()
     @State private var newEntriesAddedToggle = false
     @State private var favoriteToggle = false
+    @State private var highlightedEntryID: Int?
     
     @AppStorage(.useCurrentLocaleForAnimeInfoLanguage) var useCurrentLocaleForAnimeInfoLanguage: Bool = true
     @AppStorage(.libraryViewStyle) var libraryViewStyle: LibraryViewStyle = .gallery
@@ -83,7 +84,7 @@ struct LibraryView: View {
             .navigationTitle("\(store.libraryOnDisplay.count) Anime")
             .navigationBarTitleDisplayMode(.inline)
         case .list:
-            LibraryListView(store: store)
+            LibraryListView(store: store, scrolledID: $scrollState.scrolledID, highlightedEntryID: $highlightedEntryID)
         }
     }
     
@@ -91,7 +92,13 @@ struct LibraryView: View {
         Button("Search...", systemImage: "magnifyingglass.circle") { isSearching = true }
             .sheet(isPresented: $isSearching) {
                 NavigationStack {
-                    SearchPage { processResults($0) }
+                    SearchPage(onDuplicateTapped: { tappedID in
+                        isSearching = false
+                        scrollState.scrolledID = tappedID
+                        highlightedEntryID = tappedID
+                    }, checkDuplicate: { id in
+                        return store.isDuplicate(tmdbID: id)
+                    }, processResults: { processResults($0) })
                         .navigationTitle("Search TMDB")
                         .navigationBarTitleDisplayMode(.inline)
                 }
@@ -236,6 +243,7 @@ struct LibraryView: View {
                     newEntriesAddedToggle.toggle()
                     if let id = results.first?.tmdbID {
                         scrollState.scrolledID = id
+                        highlightedEntryID = id
                     }
                 }
             }

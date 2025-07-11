@@ -120,6 +120,22 @@
         }
       }
     },
+    "An error occurred while loading results." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "結果の読み込み中にエラーが発生しました。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加载时发生错误。"
+          }
+        }
+      }
+    },
     "Anime Info Language" : {
       "localizations" : {
         "ja" : {
@@ -196,6 +212,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "存储占用"
+          }
+        }
+      }
+    },
+    "Check your internet connection." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インターネット接続を確認してください。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请检查网络连接。"
           }
         }
       }
@@ -457,6 +489,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "加载海报时发生错误：%@"
+          }
+        }
+      }
+    },
+    "Error: %@" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エラー：%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "错误：%@"
+          }
+        }
+      }
+    },
+    "Favorite" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お気に入りに追加"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "特别收藏"
           }
         }
       }
@@ -820,6 +884,22 @@
         }
       }
     },
+    "Reload" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再読み込み"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新加载"
+          }
+        }
+      }
+    },
     "Reversed" : {
       "localizations" : {
         "ja" : {
@@ -1060,18 +1140,34 @@
         }
       }
     },
-    "Unfavorited" : {
+    "Unfavorite" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "お気に入り解除"
+            "value" : "お気に入りから削除"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "取消特别收藏"
+          }
+        }
+      }
+    },
+    "Unfavorited" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お気に入りから削除"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已取消特别收藏"
           }
         }
       }

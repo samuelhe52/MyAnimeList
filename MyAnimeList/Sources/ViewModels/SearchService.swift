@@ -106,11 +106,11 @@ class SearchService {
                         seriesResults = searchTVSeriesResults
                     }
                 }
+                status = .loaded
             } catch {
-                logger.error("Error in fetching search results: \(error)")
+                logger.error("Error fetching search results: \(error)")
                 status = .error(error)
             }
-            status = .loaded
         }
         
         func fetchSeasons(seriesInfo info: BasicInfo, language: Language) async throws -> [BasicInfo] {

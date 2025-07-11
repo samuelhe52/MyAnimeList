@@ -10,9 +10,11 @@ import DataProvider
 
 struct LibraryListView: View {
     let store: LibraryStore
+    @Environment(\.dataHandler) var dataHandler
     
     @State var deletingEntry: AnimeEntry?
     @State var isDeletingEntry: Bool = false
+    @State var favoritedTrigger: Bool = false
     @State var editingEntry: AnimeEntry?
     @State var switchingPosterForEntry: AnimeEntry?
     @Binding var scrolledID: Int?
@@ -29,9 +31,15 @@ struct LibraryListView: View {
                     info(entry: entry)
                 }
                 .highlightEffect(showHighlight: showHighlightBinding(for: entry), delay: 0.2)
+                .onTapGesture { scrolledID = entry.tmdbID }
                 .contextMenu(menuItems: { contextMenu(for: entry) }, preview: {
                     PosterView(url: entry.posterURL, diskCacheExpiration: .longTerm)
                         .scaledToFit()
+                        .overlay(alignment: .bottomTrailing) {
+                            AnimeTypeIndicator(type: entry.type)
+                                .offset(x: -3, y: -3)
+                        }
+                        .onAppear { scrolledID = entry.tmdbID }
                 })
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                     deleteButton(for: entry)
@@ -69,6 +77,7 @@ struct LibraryListView: View {
                     proxy.scrollTo(scrolledID)
                 }
             }
+            .sensoryFeedback(.impact, trigger: favoritedTrigger)
         }
     }
     
@@ -104,6 +113,10 @@ struct LibraryListView: View {
         Button("Poster URL", systemImage: "document.on.clipboard") {
             UIPasteboard.general.string = entry.posterURL?.absoluteString ?? ""
             ToastCenter.global.copied = true
+        }
+        EntryFavoriteButton(favorited: entry.favorite) {
+            dataHandler?.toggleFavorite(entry: entry)
+            favoritedTrigger.toggle()
         }
         editButton(for: entry)
     }

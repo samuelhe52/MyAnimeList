@@ -25,19 +25,42 @@ struct SearchPage: View {
         self.onDuplicateTapped = onDuplicateTapped
         self.checkDuplicate = checkDuplicate
     }
-
+    
     var body: some View {
-        List {
-            Picker("Language", selection: $language) {
-                ForEach(Language.allCases, id: \.rawValue) { language in
-                    Text(language.localizedStringResource).tag(language)
-                }
+        Group {
+            switch service.status {
+            case .loaded: List {
+                languagePicker
+                results
             }
-            resultsView
+            case .loading: ProgressView()
+            case .error(let error):
+                VStack {
+                    Button("Reload", systemImage: "arrow.clockwise.circle") {
+                        updateResults()
+                    }
+                    .padding(.bottom)
+                    Text("An error occurred while loading results.")
+                    Text("Check your internet connection.")
+                        .padding(.bottom)
+                    Text("Error: \(error.localizedDescription)")
+                        .font(.caption)
+                }
+                .multilineTextAlignment(.center)
+            }
         }
         .environment(service)
         .listStyle(.inset)
-        .searchable(text: $service.query, prompt: "Search TV animation or movies...")
+        .searchable(text: $service.query, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Search TV animation or movies...")
+//        .toolbar {
+//            ToolbarItem(placement: .status) {
+//                Picker("Language", selection: $language) {
+//                    ForEach(Language.allCases, id: \.rawValue) { language in
+//                        Text(language.localizedStringResource).tag(language)
+//                    }
+//                }
+//            }
+//        }
         .overlay(alignment: .bottom) {
             submitMenu
                 .offset(y: -30)
@@ -48,19 +71,11 @@ struct SearchPage: View {
     }
     
     @ViewBuilder
-    private var resultsView: some View {
-        switch service.status {
-        case .loading:
-            HStack(alignment: .center) {
-                Spacer()
-                ProgressView()
-                Spacer()
+    private var languagePicker: some View {
+        Picker("Language", selection: $language) {
+            ForEach(Language.allCases, id: \.rawValue) { language in
+                Text(language.localizedStringResource).tag(language)
             }
-            .frame(height: 100)
-        case .loaded:
-            results
-        case .error(let error):
-            Text(error.localizedDescription)
         }
     }
     
@@ -148,7 +163,7 @@ fileprivate extension View {
     NavigationStack {
         SearchPage(query: "K-on!",
                    onDuplicateTapped: { _ in },
-                   checkDuplicate: { _ in true },
+                   checkDuplicate: { _ in false },
                    processResults: { results in
             print(results)
         })

@@ -16,8 +16,8 @@ import SwiftUICore
 final class InfoFetcher: Sendable {
     let tmdbClient: TMDbClient
     
-    init() {
-        let key = TMDbAPIKeyStorage().key
+    init(apiKey: String? = nil) {
+        let key = apiKey ?? TMDbAPIKeyStorage().key
         self.tmdbClient = .init(apiKey: key ?? "",
                                 httpClient: RedirectingHTTPClient.relayServer)
     }

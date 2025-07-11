@@ -30,26 +30,6 @@ struct AnimeEntryCard: View {
     }
 }
 
-struct AnimeTypeIndicator: View {
-    var type: AnimeType
-    
-    var description: LocalizedStringKey {
-        switch type {
-        case .movie: return "Movie"
-        case .series: return "TV Series"
-        case .season(let seasonNumber, _): return "Season \(seasonNumber)"
-        }
-    }
-    
-    var body: some View {
-        Text(description)
-            .font(.footnote)
-            .padding(5)
-            .background(in: .buttonBorder)
-            .backgroundStyle(.regularMaterial)
-    }
-}
-
 #Preview {
     AnimeEntryCard(entry: .template())
 }

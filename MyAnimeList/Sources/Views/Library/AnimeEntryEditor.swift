@@ -163,16 +163,15 @@ struct AnimeEntryEditor: View {
     }
     
     var favoriteButton: some View {
-        Button {
+        EntryFavoriteButton(favorited: entry.favorite) {
             withAnimation(.spring(duration: 0.2)) {
                 dataHandler?.toggleFavorite(entry: entry)
                 showFavoritedToast = true
             }
-        } label: {
-            Image(systemName: entry.favorite ? "star.circle.fill" : "star.circle")
-                .font(.title2)
         }
+        .font(.title2)
         .buttonStyle(.borderless)
+        .labelStyle(.iconOnly)
     }
     
     var monthAndYearDateFormatter: DateFormatter {

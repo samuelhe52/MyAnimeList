@@ -25,6 +25,7 @@ struct AnimeEntryCard: View {
             .overlay(alignment: .bottomTrailing) {
                 AnimeTypeIndicator(type: entry.type)
                     .opacity(imageLoaded ? 1 : 0)
+                    .font(.footnote)
             }
             .padding()
     }

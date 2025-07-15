@@ -8,7 +8,7 @@
 import Foundation
 
 /// Stores user-specific information about an entry.
-public struct UserEntryInfo: Codable {
+public struct UserEntryInfo: Equatable, Codable {
     /// User's watch status for this entry.
     public var watchStatus: AnimeEntry.WatchStatus
     
@@ -36,13 +36,35 @@ public struct UserEntryInfo: Codable {
         self.usingCustomPoster = usingCustomPoster
     }
 
-    public init(fromEntry entry: AnimeEntry) {
+    public init(for entry: AnimeEntry) {
         self.watchStatus = entry.watchStatus
         self.dateStarted = entry.dateStarted
         self.dateFinished = entry.dateFinished
         self.favorite = entry.favorite
         self.notes = entry.notes
         self.usingCustomPoster = entry.usingCustomPoster
+    }
+    
+    public var isEmpty: Bool {
+        return watchStatus == .planToWatch &&
+        dateStarted == nil &&
+        dateFinished == nil &&
+        favorite == false &&
+        notes.isEmpty &&
+        usingCustomPoster == false
+    }
+}
+
+extension UserEntryInfo: CustomStringConvertible {
+    public var description: String {
+        """
+        Status: \(watchStatus)
+        Started: \(dateStarted?.description ?? "N/A")
+        Finished: \(dateFinished?.description ?? "N/A")
+        Favorite: \(favorite)
+        Notes: \(notes)
+        Custom Poster: \(usingCustomPoster)
+        """
     }
 }
 

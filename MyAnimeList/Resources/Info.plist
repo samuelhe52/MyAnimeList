@@ -9,5 +9,27 @@
 		<key>UISceneConfigurations</key>
 		<dict/>
 	</dict>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.json</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>MyAnimeList - User Entry Info</string>
+			<key>UTTypeIconFiles</key>
+			<array/>
+			<key>UTTypeIdentifier</key>
+			<string>com.samuelhe.myanimelist.userentryinfo</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>userentryinfo</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>

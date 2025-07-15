@@ -299,6 +299,22 @@
         }
       }
     },
+    "Copy Info" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "情報をコピーする"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制信息"
+          }
+        }
+      }
+    },
     "Date Finished" : {
       "localizations" : {
         "ja" : {
@@ -801,6 +817,70 @@
         }
       }
     },
+    "Paste" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ペースト"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制"
+          }
+        }
+      }
+    },
+    "Paste Info" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "情報をペーストする"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粘贴信息"
+          }
+        }
+      }
+    },
+    "Paste Info?" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "情報をペーストするの"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粘贴信息？"
+          }
+        }
+      }
+    },
+    "Pasted!" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ペーストしました！"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已粘贴！"
+          }
+        }
+      }
+    },
     "Pick a poster" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1120,6 +1200,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "资料库为空。"
+          }
+        }
+      }
+    },
+    "This anime already has edits. Pasting will overwrite current info." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このアニメは既に編集済みです。ペーストすると上書きされます。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此动画信息已有更改。粘贴会覆盖已有更改。"
           }
         }
       }

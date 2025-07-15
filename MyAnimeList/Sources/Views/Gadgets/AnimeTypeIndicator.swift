@@ -10,6 +10,7 @@ import DataProvider
 
 struct AnimeTypeIndicator: View {
     var type: AnimeType
+    var padding: CGFloat = 5
     
     var description: LocalizedStringKey {
         switch type {
@@ -21,8 +22,7 @@ struct AnimeTypeIndicator: View {
     
     var body: some View {
         Text(description)
-            .font(.footnote)
-            .padding(5)
+            .padding(padding)
             .background(in: .buttonBorder)
             .backgroundStyle(.regularMaterial)
     }

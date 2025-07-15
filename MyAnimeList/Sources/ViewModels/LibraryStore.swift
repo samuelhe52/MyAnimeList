@@ -23,7 +23,7 @@ class LibraryStore {
     var libraryOnDisplay: [AnimeEntry] {
         filterAndSort(library)
     }
-    private var library: [AnimeEntry]
+    private(set) var library: [AnimeEntry]
     @ObservationIgnored private var infoFetcher: InfoFetcher
     var language: Language = .current
     var filters: Set<AnimeFilter> = []
@@ -78,10 +78,6 @@ class LibraryStore {
                 self?.infoFetcher = .init()
             }
             .store(in: &cancellables)
-    }
-    
-    func isDuplicate(tmdbID: Int) -> Bool {
-        return library.map(\.tmdbID).contains(tmdbID)
     }
     
     private func createNewEntry(tmdbID id: Int, type: AnimeType) async throws {

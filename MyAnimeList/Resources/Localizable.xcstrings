@@ -221,7 +221,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "インターネット接続を確認してください。"
+            "value" : "インターネット接続を確認して。"
           }
         },
         "zh-Hans" : {
@@ -407,6 +407,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "删除该动画？"
+          }
+        }
+      }
+    },
+    "Discard" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取り消す"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放弃"
+          }
+        }
+      }
+    },
+    "Discard all changes?" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "変更を取り消す？"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放弃所有修改？"
           }
         }
       }
@@ -802,22 +834,6 @@
         }
       }
     },
-    "Please enter a TMDB API Key to continue." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "続行するにはTMDB APIキーを入力してください"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请输入一个 TMDB API 密钥"
-          }
-        }
-      }
-    },
     "Poster URL" : {
       "localizations" : {
         "ja" : {
@@ -1120,6 +1136,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "TMDB API 密钥"
+          }
+        }
+      }
+    },
+    "To continue, enter a TMDB API Key." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "続行するには、TMDB API キーを入力します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入 TMDB API 密钥"
           }
         }
       }

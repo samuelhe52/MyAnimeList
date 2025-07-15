@@ -30,11 +30,11 @@ extension SchemaV2_3_2 {
         
         /// Whether this entry should be displayed to user.
         public var onDisplay: Bool = true
-        
-        // MARK: User-specific properties
-        
+                
         /// Date saved to library.
         public var dateSaved: Date
+        
+        // MARK: User-specific properties
         
         /// User's watch status for this entry.
         public var watchStatus: WatchStatus = WatchStatus.planToWatch

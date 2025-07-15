@@ -52,15 +52,6 @@ struct SearchPage: View {
         .environment(service)
         .listStyle(.inset)
         .searchable(text: $service.query, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Search TV animation or movies...")
-//        .toolbar {
-//            ToolbarItem(placement: .status) {
-//                Picker("Language", selection: $language) {
-//                    ForEach(Language.allCases, id: \.rawValue) { language in
-//                        Text(language.localizedStringResource).tag(language)
-//                    }
-//                }
-//            }
-//        }
         .overlay(alignment: .bottom) {
             submitMenu
                 .offset(y: -30)

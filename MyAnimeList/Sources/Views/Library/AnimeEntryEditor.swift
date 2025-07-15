@@ -21,11 +21,15 @@ struct AnimeEntryEditor: View {
     @Environment(\.modelContext) var modelContext
     @Bindable var entry: AnimeEntry
     
-    @State var showPosterSelectionView: Bool = false
-    @State var showFavoritedToast: Bool = false
+    @State private var showPosterSelectionView: Bool = false
+    @State private var showFavoritedToast: Bool = false
+    @State private var showNavigationTitle: Bool = false
+    @State private var originalUserInfo: UserEntryInfo
+    @State private var showCancelEditsConfirmation: Bool = false
     
     init(entry: AnimeEntry) {
         self.entry = entry
+        self._originalUserInfo = .init(initialValue: UserEntryInfo(fromEntry: entry))
     }
     
     private var dateStartedBinding: Binding<Date> {
@@ -59,9 +63,7 @@ struct AnimeEntryEditor: View {
             }
         })
     }
-    
-    @State var showNavigationTitle: Bool = false
-    
+        
     var body: some View {
         SHForm(alignment: .leading) {
             navigationHeader
@@ -76,11 +78,18 @@ struct AnimeEntryEditor: View {
                 AnimeEntryDatePickers(dateStarted: dateStartedBinding,
                                       dateFinished: dateFinishedBinding)
             }
+            // TODO: Implement series/season conversion
+//            SHSection("Other Options") {
+//
+//            }
         }
         .navigationTitle(showNavigationTitle ? entry.name : "")
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .confirmationAction) {
                 Button("Done", action: dismissAction)
+            }
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") { showCancelEditsConfirmation = true }
             }
         }
         .navigationBarTitleDisplayMode(.inline)
@@ -97,6 +106,18 @@ struct AnimeEntryEditor: View {
                     }
             }
         }
+        .confirmationDialog("Discard all changes?", isPresented: $showCancelEditsConfirmation) {
+            Button("Discard", role: .destructive) {
+                do {
+                    entry.updateUserInfo(from: originalUserInfo)
+                    try modelContext.save()
+                } catch {
+                    ToastCenter.global.completionState = .failed(error.localizedDescription)
+                }
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) { }
+        }
         .toast(isPresenting: $showFavoritedToast, duration: 1.5, offsetY: 35, alert: {
             let favoritedMessage: LocalizedStringResource = "Favorited"
             let unFavoritedMessage: LocalizedStringResource = "Unfavorited"
@@ -107,7 +128,7 @@ struct AnimeEntryEditor: View {
         .sensoryFeedback(.lighterImpact, trigger: entry.favorite)
     }
     
-    var navigationHeader: some View {
+    private var navigationHeader: some View {
         HStack(alignment: .top) {
             Menu {
                 Button("Change Poster", systemImage: "photo") {
@@ -140,7 +161,7 @@ struct AnimeEntryEditor: View {
     }
     
     @ViewBuilder
-    var seasonNumberAndDate: some View {
+    private var seasonNumberAndDate: some View {
         HStack(alignment: .center) {
             if let seasonNumber = entry.seasonNumber {
                 Text("Season \(seasonNumber)")
@@ -153,7 +174,7 @@ struct AnimeEntryEditor: View {
     }
     
     @ViewBuilder
-    var name: some View {
+    private var name: some View {
         Text(entry.displayName)
             .font(.headline)
             .onScrollVisibilityChange(threshold: 0.2) { visible in
@@ -162,7 +183,7 @@ struct AnimeEntryEditor: View {
             .lineLimit(1)
     }
     
-    var favoriteButton: some View {
+    private var favoriteButton: some View {
         EntryFavoriteButton(favorited: entry.favorite) {
             withAnimation(.spring(duration: 0.2)) {
                 dataHandler?.toggleFavorite(entry: entry)
@@ -174,15 +195,15 @@ struct AnimeEntryEditor: View {
         .labelStyle(.iconOnly)
     }
     
-    var monthAndYearDateFormatter: DateFormatter {
+    private var monthAndYearDateFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.dateFormat = "YYYY.MM"
         return formatter
     }
     
-    var parentSeriesName: String? { entry.parentSeriesEntry?.name }
+    private var parentSeriesName: String? { entry.parentSeriesEntry?.name }
     
-    func dismissAction() {
+    private func dismissAction() {
         do {
             try modelContext.save()
         } catch {

@@ -44,7 +44,7 @@ struct TMDbAPIConfigurator: View {
                     .fontWeight(.bold)
             }
             
-            Text("Please enter a TMDB API Key to continue.")
+            Text("To continue, enter a TMDB API Key.")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)

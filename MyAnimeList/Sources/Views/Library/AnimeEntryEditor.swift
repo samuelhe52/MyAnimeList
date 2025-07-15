@@ -10,8 +10,10 @@ import DataProvider
 import SwiftData
 import SHContainers
 import AlertToast
+import os
 
 typealias WatchedStatus = AnimeEntry.WatchStatus
+fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "AnimeEntryEditor")
 
 struct AnimeEntryEditor: View {
     @Environment(\.dataHandler) var dataHandler
@@ -29,7 +31,7 @@ struct AnimeEntryEditor: View {
     
     init(entry: AnimeEntry) {
         self.entry = entry
-        self._originalUserInfo = .init(initialValue: UserEntryInfo(fromEntry: entry))
+        self._originalUserInfo = .init(initialValue: UserEntryInfo(for: entry))
     }
     
     private var dateStartedBinding: Binding<Date> {
@@ -70,7 +72,7 @@ struct AnimeEntryEditor: View {
             SHSection("Notes") {
                 PlaceholderTextEditor(text: $entry.notes,
                                       placeholder: "Write some thoughts...")
-                .frame(minHeight: 100, maxHeight: 200)
+                .frame(height: 150)
             }
             SHSection("Watch Status", alignment: .center) {
                 AnimeEntryWatchedStatusPicker(status: watchedStatusBinding)
@@ -78,10 +80,6 @@ struct AnimeEntryEditor: View {
                 AnimeEntryDatePickers(dateStarted: dateStartedBinding,
                                       dateFinished: dateFinishedBinding)
             }
-            // TODO: Implement series/season conversion
-//            SHSection("Other Options") {
-//
-//            }
         }
         .navigationTitle(showNavigationTitle ? entry.name : "")
         .toolbar {
@@ -139,6 +137,10 @@ struct AnimeEntryEditor: View {
                     .aspectRatio(contentMode: .fit)
                     .clipShape(.rect(cornerRadius: 6))
                     .frame(width: 120)
+                    .overlay(alignment: .bottomTrailing) {
+                        AnimeTypeIndicator(type: entry.type, padding: 3)
+                            .font(.caption2)
+                    }
             }
             .menuStyle(.borderlessButton)
             VStack(alignment: .leading, spacing: 0) {

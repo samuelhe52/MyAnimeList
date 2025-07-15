@@ -97,7 +97,7 @@ struct LibraryView: View {
                         scrollState.scrolledID = tappedID
                         highlightedEntryID = tappedID
                     }, checkDuplicate: { id in
-                        return store.isDuplicate(tmdbID: id)
+                        return store.libraryOnDisplay.map(\.tmdbID).contains(id)
                     }, processResults: { processResults($0) })
                         .navigationTitle("Search TMDB")
                         .navigationBarTitleDisplayMode(.inline)

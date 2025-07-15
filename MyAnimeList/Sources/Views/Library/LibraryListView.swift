@@ -12,11 +12,13 @@ struct LibraryListView: View {
     let store: LibraryStore
     @Environment(\.dataHandler) var dataHandler
     
-    @State var deletingEntry: AnimeEntry?
-    @State var isDeletingEntry: Bool = false
-    @State var favoritedTrigger: Bool = false
-    @State var editingEntry: AnimeEntry?
-    @State var switchingPosterForEntry: AnimeEntry?
+    @State private var deletingEntry: AnimeEntry?
+    @State private var isDeletingEntry: Bool = false
+    @State private var favoritedTrigger: Bool = false
+    @State private var editingEntry: AnimeEntry?
+    @State private var switchingPosterForEntry: AnimeEntry?
+    @State private var showPasteAlert: Bool = false
+    @State private var pasteAction: (() -> Void)?
     @Binding var scrolledID: Int?
     @Binding var highlightedEntryID: Int?
         
@@ -38,6 +40,7 @@ struct LibraryListView: View {
                         .overlay(alignment: .bottomTrailing) {
                             AnimeTypeIndicator(type: entry.type)
                                 .offset(x: -3, y: -3)
+                                .font(.footnote)
                         }
                         .onAppear { scrolledID = entry.tmdbID }
                 })
@@ -60,6 +63,15 @@ struct LibraryListView: View {
                    actions: { entry in
                 Button("Delete", role: .destructive) { store.deleteEntry(entry) }
                 Button("Cancel", role: .cancel) {}
+            })
+            .alert("Paste Info?",
+                   isPresented: $showPasteAlert,
+                   presenting: pasteAction,
+                   actions: { action in
+                Button("Paste", role: .destructive, action: action)
+                Button("Cancel", role: .cancel) {}
+            }, message: { _ in 
+                Text("This anime already has edits. Pasting will overwrite current info.")
             })
             .sheet(item: $switchingPosterForEntry) { entry in
                 NavigationStack {
@@ -118,12 +130,21 @@ struct LibraryListView: View {
             dataHandler?.toggleFavorite(entry: entry)
             favoritedTrigger.toggle()
         }
+        Button("Copy Info", systemImage: "doc.on.doc") {
+            let userInfo = UserEntryInfo(for: entry)
+            userInfo.copyToPasteboard()
+            ToastCenter.global.copied = true
+        }
+        Button("Paste Info", systemImage: "doc.on.clipboard") {
+            pasteInfoAction(for: entry)
+        }
+        .disabled(!UIPasteboard.general.contains(pasteboardTypes: [UserEntryInfo.pasteboardUTType.identifier]))
         editButton(for: entry)
     }
     
     @ViewBuilder
     private func deleteButton(for entry: AnimeEntry) -> some View {
-        Button("Delete", systemImage: "trash") {        
+        Button("Delete", systemImage: "trash") {
             if let index = store.libraryOnDisplay.firstIndex(of: entry) {
                 if index != 0 {
                     scrolledID = store.libraryOnDisplay[index - 1].tmdbID
@@ -152,5 +173,22 @@ struct LibraryListView: View {
                 highlightedEntryID = nil
             }
         })
+    }
+    
+    private func pasteInfoAction(for entry: AnimeEntry) {
+        if let pasted = UserEntryInfo.fromPasteboard() {
+            let paste = {
+                entry.updateUserInfo(from: pasted)
+                ToastCenter.global.pasted = true
+            }
+            if UserEntryInfo(for: entry).isEmpty {
+                paste()
+            } else {
+                showPasteAlert = true
+                pasteAction = paste
+            }
+        } else {
+            ToastCenter.global.completionState = .init(state: .failed, message: "No info found on pasteboard.")
+        }
     }
 }

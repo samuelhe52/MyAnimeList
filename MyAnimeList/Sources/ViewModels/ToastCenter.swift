@@ -16,6 +16,7 @@ class ToastCenter: ObservableObject {
     static var global: ToastCenter = .init()
     
     var copied: Bool = false
+    var pasted: Bool = false
     var refreshingInfos: Bool = false
     var loading: Bool = false
     var prefetchingImages: Bool = false

@@ -20,6 +20,12 @@ struct GlobalToastsModifier: ViewModifier {
                            titleResource: "Copied!")
             })
             .sensoryFeedback(.lighterImpact, trigger: center.copied) { !$0 && $1 }
+            .toast(isPresenting: $center.pasted, duration: 1.5, offsetY: 20, alert: {
+                AlertToast(displayMode: .hud,
+                           type: .systemImage("checkmark.circle", .green),
+                           titleResource: "Pasted!")
+            })
+            .sensoryFeedback(.lighterImpact, trigger: center.pasted) { !$0 && $1 }
             .toast(isPresenting: .constant(center.refreshingInfos), offsetY: 20, alert: {
                 AlertToast(displayMode: .hud,
                            type: .systemImage("arrow.clockwise.circle", .blue),

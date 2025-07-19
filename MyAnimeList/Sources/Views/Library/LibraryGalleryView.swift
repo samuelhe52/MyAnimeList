@@ -31,9 +31,9 @@ struct LibraryGalleryView: View {
                                 }
                                 store.deleteEntry($0)
                             })
-                                .containerRelativeFrame(isHorizontal ? .horizontal : .vertical)
-                                .transition(.opacity)
-                                .onScrollVisibilityChange { _ in }
+                            .containerRelativeFrame(isHorizontal ? .horizontal : .vertical)
+                            .transition(.opacity)
+                            .onScrollVisibilityChange { _ in }
                         }
                     }.scrollTargetLayout()
                 }
@@ -57,7 +57,7 @@ fileprivate struct AnimeEntryCardWrapper: View {
     @State private var showDeleteToast: Bool = false
     @State private var isEditing: Bool = false
     @State private var isSwitchingPoster: Bool = false
-    
+        
     var body: some View {
         AnimeEntryCard(entry: entry)
             .onTapGesture {

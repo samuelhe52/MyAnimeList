@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftUIIntrospect
 
 struct PlaceholderTextEditor: View {
     @Binding var text: String
@@ -21,7 +22,6 @@ struct PlaceholderTextEditor: View {
             }
             TextEditor(text: $text)
         }
-        .frame(width: nil, height: nil)
         .scrollContentBackground(.hidden)
     }
 }

@@ -28,7 +28,7 @@ struct AnimeEntryEditor: View {
     @State private var showNavigationTitle: Bool = false
     @State private var originalUserInfo: UserEntryInfo
     @State private var showCancelEditsConfirmation: Bool = false
-    
+        
     init(entry: AnimeEntry) {
         self.entry = entry
         self._originalUserInfo = .init(initialValue: UserEntryInfo(for: entry))
@@ -72,6 +72,7 @@ struct AnimeEntryEditor: View {
             SHSection("Notes") {
                 PlaceholderTextEditor(text: $entry.notes,
                                       placeholder: "Write some thoughts...")
+                .ignoresSafeArea(.keyboard, edges: .bottom)
                 .frame(height: 150)
             }
             SHSection("Watch Status", alignment: .center) {

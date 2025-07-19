@@ -79,8 +79,8 @@ struct LibraryView: View {
         case .gallery:
             LibraryGalleryView(store: store,
                                scrolledID: $scrollState.scrolledID)
-            .ignoresSafeArea(.keyboard)
             .scenePadding(.vertical)
+            .ignoresSafeArea(.keyboard, edges: .bottom)
             .navigationTitle("\(store.libraryOnDisplay.count) Anime")
             .navigationBarTitleDisplayMode(.inline)
         case .list:

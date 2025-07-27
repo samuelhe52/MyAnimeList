@@ -24,3 +24,9 @@ struct VerticalDatePickerStyle: DatePickerStyle {
         }
     }
 }
+
+extension DatePickerStyle where Self == VerticalDatePickerStyle {
+    static func vertical(labelsHidden: Bool = false) -> VerticalDatePickerStyle {
+        return VerticalDatePickerStyle(labelsHidden: labelsHidden)
+    }
+}

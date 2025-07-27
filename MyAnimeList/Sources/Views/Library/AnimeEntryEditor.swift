@@ -263,7 +263,7 @@ struct AnimeEntryDatePickers: View {
             }
             Spacer()
         }
-        .datePickerStyle(VerticalDatePickerStyle(labelsHidden: labelsHidden))
+        .datePickerStyle(.vertical(labelsHidden: labelsHidden))
     }
 }
 

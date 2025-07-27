@@ -1156,6 +1156,28 @@
         }
       }
     },
+    "Status: %@\nStarted: %@\nFinished: %@\nFavorite: %@\nNotes: %@\nCustom Poster: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Status: %1$@\nStarted: %2$@\nFinished: %3$@\nFavorite: %4$@\nNotes: %5$@\nCustom Poster: %6$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ステータス: %1$@\n開始日: %2$@\n終了日: %3$@\nお気に入り: %4$@\nノート: %5$@\nカスタムポスター: %6$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状态: %1$@\n开始: %2$@\n结束: %3$@\n特别收藏: %4$@\n笔记: %5$@\n使用自选海报: %6$@"
+          }
+        }
+      }
+    },
     "Switch Poster" : {
       "localizations" : {
         "ja" : {

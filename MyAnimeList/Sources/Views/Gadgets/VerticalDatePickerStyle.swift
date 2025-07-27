@@ -8,12 +8,16 @@
 import SwiftUI
 
 struct VerticalDatePickerStyle: DatePickerStyle {
+    var labelsHidden: Bool = false
+    
     func makeBody(configuration: Configuration) -> some View {
         let minimumDate = configuration.minimumDate ?? .distantPast
         let maximumDate = configuration.maximumDate ?? .distantFuture
         
         VStack(spacing: 3) {
-            configuration.label
+            if !labelsHidden {
+                configuration.label
+            }
             DatePicker(selection: configuration.$selection, in: minimumDate...maximumDate,
                        displayedComponents: configuration.displayedComponents) { }
                 .labelsHidden()

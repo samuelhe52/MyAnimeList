@@ -55,6 +55,16 @@ public struct UserEntryInfo: Equatable, Codable {
     }
 }
 
+extension AnimeEntry.WatchStatus: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .planToWatch: return "Plan to Watch"
+        case .watching: return "Watching"
+        case .watched: return "Watched"
+        }
+    }
+}
+
 extension UserEntryInfo: CustomStringConvertible {
     public var description: String {
         """

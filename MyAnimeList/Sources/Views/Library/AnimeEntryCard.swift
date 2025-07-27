@@ -19,15 +19,20 @@ struct AnimeEntryCard: View {
     var imageMissing: Bool { entry.posterURL == nil }
     
     var body: some View {
-        PosterView(url: entry.posterURL, diskCacheExpiration: .longTerm, imageLoaded: $imageLoaded)
-            .scaledToFit()
-            .clipShape(.rect(cornerRadius: 10))
-            .overlay(alignment: .bottomTrailing) {
-                AnimeTypeIndicator(type: entry.type)
-                    .opacity(imageLoaded ? 1 : 0)
-                    .font(.footnote)
+        VStack(spacing: 0) {
+            if imageLoaded {
+                AnimeEntryDates(entry: entry)
             }
-            .padding()
+            PosterView(url: entry.posterURL, diskCacheExpiration: .longTerm, imageLoaded: $imageLoaded)
+                .scaledToFit()
+                .clipShape(.rect(cornerRadius: 10))
+                .overlay(alignment: .bottomTrailing) {
+                    AnimeTypeIndicator(type: entry.type)
+                        .opacity(imageLoaded ? 1 : 0)
+                        .font(.footnote)
+                }
+                .padding()
+        }
     }
 }
 

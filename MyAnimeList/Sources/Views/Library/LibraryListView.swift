@@ -35,13 +35,7 @@ struct LibraryListView: View {
                 .highlightEffect(showHighlight: showHighlightBinding(for: entry), delay: 0.2)
                 .onTapGesture { scrolledID = entry.tmdbID }
                 .contextMenu(menuItems: { contextMenu(for: entry) }, preview: {
-                    PosterView(url: entry.posterURL, diskCacheExpiration: .longTerm)
-                        .scaledToFit()
-                        .overlay(alignment: .bottomTrailing) {
-                            AnimeTypeIndicator(type: entry.type)
-                                .offset(x: -3, y: -3)
-                                .font(.footnote)
-                        }
+                    EntryPreview(entry: entry)
                         .onAppear { scrolledID = entry.tmdbID }
                 })
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -100,8 +94,8 @@ struct LibraryListView: View {
                 .bold()
                 .lineLimit(1)
             HStack {
-                if entry.isSeason {
-                    Text(entry.name)
+                if let seasonNumber = entry.seasonNumber {
+                    Text("Season \(seasonNumber)")
                 }
                 if let date = entry.onAirDate {
                     Text(date.formatted(date: .abbreviated, time: .omitted))

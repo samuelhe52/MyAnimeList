@@ -33,38 +33,6 @@ struct AnimeEntryEditor: View {
         self.entry = entry
         self._originalUserInfo = .init(initialValue: UserEntryInfo(for: entry))
     }
-    
-    private var dateStartedBinding: Binding<Date> {
-        Binding(get: {
-            entry.dateStarted ?? .now
-        }, set: {
-            entry.dateStarted = $0
-        })
-    }
-    
-    private var dateFinishedBinding: Binding<Date> {
-        Binding(get: {
-            entry.dateFinished ?? .now
-        }, set: {
-            entry.dateFinished = $0
-            if $0 < .now {
-                entry.watchStatus = .watched
-            }
-        })
-    }
-    
-    private var watchedStatusBinding: Binding<WatchedStatus> {
-        Binding(get: {
-            entry.watchStatus
-        }, set: {
-            entry.watchStatus = $0
-            switch $0 {
-            case .watched: entry.dateFinished = .now
-            case .watching: entry.dateStarted = .now
-            default: break
-            }
-        })
-    }
         
     var body: some View {
         SHForm(alignment: .leading) {
@@ -76,10 +44,9 @@ struct AnimeEntryEditor: View {
                 .frame(height: 150)
             }
             SHSection("Watch Status", alignment: .center) {
-                AnimeEntryWatchedStatusPicker(status: watchedStatusBinding)
+                AnimeEntryWatchedStatusPicker(for: entry)
                     .pickerStyle(.segmented)
-                AnimeEntryDatePickers(dateStarted: dateStartedBinding,
-                                      dateFinished: dateFinishedBinding)
+                AnimeEntryDatePickers(entry: entry)
             }
         }
         .navigationTitle(showNavigationTitle ? entry.name : "")
@@ -138,12 +105,12 @@ struct AnimeEntryEditor: View {
                     .aspectRatio(contentMode: .fit)
                     .clipShape(.rect(cornerRadius: 6))
                     .frame(width: 120)
-                    .overlay(alignment: .bottomTrailing) {
-                        AnimeTypeIndicator(type: entry.type, padding: 3)
-                            .font(.caption2)
-                    }
             }
             .menuStyle(.borderlessButton)
+            .overlay(alignment: .bottomTrailing) {
+                AnimeTypeIndicator(type: entry.type, padding: 3)
+                    .font(.caption2)
+            }
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     VStack(alignment: .leading) {
@@ -217,11 +184,31 @@ struct AnimeEntryEditor: View {
 }
 
 struct AnimeEntryWatchedStatusPicker: View {
-    @Binding var status: WatchedStatus
+    var entry: AnimeEntry
     @Environment(\.dataHandler) var dataHandler
     
+    init(for entry: AnimeEntry) {
+        self.entry = entry
+    }
+    
+    private var watchedStatusBinding: Binding<WatchedStatus> {
+        Binding(get: {
+            entry.watchStatus
+        }, set: {
+            entry.watchStatus = $0
+            switch $0 {
+            case .watched:
+                entry.dateFinished = .now
+            case .watching:
+                entry.dateStarted = .now
+                entry.dateFinished = nil
+            default: break
+            }
+        })
+    }
+    
     var body: some View {
-        Picker(selection: $status) {
+        Picker(selection: watchedStatusBinding) {
             Text("Plan to Watch").tag(WatchedStatus.planToWatch)
             Text("Watching").tag(WatchedStatus.watching)
             Text("Watched").tag(WatchedStatus.watched)
@@ -230,31 +217,53 @@ struct AnimeEntryWatchedStatusPicker: View {
 }
 
 struct AnimeEntryDatePickers: View {
-    @Binding var dateStarted: Date
-    @Binding var dateFinished: Date
+    var entry: AnimeEntry
+    var labelsHidden: Bool = false
+
+    private var dateStartedBinding: Binding<Date> {
+        Binding(get: {
+            entry.dateStarted ?? .now
+        }, set: {
+            entry.dateStarted = $0
+        })
+    }
+    
+    private var dateFinishedBinding: Binding<Date> {
+        Binding(get: {
+            entry.dateFinished ?? .now
+        }, set: {
+            entry.dateFinished = $0
+            if $0 < .now {
+                entry.watchStatus = .watched
+            }
+        })
+    }
     
     var body: some View {
         HStack {
             Spacer()
-            DatePicker(selection: $dateStarted,
-                       in: Date.distantPast...dateFinished,
+            DatePicker(selection: dateStartedBinding,
+                       in: Date.distantPast...(entry.dateFinished ?? .now),
                        displayedComponents: [.date]) {
                 Text("Date Started")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-            }.datePickerStyle(VerticalDatePickerStyle())
+            }
             Image(systemName: "ellipsis")
-                .alignmentGuide(VerticalAlignment.center) { _ in -6 }
+                .alignmentGuide(VerticalAlignment.center) { d in
+                    return labelsHidden ? d[VerticalAlignment.center] : -6
+                }
                 .foregroundStyle(.secondary)
-            DatePicker(selection: $dateFinished,
-                       in: dateStarted...Date.distantFuture,
+            DatePicker(selection: dateFinishedBinding,
+                       in: (entry.dateStarted ?? .now)...Date.distantFuture,
                        displayedComponents: [.date]) {
                 Text("Date Finished")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-            }.datePickerStyle(VerticalDatePickerStyle())
+            }
             Spacer()
         }
+        .datePickerStyle(VerticalDatePickerStyle(labelsHidden: labelsHidden))
     }
 }
 

@@ -80,10 +80,6 @@ extension SchemaV2_3_2 {
             self.usingCustomPoster = usingCustomPoster
         }
         
-        public static func template(id: Int = 0) -> Self {
-            .init(name: "Template", type: .movie, tmdbID: id)
-        }
-        
         public enum WatchStatus: Equatable, CaseIterable, Codable {
             case planToWatch
             case watching

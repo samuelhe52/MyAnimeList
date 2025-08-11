@@ -28,26 +28,38 @@ class ToastCenter: ObservableObject {
     struct CompletedWithMessage: Identifiable, Equatable {
         var id = UUID()
         var state: State
-        var message: String
+        var messageResource: LocalizedStringResource
         
         static func == (lhs: Self, rhs: Self) -> Bool {
-            lhs.state == rhs.state && lhs.message == rhs.message
+            lhs.state == rhs.state && lhs.messageResource == rhs.messageResource
         }
         
         enum State {
             case completed, failed, partialComplete
         }
         
+        static func completed(_ messageResource: LocalizedStringResource) -> Self {
+            .init(state: .completed, messageResource: messageResource)
+        }
+        
+        static func failed(_ messageResource: LocalizedStringResource) -> Self {
+            .init(state: .failed, messageResource: messageResource)
+        }
+        
+        static func partialComplete(_ messageResource: LocalizedStringResource) -> Self {
+            .init(state: .partialComplete, messageResource: messageResource)
+        }
+        
         static func completed(_ message: String) -> Self {
-            .init(state: .completed, message: message)
+            .init(state: .completed, messageResource: LocalizedStringResource(stringLiteral: message))
         }
         
         static func failed(_ message: String) -> Self {
-            .init(state: .failed, message: message)
+            .init(state: .failed, messageResource: LocalizedStringResource(stringLiteral: message))
         }
         
         static func partialComplete(_ message: String) -> Self {
-            .init(state: .partialComplete, message: message)
+            .init(state: .partialComplete, messageResource: LocalizedStringResource(stringLiteral: message))
         }
     }
 }

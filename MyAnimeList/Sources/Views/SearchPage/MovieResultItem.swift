@@ -14,7 +14,7 @@ struct MovieResultItem: View {
     
     var body: some View {
         HStack {
-            PosterView(url: movie.posterURL, diskCacheExpiration: .shortTerm)
+            KFImageView(url: movie.posterURL, diskCacheExpiration: .shortTerm)
                 .scaledToFit()
                 .clipShape(.rect(cornerRadius: 6))
                 .frame(width: 60, height: 90)

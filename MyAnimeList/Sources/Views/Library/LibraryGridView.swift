@@ -23,12 +23,27 @@ struct LibraryGridView: View {
     @Binding var scrolledID: Int?
     @Binding var highlightedEntryID: Int?
     
+    private func showHighlightBinding(for entry: AnimeEntry) -> Binding<Bool> {
+        Binding(get: {
+            entry.tmdbID == highlightedEntryID
+        }, set: {
+            if !$0 {
+                highlightedEntryID = nil
+            }
+        })
+    }
+    
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView{
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 90))]) {
                     ForEach(store.libraryOnDisplay, id: \.tmdbID) { entry in
-                        gridItem(entry: entry)
+                        LibraryGridItem(entry: entry)
+                            .highlightEffect(showHighlight: showHighlightBinding(for: entry), delay: 0.2)
+                            .contextMenu(menuItems: {
+                                contextMenu(for: entry)
+                                    .onAppear { scrolledID = entry.tmdbID }
+                            })
                             .onTapGesture { scrolledID = entry.tmdbID }
                             .onTapGesture(count: 2) {
                                 editingEntry = entry
@@ -85,22 +100,6 @@ struct LibraryGridView: View {
                     AnimeEntryEditor(entry: entry)
                 }
             }
-        }
-    }
-    
-    private func gridItem(entry: AnimeEntry) -> some View {
-        VStack {
-            PosterView(url: entry.posterURL, diskCacheExpiration: .longTerm)
-                .clipShape(.proportionalRounded(cornerFraction: 0.05))
-                .aspectRatio(contentMode: .fit)
-                .contextMenu(menuItems: {
-                    contextMenu(for: entry)
-                        .onAppear { scrolledID = entry.tmdbID }
-                })
-            Text(entry.displayName)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
         }
     }
     
@@ -166,7 +165,23 @@ struct LibraryGridView: View {
                 pasteAction = paste
             }
         } else {
-            ToastCenter.global.completionState = .init(state: .failed, message: "No info found on pasteboard.")
+            ToastCenter.global.completionState = .init(state: .failed, messageResource: "No info found on pasteboard.")
+        }
+    }
+}
+
+fileprivate struct LibraryGridItem: View {
+    var entry: AnimeEntry
+    
+    var body: some View {
+        VStack {
+            KFImageView(url: entry.posterURL, diskCacheExpiration: .longTerm)
+                .clipShape(.proportionalRounded(cornerFraction: 0.05))
+                .aspectRatio(contentMode: .fit)
+            Text(entry.displayName)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
         }
     }
 }

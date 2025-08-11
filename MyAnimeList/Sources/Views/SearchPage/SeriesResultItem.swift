@@ -17,7 +17,7 @@ struct SeriesResultItem: View {
         
     var body: some View {
         HStack {
-            PosterView(url: series.posterURL, diskCacheExpiration: .shortTerm)
+            KFImageView(url: series.posterURL, diskCacheExpiration: .shortTerm)
                 .scaledToFit()
                 .clipShape(.rect(cornerRadius: 6))
                 .frame(width: 80, height: 120)

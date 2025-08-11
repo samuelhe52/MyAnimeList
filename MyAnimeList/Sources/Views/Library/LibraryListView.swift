@@ -26,7 +26,7 @@ struct LibraryListView: View {
         ScrollViewReader { proxy in
             List(store.libraryOnDisplay, id: \.tmdbID) { entry in
                 HStack {
-                    PosterView(url: entry.posterURL, diskCacheExpiration: .longTerm)
+                    KFImageView(url: entry.posterURL, diskCacheExpiration: .longTerm)
                         .scaledToFit()
                         .clipShape(.rect(cornerRadius: 6))
                         .frame(width: 80, height: 120)
@@ -182,7 +182,7 @@ struct LibraryListView: View {
                 pasteAction = paste
             }
         } else {
-            ToastCenter.global.completionState = .init(state: .failed, message: "No info found on pasteboard.")
+            ToastCenter.global.completionState = .init(state: .failed, messageResource: "No info found on pasteboard.")
         }
     }
 }

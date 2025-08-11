@@ -59,7 +59,7 @@ struct GlobalToastsModifier: ViewModifier {
                 }
                 return AlertToast(displayMode: .hud,
                                   type: alertType,
-                                  title: center.completionState?.message)
+                                  titleResource: center.completionState?.messageResource)
             })
             .sensoryFeedback(trigger: center.completionState) { _,new in
                 guard let state = new?.state else { return nil }

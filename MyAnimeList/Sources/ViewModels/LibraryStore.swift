@@ -209,14 +209,15 @@ class LibraryStore {
         let prefetcher = ImagePrefetcher(urls: urls, completionHandler: { skipped, failed, completed  in
             ToastCenter.global.prefetchingImages = false
             var state: ToastCenter.CompletedWithMessage.State = .completed
-            let message = "Fetched: \(skipped.count + completed.count), failed: \(failed.count)"
+            let messageResource: LocalizedStringResource = "Fetched: \(skipped.count + completed.count), failed: \(failed.count)"
             if failed.isEmpty {
                 state = .completed
             } else if completed.isEmpty && skipped.isEmpty {
                 state = .failed
             } else { state = .partialComplete }
-            ToastCenter.global.completionState = .init(state: state, message: message)
-            logger.info("Prefetched images: \(message)")
+            ToastCenter.global.completionState = .init(state: state,
+                                                       messageResource: messageResource)
+            logger.info("Prefetched images: \(messageResource.key)")
         })
         ToastCenter.global.prefetchingImages = true
         prefetcher.start()

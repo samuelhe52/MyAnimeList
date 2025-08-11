@@ -38,6 +38,26 @@ extension AnimeEntry {
         dateFinished = other.dateFinished
         favorite = other.favorite
     }
+    
+    public static func template(id: Int = 0) -> AnimeEntry {
+        .init(name: "Template", type: .movie, tmdbID: id)
+    }
+    
+    public static var frieren: AnimeEntry {
+        return AnimeEntry(
+            name: "葬送のフリーレン",
+            overview: "勇者ヒンメルたちと共に、10年に及ぶ冒険の末に魔王を打ち倒し、世界に平和をもたらした魔法使いフリーレン。千年以上生きるエルフである彼女は、ヒンメルたちと再会の約束をし、独り旅に出る。それから50年後、フリーレンはヒンメルのもとを訪ねるが、50年前と変わらぬ彼女に対し、ヒンメルは老い、人生は残りわずかだった。その後、死を迎えたヒンメルを目の当たりにし、これまで“人を知る”ことをしてこなかった自分を痛感し、それを悔いるフリーレンは、“人を知るため”の旅に出る。その旅路には、さまざまな人との出会い、さまざまな出来事が待っていた―。",
+            onAirDate: .now,
+            type: .series,
+            linkToDetails: URL(string: "https://frieren-anime.jp/"),
+            posterURL: URL(string: "https://image.tmdb.org/t/p/original/dDRiOkCBCkd7w6ysMFr39G16opQ.jpg"),
+            backdropURL: URL(string: "https://image.tmdb.org/t/p/original/96RT2A47UdzWlUfvIERFyBsLhL2.jpg"),
+            tmdbID: 209867,
+            dateSaved: .now,
+            dateStarted: nil,
+            dateFinished: nil,
+          )
+    }
 }
 
 extension Collection where Element == AnimeEntry {

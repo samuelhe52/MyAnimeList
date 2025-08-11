@@ -121,7 +121,7 @@ struct PosterSelectionView: View {
         let width = poster.metadata.width
         let height = poster.metadata.height
         VStack {
-            PosterView(url: poster.url, diskCacheExpiration: Constants.cacheExpiration)
+            KFImageView(url: poster.url, diskCacheExpiration: Constants.cacheExpiration)
                 .clipShape(RoundedRectangle(cornerRadius: Constants.posterCornerRadius))
                 .aspectRatio(contentMode: .fit)
             Text("\(width) x \(height)")
@@ -171,7 +171,7 @@ struct PosterPreview: View {
             Text("\(previewPoster.metadata.width) x \(previewPoster.metadata.height)")
                 .font(.caption)
                 .foregroundStyle(.gray)
-            PosterView(url: previewPosterURL, diskCacheExpiration: .shortTerm)
+            KFImageView(url: previewPosterURL, diskCacheExpiration: .shortTerm)
                 .aspectRatio(contentMode: .fit)
             Button("Use this poster") {
                 updatePoster(previewPosterURL)

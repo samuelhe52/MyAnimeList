@@ -1,5 +1,5 @@
 //
-//  PosterView.swift
+//  KFImageView.swift
 //  MyAnimeList
 //
 //  Created by Samuel He on 2025/5/11.
@@ -11,7 +11,7 @@ import os
 
 fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "PosterView")
 
-struct PosterView: View {
+struct KFImageView: View {
     let url: URL?
     let diskCacheExpiration: StorageExpiration
     @Binding var imageLoaded: Bool

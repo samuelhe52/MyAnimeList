@@ -23,7 +23,7 @@ struct AnimeEntryCard: View {
             if imageLoaded {
                 AnimeEntryDates(entry: entry)
             }
-            PosterView(url: entry.posterURL, diskCacheExpiration: .longTerm, imageLoaded: $imageLoaded)
+            KFImageView(url: entry.posterURL, diskCacheExpiration: .longTerm, imageLoaded: $imageLoaded)
                 .scaledToFit()
                 .clipShape(.rect(cornerRadius: 10))
                 .overlay(alignment: .bottomTrailing) {

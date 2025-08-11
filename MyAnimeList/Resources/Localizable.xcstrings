@@ -589,6 +589,28 @@
         }
       }
     },
+    "Fetched: %lld, failed: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fetched: %1$lld, failed: %2$lld"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取得済み：%1$lld、失敗：%2$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已获取：%1$lld，失败：%2$lld"
+          }
+        }
+      }
+    },
     "Filter" : {
       "localizations" : {
         "ja" : {
@@ -797,6 +819,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "电影"
+          }
+        }
+      }
+    },
+    "No info found on pasteboard." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボードに情報がない"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪贴板上无信息"
           }
         }
       }

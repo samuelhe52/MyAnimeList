@@ -12,7 +12,7 @@ struct EntryPreview: View {
     var entry: AnimeEntry
     
     var body: some View {
-        PosterView(url: entry.posterURL, diskCacheExpiration: .longTerm)
+        KFImageView(url: entry.posterURL, diskCacheExpiration: .longTerm)
             .scaledToFit()
             .overlay(alignment: .bottomTrailing) {
                 AnimeTypeIndicator(type: entry.type)

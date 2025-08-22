@@ -11,6 +11,10 @@ import SwiftData
 import DataProvider
 import Collections
 
+extension EnvironmentValues {
+    @Entry var toggleFavorite: (AnimeEntry) -> Void = { _ in }
+}
+
 struct LibraryView: View {
     @Bindable var store: LibraryStore
     @Environment(\.dataHandler) var dataHandler
@@ -31,6 +35,7 @@ struct LibraryView: View {
     var body: some View {
         NavigationStack {
             mainContent
+                .environment(\.toggleFavorite, toggleFavorite)
                 .toolbar {
                     ToolbarItem(placement: .bottomBar) {
                         Picker("View Style", selection: $libraryViewStyle) {
@@ -59,20 +64,6 @@ struct LibraryView: View {
         }
     }
     
-    private func toggleFavoriteButton(for entry: AnimeEntry) -> some View {
-        Button {
-            dataHandler?.toggleFavorite(entry: entry)
-            favoriteToggle.toggle()
-        } label: {
-            if entry.favorite {
-                Image(systemName: "heart.fill")
-            } else {
-                Image(systemName: "heart")
-            }
-        }
-        .sensoryFeedback(.impact, trigger: favoriteToggle)
-    }
-    
     @ViewBuilder
     private var mainContent: some View {
         switch libraryViewStyle {
@@ -92,6 +83,24 @@ struct LibraryView: View {
                             scrolledID: $scrollState.scrolledID,
                             highlightedEntryID: $highlightedEntryID)
         }
+    }
+    
+    private func toggleFavoriteButton(for entry: AnimeEntry) -> some View {
+        Button {
+            toggleFavorite(entry)
+        } label: {
+            if entry.favorite {
+                Image(systemName: "heart.fill")
+            } else {
+                Image(systemName: "heart")
+            }
+        }
+        .sensoryFeedback(.impact, trigger: favoriteToggle)
+    }
+    
+    private func toggleFavorite(_ entry: AnimeEntry) {
+        dataHandler?.toggleFavorite(entry: entry)
+        favoriteToggle.toggle()
     }
     
     private var searchButton: some View {

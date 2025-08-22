@@ -11,10 +11,10 @@ import DataProvider
 struct LibraryListView: View {
     let store: LibraryStore
     @Environment(\.dataHandler) var dataHandler
+    @Environment(\.toggleFavorite) var toggleFavorite
     
     @State private var deletingEntry: AnimeEntry?
     @State private var isDeletingEntry: Bool = false
-    @State private var favoritedTrigger: Bool = false
     @State private var editingEntry: AnimeEntry?
     @State private var switchingPosterForEntry: AnimeEntry?
     @State private var showPasteAlert: Bool = false
@@ -83,7 +83,6 @@ struct LibraryListView: View {
                     proxy.scrollTo(scrolledID)
                 }
             }
-            .sensoryFeedback(.impact, trigger: favoritedTrigger)
         }
     }
     
@@ -121,8 +120,7 @@ struct LibraryListView: View {
             ToastCenter.global.copied = true
         }
         EntryFavoriteButton(favorited: entry.favorite) {
-            dataHandler?.toggleFavorite(entry: entry)
-            favoritedTrigger.toggle()
+            toggleFavorite(entry)
         }
         Button("Copy Info", systemImage: "doc.on.doc") {
             let userInfo = UserEntryInfo(for: entry)

@@ -11,6 +11,7 @@ import DataProvider
 struct LibraryGridView: View {
     let store: LibraryStore
     @Environment(\.dataHandler) var dataHandler
+    @Environment(\.toggleFavorite) var toggleFavorite
     
     @State private var deletingEntry: AnimeEntry?
     @State private var isDeletingEntry: Bool = false
@@ -114,8 +115,7 @@ struct LibraryGridView: View {
             ToastCenter.global.copied = true
         }
         EntryFavoriteButton(favorited: entry.favorite) {
-            dataHandler?.toggleFavorite(entry: entry)
-            favoritedTrigger.toggle()
+            toggleFavorite(entry)
         }
         Button("Copy Info", systemImage: "doc.on.doc") {
             let userInfo = UserEntryInfo(for: entry)

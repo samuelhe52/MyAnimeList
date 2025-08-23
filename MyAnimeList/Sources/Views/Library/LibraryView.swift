@@ -79,10 +79,13 @@ struct LibraryView: View {
             LibraryListView(store: store,
                             scrolledID: $scrollState.scrolledID,
                             highlightedEntryID: $highlightedEntryID)
+            .navigationTitle("\(store.libraryOnDisplay.count) Anime")
         case .grid:
             LibraryGridView(store: store,
                             scrolledID: $scrollState.scrolledID,
                             highlightedEntryID: $highlightedEntryID)
+            .navigationTitle("\(store.libraryOnDisplay.count) Anime")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
     

@@ -50,7 +50,6 @@ struct LibraryListView: View {
             .animation(.default, value: store.sortReversed)
             .animation(.default, value: store.sortStrategy)
             .animation(.default, value: store.filters)
-            .navigationTitle("\(store.libraryOnDisplay.count) Anime")
             .alert("Delete Anime?",
                    isPresented: $isDeletingEntry,
                    presenting: deletingEntry,

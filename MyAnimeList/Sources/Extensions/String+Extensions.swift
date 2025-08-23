@@ -16,6 +16,16 @@ extension String {
     static let persistedScrolledID = "PersistedScrolledID"
     static let librarySortStrategy = "LibrarySortStrategy"
     static let libraryViewStyle = "LibraryViewStyle"
+    
+    static let allPreferenceKeys: [String] = [
+        .preferredAnimeInfoLanguage,
+        .useCurrentLocaleForAnimeInfoLanguage,
+        .searchPageLanguage,
+        .searchPageQuery,
+        .persistedScrolledID,
+        .librarySortStrategy,
+        .libraryViewStyle,
+    ]
 }
 
 extension String {

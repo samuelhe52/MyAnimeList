@@ -5,6 +5,8 @@
 //  Created by Samuel He on 2024/12/8.
 //
 
+import Foundation
+import ZIPFoundation
 import Testing
 @testable import MyAnimeList
 @testable import DataProvider
@@ -12,6 +14,9 @@ import Testing
 struct MyAnimeListTests {
     let fetcher = InfoFetcher()
     let language: Language = .japanese
+    @MainActor let fileManager = FileManager.default
+    @MainActor let dataProvider = DataProvider()
+    @MainActor let backupManager = BackupManager()
     
     @Test func testFetchInfo() async throws {
         guard let result = try await fetcher.searchTVSeries(name: "Frieren", language: language).first else { fatalError() }
@@ -33,5 +38,15 @@ struct MyAnimeListTests {
             print($0.height)
             print("-------------------------------------------")
         }
+    }
+    
+    @Test @MainActor func testBackup() throws {
+        let backupURL = try backupManager.createBackup()
+        let parentDirectoryURL = backupURL.deletingLastPathComponent()
+        print(backupURL.path())
+        print(fileManager.fileExists(atPath: backupURL.path()))
+        try print(fileManager.attributesOfItem(atPath: backupURL.path())[.size] as! NSNumber)
+        try fileManager.unzipItem(at: backupURL, to: parentDirectoryURL)
+        try print(fileManager.contentsOfDirectory(atPath: parentDirectoryURL.path()).filter({ $0.contains("default") }))
     }
 }

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		9F1D86582DD9848100531E73 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 9F1D86572DD9848100531E73 /* Collections */; };
 		9F3E71532DC6556500F2EC4A /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = 9F3E71522DC6556500F2EC4A /* AlertToast */; };
+		9F720B892E584AD400C23949 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 9F720B882E584AD400C23949 /* ZIPFoundation */; };
 		9F8D665F2D05609200CF355D /* TMDb in Frameworks */ = {isa = PBXBuildFile; productRef = 9F8D665E2D05609200CF355D /* TMDb */; };
 		9F93FC222DE202E10071FB56 /* DataProvider in Frameworks */ = {isa = PBXBuildFile; productRef = 9F93FC212DE202E10071FB56 /* DataProvider */; };
 		9FB6FEF12D8FCE5A00B423D0 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 9FB6FEF02D8FCE5A00B423D0 /* Kingfisher */; };
@@ -95,6 +96,7 @@
 				9FE2B5252E0FEE4A00E4898C /* SHContainers in Frameworks */,
 				9FE2B5202E0FE94300E4898C /* SHContainers in Frameworks */,
 				9FE2B51D2E0FE91900E4898C /* SHContainers in Frameworks */,
+				9F720B892E584AD400C23949 /* ZIPFoundation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -170,6 +172,7 @@
 				9FE2B51C2E0FE91900E4898C /* SHContainers */,
 				9FE2B51F2E0FE94300E4898C /* SHContainers */,
 				9FE2B5242E0FEE4A00E4898C /* SHContainers */,
+				9F720B882E584AD400C23949 /* ZIPFoundation */,
 			);
 			productName = MyAnimeList;
 			productReference = 9F8D66302D055FEF00CF355D /* MyAnimeList.app */;
@@ -254,6 +257,7 @@
 				9F3E71512DC6556500F2EC4A /* XCRemoteSwiftPackageReference "AlertToast" */,
 				9F1D86562DD9848100531E73 /* XCRemoteSwiftPackageReference "swift-collections" */,
 				9FE2B5232E0FEE4A00E4898C /* XCRemoteSwiftPackageReference "SHContainers" */,
+				9F720B872E584AD400C23949 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9F8D66312D055FEF00CF355D /* Products */;
@@ -469,6 +473,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportsDocumentBrowser = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -498,6 +503,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportsDocumentBrowser = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -638,6 +644,14 @@
 				kind = branch;
 			};
 		};
+		9F720B872E584AD400C23949 /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/weichsel/ZIPFoundation";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.19;
+			};
+		};
 		9F8D665D2D05609200CF355D /* XCRemoteSwiftPackageReference "TMDb" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/adamayoung/TMDb";
@@ -674,6 +688,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9F3E71512DC6556500F2EC4A /* XCRemoteSwiftPackageReference "AlertToast" */;
 			productName = AlertToast;
+		};
+		9F720B882E584AD400C23949 /* ZIPFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9F720B872E584AD400C23949 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
+			productName = ZIPFoundation;
 		};
 		9F8D665E2D05609200CF355D /* TMDb */ = {
 			isa = XCSwiftPackageProductDependency;

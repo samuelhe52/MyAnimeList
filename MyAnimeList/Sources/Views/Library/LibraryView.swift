@@ -24,6 +24,7 @@ struct LibraryView: View {
     @State private var showCacheAlert = false
     @State private var showClearAllAlert = false
     @State private var cacheSizeResult: Result<UInt, KingfisherError>? = nil
+    @State private var showBackupManager = false
     @State private var scrollState = ScrollState()
     @State private var newEntriesAddedToggle = false
     @State private var favoriteToggle = false
@@ -128,6 +129,8 @@ struct LibraryView: View {
             Toggle("Follow System", systemImage: "gear", isOn: $useCurrentLocaleForAnimeInfoLanguage)
             preferredAnimeInfoLanguagePicker
             Divider()
+            backupManagement
+            Divider()
             apiConfigruation
             checkDiskUsageButton
             refreshInfosButton
@@ -168,6 +171,16 @@ struct LibraryView: View {
         .sheet(isPresented: $changeAPIKey) {
             TMDbAPIConfigurator(isEditing: true)
                 .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $showBackupManager) {
+            BackupManagerView(backupManager: store.backupManager)
+                .presentationDetents([.medium])
+        }
+    }
+    
+    private var backupManagement: some View {
+        Button("Backup & Restore", systemImage: "clock.arrow.trianglehead.counterclockwise.rotate.90") {
+            showBackupManager = true
         }
     }
     

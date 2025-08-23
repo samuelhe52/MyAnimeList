@@ -19,6 +19,7 @@ fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "Library
 class LibraryStore {
     @ObservationIgnored private let dataProvider: DataProvider
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
+    @ObservationIgnored let backupManager: BackupManager
     
     var libraryOnDisplay: [AnimeEntry] {
         filterAndSort(library)
@@ -38,6 +39,7 @@ class LibraryStore {
     
     init(dataProvider: DataProvider) {
         self.dataProvider = dataProvider
+        self.backupManager = BackupManager(dataProvider: dataProvider)
         self.library = []
         self.infoFetcher = .init()
         if let sortStrategyRawValue = UserDefaults.standard.string(forKey: .librarySortStrategy),

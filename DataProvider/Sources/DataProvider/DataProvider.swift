@@ -23,10 +23,10 @@ public typealias AnimeEntry = CurrentSchema.AnimeEntry
     public static let forPreview = DataProvider(inMemory: true)
     
     /// The shared model container used for data persistence.
-    public let sharedModelContainer: ModelContainer
+    public private(set) var sharedModelContainer: ModelContainer
     
     /// The data handler instance for performing data operations.
-    public let dataHandler: DataHandler
+    public private(set) var dataHandler: DataHandler
     
     /// Whether this instance's data is stored in memory.
     public let inMemory: Bool
@@ -50,6 +50,28 @@ public typealias AnimeEntry = CurrentSchema.AnimeEntry
                 fatalError("Could not create ModelContainer: \(error)")
             }
         }()
+        dataHandler = .init(modelContainer: sharedModelContainer)
+    }
+    
+    /// Tears down the existing model container and re-initializes it from the persistent store.
+    /// This is crucial for applying changes after a restore operation.
+    public func reloadDataStore() {
+        setupContainer()
+    }
+    
+    /// Sets up the model container. This will fatalError if the container cannot be created.
+    private func setupContainer() {
+        // Data migration happens here
+        do {
+            let schema = Schema(CurrentSchema.models)
+            let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
+            
+            sharedModelContainer = try ModelContainer(for: schema,
+                                                      migrationPlan: MigrationPlan.self,
+                                                      configurations: modelConfiguration)
+        } catch {
+            fatalError("Could not create or reload ModelContainer: \(error)")
+        }
         dataHandler = .init(modelContainer: sharedModelContainer)
     }
     

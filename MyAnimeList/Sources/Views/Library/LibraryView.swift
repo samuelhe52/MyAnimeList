@@ -54,6 +54,9 @@ struct LibraryView: View {
                            let entry = store.libraryOnDisplay.entryWithID(scrolledID) {
                             toggleFavoriteButton(for: entry)
                                 .disabled(libraryViewStyle != .gallery)
+                        } else {
+                            Button {} label: { Image(systemName: "heart") }
+                                .disabled(true)
                         }
                     }
                     ToolbarItemGroup(placement: .topBarTrailing) {

@@ -59,6 +59,9 @@ struct SearchPage: View {
         .onSubmit(of: .search) { updateResults() }
         .onChange(of: language, initial: true) { updateResults() }
         .animation(.default, value: service.status)
+        .toolbar {
+            DefaultToolbarItem(kind: .search, placement: .bottomBar)
+        }
     }
     
     @ViewBuilder
@@ -108,10 +111,8 @@ struct SearchPage: View {
             Button("Add To Library...") {
                 service.submit()
             }
-            .buttonStyle(.borderedProminent)
-            .buttonBorderShape(.capsule)
-            .shadow(color: .blue, radius: 8)
-            .tint(.blue)
+            .buttonStyle(.glassProminent)
+            .shadow(color: .blue, radius: 5)
             .transition(.opacity.animation(.interactiveSpring(duration: 0.3)))
         }
     }
@@ -134,7 +135,8 @@ fileprivate struct AlreadyAddedIndicatorModifier: ViewModifier {
                     Text(message)
                         .multilineTextAlignment(.center)
                         .padding(10)
-                        .background(.ultraThinMaterial, in: .buttonBorder)
+                        .glassEffect(.regular)
+                        .shadow(radius: 5)
                         .font(.callout)
                 }
         } else {
@@ -154,7 +156,7 @@ fileprivate extension View {
     NavigationStack {
         SearchPage(query: "K-on!",
                    onDuplicateTapped: { _ in },
-                   checkDuplicate: { _ in false },
+                   checkDuplicate: { _ in true },
                    processResults: { results in
             print(results)
         })

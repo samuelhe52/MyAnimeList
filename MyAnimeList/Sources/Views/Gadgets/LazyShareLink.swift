@@ -7,23 +7,24 @@
 
 import SwiftUI
 
-struct LazyShareLink<Title: View, Icon: View>: View {
-    let label: Label<Title, Icon>
+struct LazyShareLink<LabelView: View>: View {
+    let label: () -> LabelView
     let prepareData: () -> [Any]?
 
     init(_ text: LocalizedStringKey = "Share", prepareData: @escaping () -> [Any]?)
-    where Title == Text, Icon == Image {
-        self.label = .init(text, systemImage: "square.and.arrow.up")
+    where LabelView == Label<Text, Image> {
+        self.label = { Label(text, systemImage: "square.and.arrow.up") }
         self.prepareData = prepareData
     }
     
-    init(prepareData: @escaping () -> [Any]?, label: () -> Label<Title, Icon>) {
-        self.label = label()
+    init(prepareData: @escaping () -> [Any]?,
+         @ViewBuilder label: @escaping () -> LabelView) {
         self.prepareData = prepareData
+        self.label = label
     }
 
     var body: some View {
-        Button(action: openShare, label: { label })
+        Button(action: openShare, label: label)
     }
 
     private func openShare() {

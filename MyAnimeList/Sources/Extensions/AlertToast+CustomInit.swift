@@ -7,7 +7,7 @@
 
 import Foundation
 import AlertToast
-import SwiftUICore
+import SwiftUI
 
 extension AlertToast {
     init(displayMode: DisplayMode = .alert,

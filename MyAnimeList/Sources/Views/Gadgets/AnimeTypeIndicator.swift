@@ -24,6 +24,6 @@ struct AnimeTypeIndicator: View {
         Text(description)
             .padding(padding)
             .background(in: .buttonBorder)
-            .backgroundStyle(.regularMaterial)
+            .glassEffect(.clear)
     }
 }

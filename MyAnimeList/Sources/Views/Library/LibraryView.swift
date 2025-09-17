@@ -44,6 +44,7 @@ struct LibraryView: View {
                                 Label(style.nameKey, systemImage: style.systemImageName).tag(style)
                             }
                         }
+                        .labelsHidden()
                     }
                     ToolbarItemGroup(placement: .status) {
                         sortOptions
@@ -130,8 +131,6 @@ struct LibraryView: View {
     @ViewBuilder
     private var settings: some View {
         Menu {
-            deleteAllButton
-            Divider()
             Toggle("Follow System", systemImage: "gear", isOn: $useCurrentLocaleForAnimeInfoLanguage)
             preferredAnimeInfoLanguagePicker
             Divider()
@@ -140,6 +139,8 @@ struct LibraryView: View {
             apiConfigruation
             checkDiskUsageButton
             refreshInfosButton
+            Divider()
+            deleteAllButton
         } label: {
             Image(systemName: "ellipsis.circle").padding(.vertical, 7.5)
         }
@@ -193,7 +194,7 @@ struct LibraryView: View {
     private var sortOptions: some View {
         Menu {
             Toggle("Reversed", systemImage: "arrow.counterclockwise.circle", isOn: $store.sortReversed)
-            Picker("Sort", selection: $store.sortStrategy) {
+            Picker("Sort", systemImage: "arrow.up.arrow.down", selection: $store.sortStrategy) {
                 ForEach(LibraryStore.AnimeSortStrategy.allCases, id: \.self) { strategy in
                     Text(strategy.localizedStringResource).tag(strategy)
                 }

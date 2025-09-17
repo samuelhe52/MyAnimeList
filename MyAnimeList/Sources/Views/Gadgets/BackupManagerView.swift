@@ -36,9 +36,9 @@ struct BackupManagerView: View {
             Text("Export all saved anime and preferences")
                 .font(.callout)
                 .foregroundStyle(.secondary)
-            HStack {
+            HStack(alignment: .firstTextBaseline) {
                 exportButton
-                Button("Restore", systemImage: "document", role: .destructive) {
+                Button("Restore", systemImage: "document.badge.clock", role: .destructive) {
                     showFileImporter = true
                 }
             }
@@ -90,7 +90,7 @@ struct BackupManagerView: View {
     
     @ViewBuilder
     private var exportButton: some View {
-        LazyShareLink("Export") {
+        LazyShareLink {
             do {
                 let url = try backupManager.createBackup()
                 return [url]
@@ -98,6 +98,8 @@ struct BackupManagerView: View {
                 exportErrorOccurred(error)
                 return nil
             }
+        } label: {
+            Label("Export", systemImage: "document.badge.arrow.up")
         }
     }
     

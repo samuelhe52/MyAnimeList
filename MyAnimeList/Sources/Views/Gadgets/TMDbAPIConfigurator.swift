@@ -71,7 +71,8 @@ struct TMDbAPIConfigurator: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : Color.blue)
+                .glassEffect(.regular.tint(isFieldEmpty ? Color.gray : Color.blue), in: .proportionalRounded)
+                .animation(.default, value: isFieldEmpty)
                 .foregroundColor(.white)
                 .cornerRadius(10)
             }
@@ -102,6 +103,10 @@ struct TMDbAPIConfigurator: View {
             default: nil
             }
         }
+    }
+    
+    private var isFieldEmpty: Bool {
+        apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
     func checkKey(_ key: String) async -> Bool {

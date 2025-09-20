@@ -211,7 +211,8 @@ class LibraryStore {
         let prefetcher = ImagePrefetcher(urls: urls, completionHandler: { skipped, failed, completed  in
             ToastCenter.global.prefetchingImages = false
             var state: ToastCenter.CompletedWithMessage.State = .completed
-            let messageResource: LocalizedStringResource = "Fetched: \(skipped.count + completed.count), failed: \(failed.count)"
+            let messageResourceString = "Fetched: \(skipped.count + completed.count), failed: \(failed.count)"
+            let messageResource = LocalizedStringResource("Fetched: \(skipped.count + completed.count), failed: \(failed.count)")
             if failed.isEmpty {
                 state = .completed
             } else if completed.isEmpty && skipped.isEmpty {
@@ -219,7 +220,7 @@ class LibraryStore {
             } else { state = .partialComplete }
             ToastCenter.global.completionState = .init(state: state,
                                                        messageResource: messageResource)
-            logger.info("Prefetched images: \(messageResource.key)")
+            logger.info("Prefetched images: \(messageResourceString)")
         })
         ToastCenter.global.prefetchingImages = true
         prefetcher.start()
@@ -265,16 +266,18 @@ class LibraryStore {
     }
     
     struct AnimeFilter: Sendable, CaseIterable, Equatable, Hashable {
-        static let favorited = AnimeFilter("Favorited") { $0.favorite }
-        static let watched = AnimeFilter("Watched") { $0.watchStatus == WatchedStatus.watched }
-        static let planToWatch = AnimeFilter("Plan to Watch") { $0.watchStatus == .planToWatch }
-        static let watching = AnimeFilter("Watching") { $0.watchStatus == .watching }
+        static let favorited = AnimeFilter(id: "Favorited", name: "Favorited") { $0.favorite }
+        static let watched = AnimeFilter(id: "Watched", name: "Watched") { $0.watchStatus == WatchedStatus.watched }
+        static let planToWatch = AnimeFilter(id: "Plan to Watch", name: "Plan to Watch") { $0.watchStatus == .planToWatch }
+        static let watching = AnimeFilter(id: "Watching", name: "Watching") { $0.watchStatus == .watching }
         
-        private init(_ name: LocalizedStringResource, evaluate: @escaping @Sendable (AnimeEntry) -> Bool) {
+        private init(id: String, name: LocalizedStringResource, evaluate: @escaping @Sendable (AnimeEntry) -> Bool) {
+            self.id = id
             self.name = name
             self.evaluate = evaluate
         }
-                
+        
+        let id: String
         let name: LocalizedStringResource
         let evaluate: @Sendable (AnimeEntry) -> Bool
         
@@ -285,7 +288,7 @@ class LibraryStore {
         }
         
         func hash(into hasher: inout Hasher) {
-            hasher.combine(name.key)
+            hasher.combine(id)
         }
     }
     

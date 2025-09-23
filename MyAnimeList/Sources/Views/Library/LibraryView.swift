@@ -30,7 +30,6 @@ struct LibraryView: View {
     @State private var favoriteToggle = false
     @State private var highlightedEntryID: Int?
     
-    @AppStorage(.useCurrentLocaleForAnimeInfoLanguage) var useCurrentLocaleForAnimeInfoLanguage: Bool = true
     @AppStorage(.libraryViewStyle) var libraryViewStyle: LibraryViewStyle = .gallery
     
     var body: some View {
@@ -131,7 +130,6 @@ struct LibraryView: View {
     @ViewBuilder
     private var settings: some View {
         Menu {
-            Toggle("Follow System", systemImage: "gear", isOn: $useCurrentLocaleForAnimeInfoLanguage)
             preferredAnimeInfoLanguagePicker
             Divider()
             backupManagement
@@ -145,11 +143,6 @@ struct LibraryView: View {
             Image(systemName: "ellipsis.circle").padding(.vertical, 7.5)
         }
         .menuOrder(.priority)
-        .onChange(of: useCurrentLocaleForAnimeInfoLanguage) {
-            if useCurrentLocaleForAnimeInfoLanguage {
-                store.language = .current
-            }
-        }
         .alert("Delete all animes?", isPresented: $showClearAllAlert) {
             Button("Delete", role: .destructive) {
                 store.clearLibrary()
@@ -228,16 +221,36 @@ struct LibraryView: View {
         }
     }
     
-    private var preferredAnimeInfoLanguagePicker: some View {
-        Picker(selection: $store.language) {
-            ForEach(Language.allCases, id: \.rawValue) { language in
-                Text(language.localizedStringResource).tag(language)
+    @State private var lastUsedlanguage: Language = .english
+    
+    private var isLanguageFollowingSystem: Binding<Bool> {
+        Binding(get: {
+            return store.language == .current
+        }, set: {
+            if $0 {
+                lastUsedlanguage = store.language
+                store.language = .current
+            } else {
+                store.language = lastUsedlanguage
             }
-        } label: {
-            Label("Anime Info Language", systemImage: "globe")
+        })
+    }
+    
+    private var preferredAnimeInfoLanguagePicker: some View {
+        Menu("Anime Info Language", systemImage: "globe") {
+            Toggle("Follow System", isOn: isLanguageFollowingSystem)
+            ForEach(Language.allCases, id: \.rawValue) { language in
+                Toggle(language.localizedStringResource, isOn: Binding(
+                    get: {
+                        store.language == language
+                    }, set: {
+                        if $0 { store.language = language }
+                    }
+                ))
+                .disabled(isLanguageFollowingSystem.wrappedValue)
+            }
         }
-        .disabled(useCurrentLocaleForAnimeInfoLanguage)
-        .pickerStyle(.menu)
+        .menuActionDismissBehavior(.disabled)
     }
     
     private var deleteAllButton: some View {

@@ -76,4 +76,12 @@ extension AnimeEntry {
         parentSeriesEntry.onDisplay = false
         return parentSeriesEntry
     }
+    
+    var userInfo: UserEntryInfo {
+        UserEntryInfo(from: self)
+    }
+    
+    func userInfoHasChanges(comparedTo compared: UserEntryInfo) -> Bool {
+        return userInfo != compared
+    }
 }

@@ -122,8 +122,7 @@ struct LibraryListView: View {
             toggleFavorite(entry)
         }
         Button("Copy Info", systemImage: "doc.on.doc") {
-            let userInfo = UserEntryInfo(for: entry)
-            userInfo.copyToPasteboard()
+            entry.userInfo.copyToPasteboard()
             ToastCenter.global.copied = true
         }
         Button("Paste Info", systemImage: "doc.on.clipboard") {
@@ -172,7 +171,7 @@ struct LibraryListView: View {
                 entry.updateUserInfo(from: pasted)
                 ToastCenter.global.pasted = true
             }
-            if UserEntryInfo(for: entry).isEmpty {
+            if entry.userInfo.isEmpty {
                 paste()
             } else {
                 showPasteAlert = true

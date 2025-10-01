@@ -7,10 +7,10 @@
 
 import SwiftUI
 
-struct ActionToggle<Label: View>: View {
+struct ActionToggle<ToggleLabel: View>: View {
     @State var isOn: Bool
     let sensoryFeedback: SensoryFeedback?
-    @ViewBuilder let label: () -> Label
+    @ViewBuilder let label: () -> ToggleLabel
     let on: () -> Void
     let off: () -> Void
     
@@ -18,7 +18,7 @@ struct ActionToggle<Label: View>: View {
          sensoryFeedback: SensoryFeedback? = .selection,
          on: @escaping () -> Void = {},
          off: @escaping () -> Void = {},
-         @ViewBuilder label: @escaping () -> Label) {
+         @ViewBuilder label: @escaping () -> ToggleLabel) {
         self._isOn = .init(initialValue: isOn)
         self.sensoryFeedback = sensoryFeedback
         self.on = on

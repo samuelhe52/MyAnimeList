@@ -31,7 +31,7 @@ struct AnimeEntryEditor: View {
         
     init(entry: AnimeEntry) {
         self.entry = entry
-        self._originalUserInfo = .init(initialValue: UserEntryInfo(for: entry))
+        self._originalUserInfo = .init(initialValue: entry.userInfo)
     }
         
     var body: some View {
@@ -55,7 +55,13 @@ struct AnimeEntryEditor: View {
                 Button("Done", action: dismissAction)
             }
             ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") { showCancelEditsConfirmation = true }
+                Button("Cancel") {
+                    guard entry.userInfoHasChanges(comparedTo: originalUserInfo) else {
+                        dismiss()
+                        return
+                    }
+                    showCancelEditsConfirmation = true
+                }
             }
         }
         .navigationBarTitleDisplayMode(.inline)

@@ -36,7 +36,7 @@ public struct UserEntryInfo: Equatable, Codable {
         self.usingCustomPoster = usingCustomPoster
     }
 
-    public init(for entry: AnimeEntry) {
+    public init(from entry: AnimeEntry) {
         self.watchStatus = entry.watchStatus
         self.dateStarted = entry.dateStarted
         self.dateFinished = entry.dateFinished
@@ -45,6 +45,7 @@ public struct UserEntryInfo: Equatable, Codable {
         self.usingCustomPoster = entry.usingCustomPoster
     }
     
+    /// Whether this user info is "empty", i.e. has no meaningful user data.
     public var isEmpty: Bool {
         return watchStatus == .planToWatch &&
         dateStarted == nil &&

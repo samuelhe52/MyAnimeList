@@ -47,9 +47,6 @@ struct LibraryView: View {
                     }
                     ToolbarItemGroup(placement: .status) {
                         sortOptions
-                        filterOptions
-                    }
-                    ToolbarItem(placement: .bottomBar) {
                         if let scrolledID = scrollState.scrolledID,
                            let entry = store.libraryOnDisplay.entryWithID(scrolledID) {
                             toggleFavoriteButton(for: entry)
@@ -58,9 +55,12 @@ struct LibraryView: View {
                             Button {} label: { Image(systemName: "heart") }
                                 .disabled(true)
                         }
+                        filterOptions
+                    }
+                    ToolbarItem(placement: .bottomBar) {
+                        searchButton
                     }
                     ToolbarItemGroup(placement: .topBarTrailing) {
-                        searchButton
                         settings
                     }
                 }
@@ -111,7 +111,7 @@ struct LibraryView: View {
     }
     
     private var searchButton: some View {
-        Button("Search...", systemImage: "magnifyingglass.circle") { isSearching = true }
+        Button("Search...", systemImage: "magnifyingglass") { isSearching = true }
             .sheet(isPresented: $isSearching) {
                 NavigationStack {
                     SearchPage(onDuplicateTapped: { tappedID in

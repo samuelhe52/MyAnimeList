@@ -9,6 +9,7 @@ import Foundation
 import UniformTypeIdentifiers
 import ZIPFoundation
 import DataProvider
+import SwiftData
 
 extension UTType {
     static let mallib = UTType(exportedAs: "com.samuelhe.myanimelist.mallib")
@@ -25,6 +26,7 @@ enum BackupError: LocalizedError {
     case archiveExtractionFailed
     case backupFileNotFound
     case restoreFailed(reason: String)
+    case schemaVersionIncompatible(highest: Schema.Version, found: Schema.Version)
 
     var errorDescription: String? {
         switch self {
@@ -46,6 +48,8 @@ enum BackupError: LocalizedError {
             return "The backup file could not be found in the archive."
         case .restoreFailed(let reason):
             return "Restore failed: \(reason)"
+        case .schemaVersionIncompatible(let highest, let found):
+            return "Incompatible schema version. The highest supported version is \(highest), but found \(found). Please update the app."
         }
     }
 }
@@ -64,6 +68,7 @@ class BackupManager {
     private let userDefaults = UserDefaults.standard
     private let backupFileName = "MyAnimeList_Backup_" + Date().ISO8601Format()
     private let userSettingsFileName = "UserSettings.json"
+    private let schemaVersionFileName = "SchemaVersion.txt"
 
     // MARK: - Public Methods
 
@@ -79,13 +84,23 @@ class BackupManager {
             throw BackupError.backupDirectoryCreationFailed
         }
 
-        // 2. Save user settings to the temporary directory.
+        // 2. Save SwiftData schema version
+        let schemaVersion = DataProvider.default.sharedModelContainer.schema.version
+        let versionFileURL = backupDirectoryURL.appendingPathComponent(schemaVersionFileName)
+        do {
+            let schemaVersionJson = try JSONEncoder().encode(schemaVersion)
+            try schemaVersionJson.write(to: versionFileURL, options: [.atomic])
+        } catch {
+            throw BackupError.fileCreationFailed
+        }
+
+        // 3. Save user settings to the temporary directory.
         try saveUserSettings(to: backupDirectoryURL)
 
-        // 3. Copy SwiftData store files to the temporary directory.
+        // 4. Copy SwiftData store files to the temporary directory.
         try copySwiftDataStore(to: backupDirectoryURL)
 
-        // 4. Create a ZIP archive from the temporary directory.
+        // 5. Create a ZIP archive from the temporary directory.
         let archiveURL = fileManager.temporaryDirectory.appendingPathComponent(backupFileName, conformingTo: .mallib)
         
         // If a file already exists, remove it.
@@ -99,7 +114,7 @@ class BackupManager {
             throw BackupError.archiveCreationFailed
         }
 
-        // 5. Clean up the temporary backup directory.
+        // 6. Clean up the temporary backup directory.
         try? fileManager.removeItem(at: backupDirectoryURL)
 
         return archiveURL
@@ -202,6 +217,18 @@ class BackupManager {
         let storeDirectory = URL.applicationSupportDirectory
 
         do {
+            // Check schema version compatibility
+            let versionFileURL = directoryURL.appendingPathComponent(schemaVersionFileName)
+            guard fileManager.fileExists(atPath: versionFileURL.path()) else {
+                throw BackupError.backupFileNotFound
+            }
+            let versionData = try Data(contentsOf: versionFileURL)
+            let backupSchemaVersion = try JSONDecoder().decode(Schema.Version.self, from: versionData)
+            let currentSchemaVersion = DataProvider.default.sharedModelContainer.schema.version
+            guard backupSchemaVersion < currentSchemaVersion else {
+                throw BackupError.schemaVersionIncompatible(highest: currentSchemaVersion, found: backupSchemaVersion)
+            }
+
             // Remove current store files
             let currentFiles = try fileManager.contentsOfDirectory(at: storeDirectory, includingPropertiesForKeys: nil)
             for fileURL in currentFiles {

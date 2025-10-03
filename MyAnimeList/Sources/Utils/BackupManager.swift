@@ -219,14 +219,13 @@ class BackupManager {
         do {
             // Check schema version compatibility
             let versionFileURL = directoryURL.appendingPathComponent(schemaVersionFileName)
-            guard fileManager.fileExists(atPath: versionFileURL.path()) else {
-                throw BackupError.backupFileNotFound
-            }
-            let versionData = try Data(contentsOf: versionFileURL)
-            let backupSchemaVersion = try JSONDecoder().decode(Schema.Version.self, from: versionData)
-            let currentSchemaVersion = DataProvider.default.sharedModelContainer.schema.version
-            guard backupSchemaVersion < currentSchemaVersion else {
-                throw BackupError.schemaVersionIncompatible(highest: currentSchemaVersion, found: backupSchemaVersion)
+            if fileManager.fileExists(atPath: versionFileURL.path()) { // Only check if file exists, for backward compatibility
+                let versionData = try Data(contentsOf: versionFileURL)
+                let backupSchemaVersion = try JSONDecoder().decode(Schema.Version.self, from: versionData)
+                let currentSchemaVersion = DataProvider.default.sharedModelContainer.schema.version
+                guard backupSchemaVersion < currentSchemaVersion else {
+                    throw BackupError.schemaVersionIncompatible(highest: currentSchemaVersion, found: backupSchemaVersion)
+                }
             }
 
             // Remove current store files

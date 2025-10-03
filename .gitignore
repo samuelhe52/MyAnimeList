@@ -69,3 +69,6 @@ Media/
 
 # SPM
 .swiftpm/
+
+# VSCode
+.vscode/

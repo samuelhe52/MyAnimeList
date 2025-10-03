@@ -121,7 +121,7 @@ struct LibraryView: View {
                     }, checkDuplicate: { id in
                         return store.libraryOnDisplay.map(\.tmdbID).contains(id)
                     }, processResults: { processResults($0) })
-                        .navigationTitle("Search TMDB")
+                        .navigationTitle("Search")
                         .navigationBarTitleDisplayMode(.inline)
                 }
             }

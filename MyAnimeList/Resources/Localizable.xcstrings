@@ -1,18 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "* For security reasons, your TMDB API Key will not be exported." : {
+    "* For security reasons, your TMDb API Key will not be exported." : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "* セキュリティのため、TMDB APIキーはエクスポートされません。\n"
+            "value" : "* セキュリティのため、TMDb APIキーはエクスポートされません。\n"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "* 出于安全考虑，您的 TMDB API 密钥不会被输出"
+            "value" : "* 出于安全考虑，您的 TMDb API 密钥不会被输出"
           }
         }
       }
@@ -871,6 +871,22 @@
         }
       }
     },
+    "Library" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "资料库"
+          }
+        }
+      }
+    },
     "List" : {
       "localizations" : {
         "ja" : {
@@ -1258,18 +1274,34 @@
         }
       }
     },
-    "Search TMDB" : {
+    "Scope" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "TMDBを検索"
+            "value" : "範囲"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "搜索 TMDB"
+            "value" : "范围"
+          }
+        }
+      }
+    },
+    "Search" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "検索"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索"
           }
         }
       }
@@ -1504,34 +1536,50 @@
         }
       }
     },
-    "TMDB API Key" : {
+    "TMDb" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "TMDB APIキー"
+            "value" : "TMDb"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "TMDB API 密钥"
+            "value" : "TMDb"
           }
         }
       }
     },
-    "To continue, enter a TMDB API Key." : {
+    "TMDb API Key" : {
       "localizations" : {
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "続行するには、TMDB API キーを入力します。"
+            "value" : "TMDb APIキー"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请输入 TMDB API 密钥"
+            "value" : "TMDb API 密钥"
+          }
+        }
+      }
+    },
+    "To continue, enter a TMDb API Key." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "続行するには、TMDb API キーを入力します。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入 TMDb API 密钥"
           }
         }
       }

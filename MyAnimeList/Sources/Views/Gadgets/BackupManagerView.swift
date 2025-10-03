@@ -55,7 +55,7 @@ struct BackupManagerView: View {
                 .font(.callout)
             }
             Spacer()
-            Text("* For security reasons, your TMDB API Key will not be exported.")
+            Text("* For security reasons, your TMDb API Key will not be exported.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }

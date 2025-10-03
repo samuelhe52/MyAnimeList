@@ -44,14 +44,14 @@ struct TMDbAPIConfigurator: View {
                     .fontWeight(.bold)
             }
             
-            Text("To continue, enter a TMDB API Key.")
+            Text("To continue, enter a TMDb API Key.")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             
             VStack(spacing: 0) {
-                TextField("TMDB API Key", text: $apiKeyInput)
+                TextField("TMDb API Key", text: $apiKeyInput)
                     .padding()
                     .background(Color(.secondarySystemBackground))
                     .cornerRadius(10)

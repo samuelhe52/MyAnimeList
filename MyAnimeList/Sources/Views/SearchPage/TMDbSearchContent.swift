@@ -62,7 +62,12 @@ struct TMDbSearchContent: View {
                 .offset(y: -30)
         }
         .onSubmit(of: .search) { updateResults() }
-        .onChange(of: language, initial: true) { updateResults() }
+        .onChange(of: language) { updateResults() }
+        .onAppear {
+            if tmdbSearchService.movieResults.isEmpty && tmdbSearchService.seriesResults.isEmpty {
+                updateResults()
+            }
+        }
         .animation(.default, value: tmdbSearchService.status)
     }
     

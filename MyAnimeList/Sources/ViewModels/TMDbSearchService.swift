@@ -85,21 +85,25 @@ class TMDbSearchService {
                 let seriesPosterURLs = try await fetchPosterURLs(from: tvSeries.map { (tmdbID: $0.id, path: $0.posterPath) })
                 let searchMovieResults = movies.map { movie in
                     BasicInfo(name: movie.title,
-                                 overview: movie.overview,
-                                 posterURL: moviesPosterURLs.filter { $0.tmdbID == movie.id }.first?.url,
-                                 tmdbID: movie.id,
-                                 onAirDate: movie.releaseDate,
-                                 type: .movie)
+                              nameTranslations: [:],
+                              overview: movie.overview,
+                              overviewTranslations: [:],
+                              posterURL: moviesPosterURLs.filter { $0.tmdbID == movie.id }.first?.url,
+                              tmdbID: movie.id,
+                              onAirDate: movie.releaseDate,
+                              type: .movie)
                 }
                 let searchTVSeriesResults = tvSeries.map { series in
                     BasicInfo(name: series.name,
-                                 overview: series.overview,
-                                 posterURL: seriesPosterURLs.filter { $0.tmdbID == series.id }.first?.url,
-                                 tmdbID: series.id,
-                                 onAirDate: series.firstAirDate,
-                                 type: .series)
+                              nameTranslations: [:],
+                              overview: series.overview,
+                              overviewTranslations: [:],
+                              posterURL: seriesPosterURLs.filter { $0.tmdbID == series.id }.first?.url,
+                              tmdbID: series.id,
+                              onAirDate: series.firstAirDate,
+                              type: .series)
                 }
-            
+                
                 if currentQuery == query {
                     withAnimation {
                         movieResults = searchMovieResults
@@ -149,7 +153,7 @@ extension TMDbSearchService.Status: Equatable {
             return true
         case (.error(let e1), .error(let e2)):
             return (e1 as NSError).domain == (e2 as NSError).domain &&
-                   (e1 as NSError).code == (e2 as NSError).code
+            (e1 as NSError).code == (e2 as NSError).code
         default:
             return false
         }

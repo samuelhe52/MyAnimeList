@@ -1,5 +1,5 @@
 {
-  "originHash" : "adc1032d1e9b0ca8b55e26a0335b68810a9766d660447648945e31f395b78fe7",
+  "originHash" : "9efa9410f81b62a488ff3d7349f70bd0e27df33e6ed36dc1230bf470bd0babfb",
   "pins" : [
     {
       "identity" : "alerttoast",
@@ -40,10 +40,10 @@
     {
       "identity" : "tmdb",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/adamayoung/TMDb",
+      "location" : "https://github.com/samuelhe52/TMDb",
       "state" : {
-        "revision" : "edbaefe23929ca109e1e1512e8d6a660d501a6de",
-        "version" : "13.3.0"
+        "branch" : "main",
+        "revision" : "284863127a83bd1b7e22a0ec907afb09db3190af"
       }
     },
     {

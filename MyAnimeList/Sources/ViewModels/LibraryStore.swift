@@ -293,7 +293,7 @@ class LibraryStore {
     }
     
     enum AnimeSortStrategy: String, CaseIterable, CustomLocalizedStringResourceConvertible, Codable {
-        case dateSaved, dateStarted, dateFinished
+        case dateSaved, dateStarted, dateFinished, dateOnAir
         
         func compare(_ lhs: AnimeEntry, _ rhs: AnimeEntry) -> Bool {
             switch self {
@@ -303,6 +303,8 @@ class LibraryStore {
                 return lhs.dateStarted ?? .distantFuture < rhs.dateStarted ?? .distantFuture
             case .dateFinished:
                 return lhs.dateFinished ?? .distantFuture < rhs.dateFinished ?? .distantFuture
+            case .dateOnAir:
+                return lhs.onAirDate ?? .distantFuture < rhs.onAirDate ?? .distantFuture
             }
         }
         
@@ -311,6 +313,7 @@ class LibraryStore {
             case .dateFinished: "Date Finished"
             case .dateSaved: "Date Saved"
             case .dateStarted: "Date Started"
+            case .dateOnAir: "Date On Air"
             }
         }
     }

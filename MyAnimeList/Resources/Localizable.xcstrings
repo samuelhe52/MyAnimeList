@@ -967,6 +967,22 @@
         }
       }
     },
+    "No Results" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " 結果が見つかりません"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无结果"
+          }
+        }
+      }
+    },
     "Notes" : {
       "localizations" : {
         "ja" : {
@@ -1306,6 +1322,22 @@
         }
       }
     },
+    "Search in your library..." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリで検索…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜素资料库"
+          }
+        }
+      }
+    },
     "Search TV animation or movies..." : {
       "localizations" : {
         "ja" : {
@@ -1580,6 +1612,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "请输入 TMDb API 密钥"
+          }
+        }
+      }
+    },
+    "Try a different search term" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "別の検索語を試してください"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尝试另外的搜索词"
           }
         }
       }

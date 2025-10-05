@@ -10,7 +10,7 @@ import DataProvider
 import Kingfisher
 
 struct SeriesResultItem: View {
-    @Environment(SearchService.self) var service
+    @Environment(TMDbSearchService.self) var service
     let series: BasicInfo
     @State private var resultOption: ResultOption = .series
     @State private var seasons: [BasicInfo] = []

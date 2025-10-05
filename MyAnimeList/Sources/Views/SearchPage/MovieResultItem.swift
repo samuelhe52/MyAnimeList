@@ -9,7 +9,7 @@ import SwiftUI
 import Kingfisher
 
 struct MovieResultItem: View {
-    @Environment(SearchService.self) var service
+    @Environment(TMDbSearchService.self) var service
     let movie: BasicInfo
     
     var body: some View {

@@ -48,6 +48,7 @@ final class InfoFetcher: Sendable {
             case .movie(let movie): movie.genreIDs.contains(16)
             case .tvSeries(let series): series.genreIDs.contains(16)
             case .person(_): false
+            case .collection(_): false
             }
         }
     }
@@ -98,8 +99,8 @@ final class InfoFetcher: Sendable {
     }
     
     func tvSeriesInfo(tmdbID: Int, language: Language) async throws -> BasicInfo {
-        let season = try await tmdbClient.tvSeries.details(forTVSeries: tmdbID, language: language.rawValue)
-        return try await season.basicInfo(client: tmdbClient)
+        let series = try await tmdbClient.tvSeries.details(forTVSeries: tmdbID, language: language.rawValue)
+        return try await series.basicInfo(client: tmdbClient)
     }
     
     func postersForMovie(for tmdbID: Int, idealWidth: Int = .max) async throws -> [ImageURLWithMetadata] {

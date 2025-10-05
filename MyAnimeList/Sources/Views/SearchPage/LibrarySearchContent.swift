@@ -43,7 +43,11 @@ struct LibrarySearchContent: View {
                    placement: .navigationBarDrawer(displayMode: .automatic),
                    prompt: "Search in your library...")
         .onSubmit(of: .search) { librarySearchService.updateResults() }
-        .onAppear { librarySearchService.updateResults() }
+        .onAppear {
+            if librarySearchService.results.isEmpty {
+                librarySearchService.updateResults()
+            }
+        }
         .animation(.default, value: librarySearchService.status)
     }
     

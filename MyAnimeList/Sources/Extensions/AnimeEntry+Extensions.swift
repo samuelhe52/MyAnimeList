@@ -14,7 +14,9 @@ extension AnimeEntry {
     /// - Parameter info: The BasicInfo containing the anime details.
     convenience init(fromInfo info: BasicInfo) {
         self.init(name: info.name,
+                  nameTranslations: info.nameTranslations,
                   overview: info.overview,
+                  overviewTranslations: info.overviewTranslations,
                   onAirDate: info.onAirDate,
                   type: info.type,
                   linkToDetails: info.linkToDetails,
@@ -30,7 +32,9 @@ extension AnimeEntry {
     /// - Note: Only updates properties that have non-nil values in the info parameter.
     func update(from info: BasicInfo) {
         name = info.name
+        nameTranslations = info.nameTranslations.isEmpty ? self.nameTranslations : info.nameTranslations
         overview = info.overview ?? self.overview
+        overviewTranslations = info.overviewTranslations.isEmpty ? self.overviewTranslations : info.overviewTranslations
         linkToDetails = info.linkToDetails ?? self.linkToDetails
         posterURL = info.posterURL ?? self.posterURL
         backdropURL = info.backdropURL ?? self.backdropURL
@@ -42,7 +46,9 @@ extension AnimeEntry {
     /// Converts the AnimeEntry to BasicInfo.
     var basicInfo: BasicInfo {
         BasicInfo(name: name,
+                  nameTranslations: nameTranslations,
                   overview: overview,
+                  overviewTranslations: overviewTranslations,
                   posterURL: posterURL,
                   backdropURL: backdropURL,
                   tmdbID: tmdbID,

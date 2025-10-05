@@ -13,7 +13,9 @@ import DataProvider
 /// The `id` is derived from the `tmdbID` property.
 struct BasicInfo: Equatable, Identifiable, Hashable {
     var name: String
+    var nameTranslations: [String: String]
     var overview: String?
+    var overviewTranslations: [String: String]
     var posterURL: URL?
     var backdropURL: URL?
     var logoURL: URL?

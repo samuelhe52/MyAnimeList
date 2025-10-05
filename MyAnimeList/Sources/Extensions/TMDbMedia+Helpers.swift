@@ -22,11 +22,16 @@ extension Movie {
         let posterURL = try await posterURL(client: client)
         let backdropURL = try await backdropURL(client: client)
         let logoURL = try await logoURL(client: client)
+        let translations = try await getTranslations(client: client)
+        let nameTranslations = translations.name
+        let overviewTranslations = translations.overview
         
         logger.info("Successfully fetched basic info for movie \(self.id), name: \(name)")
         return BasicInfo(
             name: title,
+            nameTranslations: nameTranslations,
             overview: overview,
+            overviewTranslations: overviewTranslations,
             posterURL: posterURL,
             backdropURL: backdropURL,
             logoURL: logoURL,
@@ -81,6 +86,22 @@ extension Movie {
         let url = try await client.imagesConfiguration.logoURL(for: logoPath, idealWidth: idealWidth)
         return url
     }
+
+    /// Gets translations for the movie.
+    ///
+    /// - Parameters:
+    ///  - client: The TMDb client used to fetch translations.
+    func getTranslations(client: TMDbClient) async throws -> (name: [String: String], overview: [String: String]) {
+        let translations = try await client.movies.translations(forMovie: id).translations
+        let nameTranslations = translations.reduce(into: [String: String]()) { result, translation in
+            result[translation.languageCode + "-" + translation.countryCode] = translation.data.name
+        }
+        let overviewTranslations = translations.reduce(into: [String: String]()) { result, translation in
+            result[translation.languageCode + "-" + translation.countryCode] = translation.data.overview
+        }
+        logger.info("Fetched \(nameTranslations.count) name translations and \(overviewTranslations.count) overview translations for movie \(self.id)")
+        return (name: nameTranslations, overview: overviewTranslations)
+    }
     
     var name: String { title }
     var onAirDate: Date? { releaseDate }
@@ -98,11 +119,16 @@ extension TVSeries {
         let posterURL = try await posterURL(client: client)
         let backdropURL = try await backdropURL(client: client)
         let logoURL = try await logoURL(client: client)
+        let translations = try await getTranslations(client: client)
+        let nameTranslations = translations.name
+        let overviewTranslations = translations.overview
 
         logger.info("Successfully fetched basic info for TV series \(self.id), name: \(name)")
         return BasicInfo(
             name: name,
+            nameTranslations: nameTranslations,
             overview: overview,
+            overviewTranslations: overviewTranslations,
             posterURL: posterURL,
             backdropURL: backdropURL,
             logoURL: logoURL,
@@ -154,7 +180,23 @@ extension TVSeries {
             .filePath
         return try await client.imagesConfiguration.logoURL(for: logoPath, idealWidth: idealWidth)
     }
-    
+
+    /// Gets translations for the TV series.
+    /// 
+    /// - Parameters:
+    ///  - client: The TMDb client used to fetch translations.
+    func getTranslations(client: TMDbClient) async throws -> (name: [String: String], overview: [String: String]) {
+        let translations = try await client.tvSeries.translations(forTVSeries: id).translations
+        let nameTranslations = translations.reduce(into: [String: String]()) { result, translation in
+            result[translation.languageCode + "-" + translation.countryCode] = translation.data.name
+        }
+        let overviewTranslations = translations.reduce(into: [String: String]()) { result, translation in
+            result[translation.languageCode + "-" + translation.countryCode] = translation.data.overview
+        }
+        logger.info("Fetched \(nameTranslations.count) name translations and \(overviewTranslations.count) overview translations for TV series \(self.id)")
+        return (name: nameTranslations, overview: overviewTranslations)
+    }
+
     var onAirDate: Date? { firstAirDate }
     var linkToDetails: URL? { homepageURL }
 }
@@ -178,9 +220,14 @@ extension TVSeason {
         logger.debug("Fetching basic info for season \(self.seasonNumber) of series \(parentSeriesID), name: \(name)")
         let seasonPoster: URL? = try await client.imagesConfiguration.posterURL(for: posterPath)
         logger.info("Successfully fetched basic info for season \(self.seasonNumber) of series \(parentSeriesID), name: \(name)")
+        let translations = try await getTranslations(client: client, parentSeriesID: parentSeriesID)
+        let nameTranslations = translations.name
+        let overviewTranslations = translations.overview
         return BasicInfo(
             name: name,
+            nameTranslations: nameTranslations,
             overview: overview,
+            overviewTranslations: overviewTranslations,
             posterURL: seasonPoster,
             backdropURL: backdropURL,
             logoURL: logoURL,
@@ -205,7 +252,23 @@ extension TVSeason {
             .filePath
         return try await client.imagesConfiguration.posterURL(for: posterPath, idealWidth: idealWidth)
     }
-    
+
+    /// Gets translations for the TV season.
+    /// 
+    /// - Parameters:
+    ///  - client: The TMDb client used to fetch translations.
+    func getTranslations(client: TMDbClient, parentSeriesID: Int) async throws -> (name: [String: String], overview: [String: String]) {
+        let translations = try await client.tvSeasons.translations(forSeason: seasonNumber, inTVSeries: parentSeriesID).translations
+        let nameTranslations = translations.reduce(into: [String: String]()) { result, translation in
+            result[translation.languageCode + "-" + translation.countryCode] = translation.data.name
+        }
+        let overviewTranslations = translations.reduce(into: [String: String]()) { result, translation in
+            result[translation.languageCode + "-" + translation.countryCode] = translation.data.overview
+        }
+        logger.info("Fetched \(nameTranslations.count) name translations and \(overviewTranslations.count) overview translations for season \(self.seasonNumber) of series \(parentSeriesID)")
+        return (name: nameTranslations, overview: overviewTranslations)
+    }
+
     var onAirDate: Date? { airDate }
     var linkToDetails: URL? { nil }
 }

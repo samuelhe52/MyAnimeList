@@ -1,5 +1,5 @@
 //
-//  SearchService.swift
+//  TMDbSearchService.swift
 //  MyAnimeList
 //
 //  Created by Samuel He on 2025/5/5.
@@ -19,7 +19,7 @@ struct SearchResult: Hashable {
 }
 
 @Observable @MainActor
-class SearchService {
+class TMDbSearchService {
     let fetcher: InfoFetcher = .init()
     private(set) var status: Status = .loading
     var query: String
@@ -142,8 +142,8 @@ class SearchService {
     }
 }
 
-extension SearchService.Status: Equatable {
-    static func == (lhs: SearchService.Status, rhs: SearchService.Status) -> Bool {
+extension TMDbSearchService.Status: Equatable {
+    static func == (lhs: TMDbSearchService.Status, rhs: TMDbSearchService.Status) -> Bool {
         switch (lhs, rhs) {
         case (.loading, .loading), (.loaded, .loaded):
             return true

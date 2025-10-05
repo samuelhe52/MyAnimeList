@@ -10,15 +10,16 @@ import Foundation
 // UserDefaults entry names
 extension String {
     static let preferredAnimeInfoLanguage = "PreferredAnimeInfoLanguage"
-    static let searchPageLanguage = "SearchPageLanguage"
+    static let searchTMDbLanguage = "SearchTMDbLanguage"
     static let searchPageQuery = "SearchPageQuery"
+    static let searchMode = "SearchMode"
     static let persistedScrolledID = "PersistedScrolledID"
     static let librarySortStrategy = "LibrarySortStrategy"
     static let libraryViewStyle = "LibraryViewStyle"
     
     static let allPreferenceKeys: [String] = [
         .preferredAnimeInfoLanguage,
-        .searchPageLanguage,
+        .searchTMDbLanguage,
         .searchPageQuery,
         .persistedScrolledID,
         .librarySortStrategy,

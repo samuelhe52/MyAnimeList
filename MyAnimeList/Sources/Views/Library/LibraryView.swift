@@ -114,15 +114,32 @@ struct LibraryView: View {
         Button("Search...", systemImage: "magnifyingglass") { isSearching = true }
             .sheet(isPresented: $isSearching) {
                 NavigationStack {
-                    SearchPage(onDuplicateTapped: { tappedID in
-                        isSearching = false
-                        scrollState.scrolledID = tappedID
-                        highlightedEntryID = tappedID
-                    }, checkDuplicate: { id in
-                        return store.libraryOnDisplay.map(\.tmdbID).contains(id)
-                    }, processResults: { processResults($0) })
-                        .navigationTitle("Search")
-                        .navigationBarTitleDisplayMode(.inline)
+                    SearchPage(
+                        onDuplicateTapped: { tappedID in
+                            isSearching = false
+                            scrollState.scrolledID = tappedID
+                            highlightedEntryID = tappedID
+                        },
+                        checkDuplicate: { id in
+                            return store.libraryOnDisplay.map(\.tmdbID).contains(id)
+                        },
+                        processTMDbSearchResults: { results in
+                            Task {
+                                isSearching = false
+                                newEntriesAddedToggle.toggle()
+                                if await store.newEntryFromSearchResults(results) {
+                                    ToastCenter.global.completionState = .completed("\(results.count) item\(results.count > 1 ? "s" : "") added")
+                                }
+                            }
+                        },
+                        jumpToEntryInLibrary: { tmdbID in
+                            isSearching = false
+                            scrollState.scrolledID = tmdbID
+                            highlightedEntryID = tmdbID
+                        }
+                    )
+                    .navigationTitle("Search")
+                    .navigationBarTitleDisplayMode(.inline)
                 }
             }
     }
@@ -279,8 +296,13 @@ struct LibraryView: View {
             store.refreshInfos()
         }
     }
+
+    private func jumpToEntryInLibrary(withID id: Int) {
+        scrollState.scrolledID = id
+        highlightedEntryID = id
+    }
     
-    private func processResults(_ results: OrderedSet<SearchResult>) {
+    private func processTMDbSearchResults(_ results: OrderedSet<SearchResult>) {
         isSearching = false
         Task {
             ToastCenter.global.loading = true

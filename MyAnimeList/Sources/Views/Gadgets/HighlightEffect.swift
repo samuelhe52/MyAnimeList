@@ -28,18 +28,24 @@ struct HighlightEffectModifier: ViewModifier {
                     }
                 }
             }
-            .animation(.interactiveSpring(duration: highlightDuration - 0.05).delay(delay), value: showHighlight)
+            .animation(
+                .interactiveSpring(duration: highlightDuration - 0.05).delay(delay),
+                value: showHighlight)
     }
 }
 
 extension View {
-    func highlightEffect(showHighlight: Binding<Bool>,
-                         color: Color = .yellow,
-                         delay: TimeInterval = 0,
-                         duration: TimeInterval = 0.5) -> some View {
-        self.modifier(HighlightEffectModifier(showHighlight: showHighlight,
-                                              highlightColor: color,
-                                              delay: delay,
-                                              highlightDuration: duration))
+    func highlightEffect(
+        showHighlight: Binding<Bool>,
+        color: Color = .yellow,
+        delay: TimeInterval = 0,
+        duration: TimeInterval = 0.5
+    ) -> some View {
+        self.modifier(
+            HighlightEffectModifier(
+                showHighlight: showHighlight,
+                highlightColor: color,
+                delay: delay,
+                highlightDuration: duration))
     }
 }

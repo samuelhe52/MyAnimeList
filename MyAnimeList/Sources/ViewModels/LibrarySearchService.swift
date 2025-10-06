@@ -12,7 +12,7 @@ import SwiftData
 import SwiftUI
 import os
 
-private let logger = Logger(subsystem: .bundleIdentifier, category: "LibrarySearchService")
+fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "LibrarySearchService")
 
 @Observable @MainActor
 class LibrarySearchService {
@@ -42,7 +42,8 @@ class LibrarySearchService {
             case (.loading, .loading), (.loaded, .loaded):
                 return true
             case (.error(let e1), .error(let e2)):
-                return (e1 as NSError).domain == (e2 as NSError).domain && (e1 as NSError).code == (e2 as NSError).code
+                return (e1 as NSError).domain == (e2 as NSError).domain
+                    && (e1 as NSError).code == (e2 as NSError).code
             default:
                 return false
             }
@@ -80,8 +81,7 @@ class LibrarySearchService {
         var processedIDs = Set<Int>()
 
         func addToResults(evaluate: (AnimeEntry) -> Bool) {
-            for entry in entries {
-                guard !processedIDs.contains(entry.tmdbID) else { continue }
+            for entry in entries where !processedIDs.contains(entry.tmdbID) {
                 guard entry.onDisplay else { continue }
                 if evaluate(entry) {
                     results.append(entry)
@@ -94,22 +94,32 @@ class LibrarySearchService {
         addToResults { $0.displayName.lowercased().contains(lowercasedQuery) }
 
         // Priority 2: Name translations
-        addToResults { $0.nameTranslations.contains(where: { $0.value.lowercased().contains(lowercasedQuery) }) }
+        addToResults {
+            $0.nameTranslations.contains(where: { $0.value.lowercased().contains(lowercasedQuery) })
+        }
 
         // Priority 3: Parent series matches
         addToResults { entry in
             guard let parentSeries = entry.parentSeriesEntry else { return false }
             return parentSeries.overview?.lowercased().contains(lowercasedQuery) ?? false
                 || parentSeries.displayName.lowercased().contains(lowercasedQuery)
-                || parentSeries.nameTranslations.contains(where: { $0.value.lowercased().contains(lowercasedQuery) })
-                || parentSeries.overviewTranslations.contains(where: { $0.value.lowercased().contains(lowercasedQuery) })
+                || parentSeries.nameTranslations.contains(where: {
+                    $0.value.lowercased().contains(lowercasedQuery)
+                })
+                || parentSeries.overviewTranslations.contains(where: {
+                    $0.value.lowercased().contains(lowercasedQuery)
+                })
         }
 
         // Priority 4: Overview matches
         addToResults { $0.overview?.lowercased().contains(lowercasedQuery) ?? false }
 
         // Priority 5: Overview translations
-        addToResults { $0.overviewTranslations.contains(where: { $0.value.lowercased().contains(lowercasedQuery) }) }
+        addToResults {
+            $0.overviewTranslations.contains(where: {
+                $0.value.lowercased().contains(lowercasedQuery)
+            })
+        }
 
         // Priority 6: Notes matches
         addToResults { $0.notes.lowercased().contains(lowercasedQuery) }

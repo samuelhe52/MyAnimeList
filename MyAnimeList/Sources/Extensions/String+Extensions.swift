@@ -16,14 +16,14 @@ extension String {
     static let persistedScrolledID = "PersistedScrolledID"
     static let librarySortStrategy = "LibrarySortStrategy"
     static let libraryViewStyle = "LibraryViewStyle"
-    
+
     static let allPreferenceKeys: [String] = [
         .preferredAnimeInfoLanguage,
         .searchTMDbLanguage,
         .searchPageQuery,
         .persistedScrolledID,
         .librarySortStrategy,
-        .libraryViewStyle,
+        .libraryViewStyle
     ]
 }
 

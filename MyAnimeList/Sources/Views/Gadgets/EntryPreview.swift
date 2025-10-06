@@ -5,12 +5,12 @@
 //  Created by Samuel He on 7/19/25.
 //
 
-import SwiftUI
 import DataProvider
+import SwiftUI
 
 struct EntryPreview: View {
     var entry: AnimeEntry
-    
+
     var body: some View {
         KFImageView(url: entry.posterURL, diskCacheExpiration: .longTerm)
             .scaledToFit()

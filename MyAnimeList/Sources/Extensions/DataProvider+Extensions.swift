@@ -6,8 +6,8 @@
 //
 
 import DataProvider
-import SwiftData
 import Foundation
+import SwiftData
 
 extension DataProvider {
     func generateEntriesForPreview() {
@@ -15,10 +15,13 @@ extension DataProvider {
         guard inMemory else { return }
         do {
             try dataHandler.newEntry(AnimeEntry.frieren)
-            try dataHandler.newEntry(AnimeEntry(name: "CLANNAD Season 1",
-                                                type: .season(seasonNumber: 1, parentSeriesID: 24835),
-                                                tmdbID: 35033))
-            try dataHandler.newEntry(AnimeEntry(name: "Koe no katachi", type: .movie, tmdbID: 378064))
+            try dataHandler.newEntry(
+                AnimeEntry(
+                    name: "CLANNAD Season 1",
+                    type: .season(seasonNumber: 1, parentSeriesID: 24835),
+                    tmdbID: 35033))
+            try dataHandler.newEntry(
+                AnimeEntry(name: "Koe no katachi", type: .movie, tmdbID: 378064))
         } catch {
             print("Error generating preview entries: \(error)")
         }

@@ -5,15 +5,15 @@
 //  Created by Samuel He on 2025/5/25.
 //
 
-import SwiftUI
-import Foundation
-import DataProvider
 import AlertToast
+import DataProvider
+import Foundation
+import SwiftUI
 
 struct LibraryGalleryView: View {
     let store: LibraryStore
     @Binding var scrolledID: Int?
-    
+
     var body: some View {
         GeometryReader { geometry in
             let isHorizontal = geometry.size.width < geometry.size.height
@@ -21,16 +21,19 @@ struct LibraryGalleryView: View {
                 ScrollView(.horizontal) {
                     LazyHStack {
                         ForEach(store.libraryOnDisplay, id: \.tmdbID) { entry in
-                            AnimeEntryCardWrapper(entry: entry, delete: {
-                                if let index = store.libraryOnDisplay.firstIndex(of: entry) {
-                                    if index != 0 {
-                                        scrolledID = store.libraryOnDisplay[index - 1].tmdbID
-                                    } else {
-                                        scrolledID = store.libraryOnDisplay.last?.tmdbID
+                            AnimeEntryCardWrapper(
+                                entry: entry,
+                                delete: {
+                                    if let index = store.libraryOnDisplay.firstIndex(of: entry) {
+                                        if index != 0 {
+                                            scrolledID = store.libraryOnDisplay[index - 1].tmdbID
+                                        } else {
+                                            scrolledID = store.libraryOnDisplay.last?.tmdbID
+                                        }
                                     }
+                                    store.deleteEntry($0)
                                 }
-                                store.deleteEntry($0)
-                            })
+                            )
                             .containerRelativeFrame(isHorizontal ? .horizontal : .vertical)
                             .transition(.opacity)
                             .onScrollVisibilityChange { _ in }
@@ -52,12 +55,12 @@ struct LibraryGalleryView: View {
 fileprivate struct AnimeEntryCardWrapper: View {
     var entry: AnimeEntry
     let delete: (AnimeEntry) -> Void
-    
+
     @State private var triggerDeleteHaptic: Bool = false
     @State private var showDeleteToast: Bool = false
     @State private var isEditing: Bool = false
     @State private var isSwitchingPoster: Bool = false
-        
+
     var body: some View {
         AnimeEntryCard(entry: entry)
             .onTapGesture {
@@ -66,14 +69,19 @@ fileprivate struct AnimeEntryCardWrapper: View {
             .onTapGesture(count: 2) {
                 isEditing = true
             }
-            .toast(isPresenting: $showDeleteToast, duration: 3, alert: {
-                AlertToast(displayMode: .alert, type: .regular,
-                           titleResource: "Delete Anime?",
-                           subTitleResource: "Tap me to confirm.")
-            }, onTap: {
-                delete(entry)
-                triggerDeleteHaptic.toggle()
-            })
+            .toast(
+                isPresenting: $showDeleteToast, duration: 3,
+                alert: {
+                    AlertToast(
+                        displayMode: .alert, type: .regular,
+                        titleResource: "Delete Anime?",
+                        subTitleResource: "Tap me to confirm.")
+                },
+                onTap: {
+                    delete(entry)
+                    triggerDeleteHaptic.toggle()
+                }
+            )
             .contextMenu {
                 contextMenu(for: entry)
             }
@@ -90,7 +98,7 @@ fileprivate struct AnimeEntryCardWrapper: View {
                 }
             }
     }
-    
+
     @ViewBuilder
     func contextMenu(for entry: AnimeEntry) -> some View {
         Button("Delete", systemImage: "trash", role: .destructive) {

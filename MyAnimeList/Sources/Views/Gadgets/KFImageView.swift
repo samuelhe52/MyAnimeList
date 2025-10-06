@@ -5,8 +5,8 @@
 //  Created by Samuel He on 2025/5/11.
 //
 
-import SwiftUI
 import Kingfisher
+import SwiftUI
 import os
 
 fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "PosterView")
@@ -16,15 +16,17 @@ struct KFImageView: View {
     let diskCacheExpiration: StorageExpiration
     @Binding var imageLoaded: Bool
     @State private var image: UIImage? = nil
-    
-    init(url: URL?,
-         diskCacheExpiration: StorageExpiration,
-         imageLoaded: Binding<Bool> = .constant(false)) {
+
+    init(
+        url: URL?,
+        diskCacheExpiration: StorageExpiration,
+        imageLoaded: Binding<Bool> = .constant(false)
+    ) {
         self.url = url
         self.diskCacheExpiration = diskCacheExpiration
         self._imageLoaded = imageLoaded
     }
-    
+
     var body: some View {
         Group {
             if let image {
@@ -39,14 +41,14 @@ struct KFImageView: View {
             Task { await loadImage() }
         }
     }
-    
+
     private func loadImage() async {
         let kfRetrieveOptions: KingfisherOptionsInfo = [
             .cacheOriginalImage,
             .diskCacheExpiration(diskCacheExpiration),
             .onFailureImage(UIImage(named: "missing_image_resource"))
         ]
-        
+
         if let url {
             do {
                 let result = try await KingfisherManager.shared

@@ -156,7 +156,8 @@ struct LibraryListView: View {
                 pasteAction = paste
             }
         } else {
-            ToastCenter.global.completionState = .init(state: .failed, messageResource: "No info found on pasteboard.")
+            ToastCenter.global.completionState = .init(
+                state: .failed, messageResource: "No info found on pasteboard.")
         }
     }
 }

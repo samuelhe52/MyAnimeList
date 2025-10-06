@@ -15,7 +15,7 @@ fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "TMDbAPI
 class TMDbAPIKeyStorage {
     private let account = "TMDbAPIKey"
     var key: String?
-    
+
     init() {
         let key: String? = retrieveKey()
         self.key = key
@@ -28,7 +28,7 @@ class TMDbAPIKeyStorage {
             kSecAttrAccount as String: account,
             kSecValueData as String: data
         ]
-        
+
         SecItemDelete(query as CFDictionary)  // Remove any existing item
         let status = SecItemAdd(query as CFDictionary, nil)
         if status == errSecSuccess {
@@ -39,7 +39,7 @@ class TMDbAPIKeyStorage {
         }
         return status == errSecSuccess
     }
-    
+
     func retrieveKey() -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -47,16 +47,17 @@ class TMDbAPIKeyStorage {
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
-        
+
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         if status != errSecSuccess {
             logger.error("Failed to retrieve TMDb API key from keychain. Status code: \(status)")
         }
-        
+
         guard status == errSecSuccess,
-              let data = result as? Data,
-              let key = String(data: data, encoding: .utf8) else {
+            let data = result as? Data,
+            let key = String(data: data, encoding: .utf8)
+        else {
             return nil
         }
         return key.trimmingCharacters(in: .whitespacesAndNewlines)

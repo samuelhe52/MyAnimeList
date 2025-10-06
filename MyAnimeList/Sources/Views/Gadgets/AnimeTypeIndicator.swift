@@ -5,13 +5,13 @@
 //  Created by Samuel He on 7/11/25.
 //
 
-import SwiftUI
 import DataProvider
+import SwiftUI
 
 struct AnimeTypeIndicator: View {
     var type: AnimeType
     var padding: CGFloat = 5
-    
+
     var description: LocalizedStringKey {
         switch type {
         case .movie: return "Movie"
@@ -19,7 +19,7 @@ struct AnimeTypeIndicator: View {
         case .season(let seasonNumber, _): return "Season \(seasonNumber)"
         }
     }
-    
+
     var body: some View {
         Text(description)
             .padding(padding)

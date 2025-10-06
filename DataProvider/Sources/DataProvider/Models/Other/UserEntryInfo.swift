@@ -11,23 +11,26 @@ import Foundation
 public struct UserEntryInfo: Equatable, Codable {
     /// User's watch status for this entry.
     public var watchStatus: AnimeEntry.WatchStatus
-    
+
     /// Date started watching.
     public var dateStarted: Date?
-    
+
     /// Date marked finished.
     public var dateFinished: Date?
-    
+
     /// Whether the entry is marked as favorite.
     public var favorite: Bool
 
     /// Notes for this entry.
     public var notes: String
-    
+
     /// Whether the entry is using a custom poster image.
     public var usingCustomPoster: Bool
-    
-    private init(watchStatus: AnimeEntry.WatchStatus, dateStarted: Date? = nil, dateFinished: Date? = nil, favorite: Bool, notes: String, usingCustomPoster: Bool) {
+
+    private init(
+        watchStatus: AnimeEntry.WatchStatus, dateStarted: Date? = nil, dateFinished: Date? = nil,
+        favorite: Bool, notes: String, usingCustomPoster: Bool
+    ) {
         self.watchStatus = watchStatus
         self.dateStarted = dateStarted
         self.dateFinished = dateFinished
@@ -44,15 +47,11 @@ public struct UserEntryInfo: Equatable, Codable {
         self.notes = entry.notes
         self.usingCustomPoster = entry.usingCustomPoster
     }
-    
+
     /// Whether this user info is "empty", i.e. has no meaningful user data.
     public var isEmpty: Bool {
-        return watchStatus == .planToWatch &&
-        dateStarted == nil &&
-        dateFinished == nil &&
-        favorite == false &&
-        notes.isEmpty &&
-        usingCustomPoster == false
+        watchStatus == .planToWatch && dateStarted == nil && dateFinished == nil
+            && favorite == false && notes.isEmpty && usingCustomPoster == false
     }
 }
 

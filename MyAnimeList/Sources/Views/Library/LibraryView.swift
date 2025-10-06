@@ -5,11 +5,11 @@
 //  Created by Samuel He on 2024/12/8.
 //
 
-import SwiftUI
+import Collections
+import DataProvider
 import Kingfisher
 import SwiftData
-import DataProvider
-import Collections
+import SwiftUI
 
 extension EnvironmentValues {
     @Entry var toggleFavorite: (AnimeEntry) -> Void = { _ in }
@@ -18,7 +18,7 @@ extension EnvironmentValues {
 struct LibraryView: View {
     @Bindable var store: LibraryStore
     @Environment(\.dataHandler) var dataHandler
-    
+
     @State private var isSearching = false
     @State private var changeAPIKey = false
     @State private var showCacheAlert = false
@@ -29,9 +29,9 @@ struct LibraryView: View {
     @State private var newEntriesAddedToggle = false
     @State private var favoriteToggle = false
     @State private var highlightedEntryID: Int?
-    
+
     @AppStorage(.libraryViewStyle) var libraryViewStyle: LibraryViewStyle = .gallery
-    
+
     var body: some View {
         NavigationStack {
             mainContent
@@ -48,12 +48,16 @@ struct LibraryView: View {
                     ToolbarItemGroup(placement: .status) {
                         sortOptions
                         if let scrolledID = scrollState.scrolledID,
-                           let entry = store.libraryOnDisplay.entryWithID(scrolledID) {
+                            let entry = store.libraryOnDisplay.entryWithID(scrolledID)
+                        {
                             toggleFavoriteButton(for: entry)
                                 .disabled(libraryViewStyle != .gallery)
                         } else {
-                            Button {} label: { Image(systemName: "heart") }
-                                .disabled(true)
+                            Button {
+                            } label: {
+                                Image(systemName: "heart")
+                            }
+                            .disabled(true)
                         }
                         filterOptions
                     }
@@ -67,31 +71,37 @@ struct LibraryView: View {
                 .sensoryFeedback(.success, trigger: newEntriesAddedToggle)
         }
     }
-    
+
     @ViewBuilder
     private var mainContent: some View {
         switch libraryViewStyle {
         case .gallery:
-            LibraryGalleryView(store: store,
-                               scrolledID: $scrollState.scrolledID)
+            LibraryGalleryView(
+                store: store,
+                scrolledID: $scrollState.scrolledID
+            )
             .scenePadding(.vertical)
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .navigationTitle("\(store.libraryOnDisplay.count) Anime")
             .navigationBarTitleDisplayMode(.inline)
         case .list:
-            LibraryListView(store: store,
-                            scrolledID: $scrollState.scrolledID,
-                            highlightedEntryID: $highlightedEntryID)
+            LibraryListView(
+                store: store,
+                scrolledID: $scrollState.scrolledID,
+                highlightedEntryID: $highlightedEntryID
+            )
             .navigationTitle("\(store.libraryOnDisplay.count) Anime")
         case .grid:
-            LibraryGridView(store: store,
-                            scrolledID: $scrollState.scrolledID,
-                            highlightedEntryID: $highlightedEntryID)
+            LibraryGridView(
+                store: store,
+                scrolledID: $scrollState.scrolledID,
+                highlightedEntryID: $highlightedEntryID
+            )
             .navigationTitle("\(store.libraryOnDisplay.count) Anime")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
-    
+
     private func toggleFavoriteButton(for entry: AnimeEntry) -> some View {
         Button {
             toggleFavorite(entry)
@@ -104,12 +114,12 @@ struct LibraryView: View {
         }
         .sensoryFeedback(.impact, trigger: favoriteToggle)
     }
-    
+
     private func toggleFavorite(_ entry: AnimeEntry) {
         dataHandler?.toggleFavorite(entry: entry)
         favoriteToggle.toggle()
     }
-    
+
     private var searchButton: some View {
         Button("Search...", systemImage: "magnifyingglass") { isSearching = true }
             .sheet(isPresented: $isSearching) {
@@ -121,14 +131,16 @@ struct LibraryView: View {
                             highlightedEntryID = tappedID
                         },
                         checkDuplicate: { id in
-                            return store.libraryOnDisplay.map(\.tmdbID).contains(id)
+                            store.libraryOnDisplay.map(\.tmdbID).contains(id)
                         },
                         processTMDbSearchResults: { results in
                             Task {
                                 isSearching = false
                                 newEntriesAddedToggle.toggle()
                                 if await store.newEntryFromSearchResults(results) {
-                                    ToastCenter.global.completionState = .completed("\(results.count) item\(results.count > 1 ? "s" : "") added")
+                                    ToastCenter.global.completionState = .completed(
+                                        "\(results.count) item\(results.count > 1 ? "s" : "") added"
+                                    )
                                 }
                             }
                         },
@@ -143,7 +155,7 @@ struct LibraryView: View {
                 }
             }
     }
-    
+
     @ViewBuilder
     private var settings: some View {
         Menu {
@@ -166,25 +178,28 @@ struct LibraryView: View {
             }
             Button("Cancel", role: .cancel) {}
         }
-        .alert("Disk Usage", isPresented: $showCacheAlert, presenting: cacheSizeResult,
-               actions: { result in
-            switch result {
-            case .success:
-                Button("Clear") {
-                    KingfisherManager.shared.cache.clearCache()
+        .alert(
+            "Disk Usage", isPresented: $showCacheAlert, presenting: cacheSizeResult,
+            actions: { result in
+                switch result {
+                case .success:
+                    Button("Clear") {
+                        KingfisherManager.shared.cache.clearCache()
+                    }
+                    Button("Cancel", role: .cancel) {}
+                case .failure:
+                    Button("OK") {}
                 }
-                Button("Cancel", role: .cancel) {}
-            case .failure:
-                Button("OK") { }
+            },
+            message: { result in
+                switch result {
+                case .success(let size):
+                    Text("Size: \(Double(size) / 1024 / 1024, specifier: "%.2f") MB")
+                case .failure(let error):
+                    Text(error.localizedDescription)
+                }
             }
-        }, message: { result in
-            switch result {
-            case .success(let size):
-                Text("Size: \(Double(size) / 1024 / 1024, specifier: "%.2f") MB")
-            case .failure(let error):
-                Text(error.localizedDescription)
-            }
-        })
+        )
         .sheet(isPresented: $changeAPIKey) {
             TMDbAPIConfigurator(isEditing: true)
                 .presentationDetents([.medium, .large])
@@ -194,16 +209,19 @@ struct LibraryView: View {
                 .presentationDetents([.medium])
         }
     }
-    
+
     private var backupManagement: some View {
-        Button("Backup & Restore", systemImage: "clock.arrow.trianglehead.counterclockwise.rotate.90") {
+        Button(
+            "Backup & Restore", systemImage: "clock.arrow.trianglehead.counterclockwise.rotate.90"
+        ) {
             showBackupManager = true
         }
     }
-    
+
     private var sortOptions: some View {
         Menu {
-            Toggle("Reversed", systemImage: "arrow.counterclockwise.circle", isOn: $store.sortReversed)
+            Toggle(
+                "Reversed", systemImage: "arrow.counterclockwise.circle", isOn: $store.sortReversed)
             Picker("Sort", systemImage: "arrow.up.arrow.down", selection: $store.sortStrategy) {
                 ForEach(LibraryStore.AnimeSortStrategy.allCases, id: \.self) { strategy in
                     Text(strategy.localizedStringResource).tag(strategy)
@@ -217,65 +235,78 @@ struct LibraryView: View {
         }
         .menuActionDismissBehavior(.disabled)
     }
-    
+
     private var filterOptions: some View {
         Menu("Filter", systemImage: "line.3.horizontal.decrease") {
             ForEach(LibraryStore.AnimeFilter.allCases, id: \.self) { filter in
-                Toggle(isOn: .init(get: {
-                    return store.filters.contains(filter)
-                }, set: {
-                    if $0 {
-                        store.filters.insert(filter)
-                    } else {
-                        store.filters.remove(filter)
-                    }
-                }), label: { Text(filter.name) })
+                Toggle(
+                    isOn: .init(
+                        get: {
+                            store.filters.contains(filter)
+                        },
+                        set: {
+                            if $0 {
+                                store.filters.insert(filter)
+                            } else {
+                                store.filters.remove(filter)
+                            }
+                        }), label: { Text(filter.name) })
             }
             Divider()
-            Toggle("All", isOn: .init(get: { store.filters.isEmpty }, set: {
-                if $0 { store.filters.removeAll() }
-            }))
+            Toggle(
+                "All",
+                isOn: .init(
+                    get: { store.filters.isEmpty },
+                    set: {
+                        if $0 { store.filters.removeAll() }
+                    }))
         }
     }
-    
+
     @State private var lastUsedlanguage: Language = .english
-    
+
     private var isLanguageFollowingSystem: Binding<Bool> {
-        Binding(get: {
-            return store.language == .current
-        }, set: {
-            if $0 {
-                lastUsedlanguage = store.language
-                store.language = .current
-            } else {
-                store.language = lastUsedlanguage
-            }
-        })
+        Binding(
+            get: {
+                store.language == .current
+            },
+            set: {
+                if $0 {
+                    lastUsedlanguage = store.language
+                    store.language = .current
+                } else {
+                    store.language = lastUsedlanguage
+                }
+            })
     }
-    
+
     private var preferredAnimeInfoLanguagePicker: some View {
         Menu("Anime Info Language", systemImage: "globe") {
             Toggle("Follow System", isOn: isLanguageFollowingSystem)
             ForEach(Language.allCases, id: \.rawValue) { language in
-                Toggle(language.localizedStringResource, isOn: Binding(
-                    get: {
-                        store.language == language
-                    }, set: {
-                        if $0 { store.language = language }
-                    }
-                ))
+                Toggle(
+                    language.localizedStringResource,
+                    isOn: Binding(
+                        get: {
+                            store.language == language
+                        },
+                        set: {
+                            if $0 { store.language = language }
+                        }
+                    )
+                )
                 .disabled(isLanguageFollowingSystem.wrappedValue)
             }
         }
         .menuActionDismissBehavior(.disabled)
     }
-    
+
     private var deleteAllButton: some View {
         Button("Delete All Animes", systemImage: "trash", role: .destructive) {
             showClearAllAlert = true
         }
     }
-    
+
     private var checkDiskUsageButton: some View {
         Button("Check Disk Usage", systemImage: "archivebox") {
             KingfisherManager.shared.cache.calculateDiskStorageSize { result in
@@ -286,11 +317,11 @@ struct LibraryView: View {
             }
         }
     }
-    
+
     private var apiConfigruation: some View {
         Button("Change API Key", systemImage: "person.badge.key") { changeAPIKey = true }
     }
-    
+
     private var refreshInfosButton: some View {
         Button("Refresh Infos", systemImage: "arrow.clockwise") {
             store.refreshInfos()
@@ -301,7 +332,7 @@ struct LibraryView: View {
         scrollState.scrolledID = id
         highlightedEntryID = id
     }
-    
+
     private func processTMDbSearchResults(_ results: OrderedSet<SearchResult>) {
         isSearching = false
         Task {
@@ -319,16 +350,18 @@ struct LibraryView: View {
             }
         }
     }
-    
-    private func customButtonStyle<S: Shape>(in shape: S) -> CustomBGBorderedButtonStyle<Material, S> {
+
+    private func customButtonStyle<S: Shape>(in shape: S) -> CustomBGBorderedButtonStyle<
+        Material, S
+    > {
         CustomBGBorderedButtonStyle(.ultraThinMaterial, backgroundIn: shape)
     }
-    
+
     enum LibraryViewStyle: String, CaseIterable {
         case gallery
         case list
         case grid
-        
+
         var nameKey: LocalizedStringKey {
             switch self {
             case .gallery: "Gallery"
@@ -336,7 +369,7 @@ struct LibraryView: View {
             case .grid: "Grid"
             }
         }
-        
+
         var systemImageName: String {
             switch self {
             case .gallery: "photo.on.rectangle.angled"

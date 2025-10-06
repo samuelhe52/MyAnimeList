@@ -11,7 +11,7 @@ public enum AnimeType: CustomStringConvertible, Codable, Equatable, Hashable, Se
     case season(seasonNumber: Int, parentSeriesID: Int)
     case movie
     case series
-    
+
     public var description: String {
         switch self {
         case .season(let seasonNumber, let parentSeriesID):
@@ -22,23 +22,22 @@ public enum AnimeType: CustomStringConvertible, Codable, Equatable, Hashable, Se
             return "TV Series"
         }
     }
-    
+
     public var seasonNumber: Int? {
         switch self {
-        case .season(seasonNumber: let seasonNumber, parentSeriesID: _):
+        case .season(let seasonNumber, parentSeriesID: _):
             return seasonNumber
         default:
             return nil
         }
     }
-    
+
     public var parentSeriesID: Int? {
         switch self {
-        case .season(seasonNumber: _, parentSeriesID: let parentSeriesID):
+        case .season(seasonNumber: _, let parentSeriesID):
             return parentSeriesID
         default:
             return nil
         }
     }
 }
-

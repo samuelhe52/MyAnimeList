@@ -5,11 +5,11 @@
 //  Created by Samuel He on 8/22/25.
 //
 
+import DataProvider
 import Foundation
+import SwiftData
 import UniformTypeIdentifiers
 import ZIPFoundation
-import DataProvider
-import SwiftData
 
 extension UTType {
     static let mallib = UTType(exportedAs: "com.samuelhe.myanimelist.mallib")
@@ -49,7 +49,8 @@ enum BackupError: LocalizedError {
         case .restoreFailed(let reason):
             return "Restore failed: \(reason)"
         case .schemaVersionIncompatible(let highest, let found):
-            return "Incompatible schema version. The highest supported version is \(highest), but found \(found). Please update the app."
+            return
+                "Incompatible schema version. The highest supported version is \(highest), but found \(found). Please update the app."
         }
     }
 }
@@ -58,7 +59,7 @@ enum BackupError: LocalizedError {
 @MainActor
 class BackupManager {
     let dataProvider: DataProvider
-    
+
     init(dataProvider: DataProvider) {
         self.dataProvider = dataProvider
     }
@@ -77,9 +78,11 @@ class BackupManager {
     /// - Throws: A `BackupError` if the process fails.
     func createBackup() throws -> URL {
         // 1. Create a temporary directory to stage files for backup.
-        let backupDirectoryURL = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let backupDirectoryURL = fileManager.temporaryDirectory.appendingPathComponent(
+            UUID().uuidString)
         do {
-            try fileManager.createDirectory(at: backupDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+            try fileManager.createDirectory(
+                at: backupDirectoryURL, withIntermediateDirectories: true, attributes: nil)
         } catch {
             throw BackupError.backupDirectoryCreationFailed
         }
@@ -101,8 +104,9 @@ class BackupManager {
         try copySwiftDataStore(to: backupDirectoryURL)
 
         // 5. Create a ZIP archive from the temporary directory.
-        let archiveURL = fileManager.temporaryDirectory.appendingPathComponent(backupFileName, conformingTo: .mallib)
-        
+        let archiveURL = fileManager.temporaryDirectory.appendingPathComponent(
+            backupFileName, conformingTo: .mallib)
+
         // If a file already exists, remove it.
         if fileManager.fileExists(atPath: archiveURL.path()) {
             try fileManager.removeItem(at: archiveURL)
@@ -119,16 +123,18 @@ class BackupManager {
 
         return archiveURL
     }
-    
+
     /// Restores the SwiftData store and user settings from a backup file.
     /// - Parameter sourceURL: The URL of the backup file to restore from.
     /// - Throws: A `BackupError` if the process fails.
     /// - Note: This function will likely require you to restart the app to see the changes.
     func restoreBackup(from sourceURL: URL) throws {
         // 1. Create a temporary directory for extraction.
-        let restoreDirectoryURL = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let restoreDirectoryURL = fileManager.temporaryDirectory.appendingPathComponent(
+            UUID().uuidString)
         do {
-            try fileManager.createDirectory(at: restoreDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+            try fileManager.createDirectory(
+                at: restoreDirectoryURL, withIntermediateDirectories: true, attributes: nil)
         } catch {
             throw BackupError.restoreDirectoryCreationFailed
         }
@@ -139,20 +145,23 @@ class BackupManager {
         } catch {
             throw BackupError.archiveExtractionFailed
         }
-        
-        let restoredFolderName = try fileManager.contentsOfDirectory(atPath: restoreDirectoryURL.path()).first!
-        
-        let restoredFilesURL = restoreDirectoryURL.appending(path: restoredFolderName, directoryHint: .isDirectory)
-        
+
+        let restoredFolderName = try fileManager.contentsOfDirectory(
+            atPath: restoreDirectoryURL.path()
+        ).first!
+
+        let restoredFilesURL = restoreDirectoryURL.appending(
+            path: restoredFolderName, directoryHint: .isDirectory)
+
         // 3. Restore user settings.
         try restoreUserSettings(from: restoredFilesURL)
 
         // 4. Restore SwiftData store.
         try restoreSwiftDataStore(from: restoredFilesURL)
-        
+
         // 5. Clean up the temporary restore directory.
         try? fileManager.removeItem(at: restoreDirectoryURL)
-        
+
         // 6. Reload ModelContainer for SwiftData
         dataProvider.reloadDataStore()
     }
@@ -180,19 +189,18 @@ class BackupManager {
         let storeDirectory = URL.applicationSupportDirectory
 
         do {
-            let fileURLs = try fileManager.contentsOfDirectory(at: storeDirectory, includingPropertiesForKeys: nil)
-            for fileURL in fileURLs {
-                 // The store files could have extensions like -shm, -wal.
-                if fileURL.lastPathComponent.starts(with: "default.store") {
-                    let destinationURL = directoryURL.appendingPathComponent(fileURL.lastPathComponent)
-                    try fileManager.copyItem(at: fileURL, to: destinationURL)
-                }
+            let fileURLs = try fileManager.contentsOfDirectory(
+                at: storeDirectory, includingPropertiesForKeys: nil)
+            for fileURL in fileURLs where fileURL.lastPathComponent.starts(with: "default.store") {
+                let destinationURL = directoryURL.appendingPathComponent(fileURL.lastPathComponent)
+                try fileManager.copyItem(at: fileURL, to: destinationURL)
             }
         } catch {
-            throw BackupError.restoreFailed(reason: "Could not copy database files. \(error.localizedDescription)")
+            throw BackupError.restoreFailed(
+                reason: "Could not copy database files. \(error.localizedDescription)")
         }
     }
-    
+
     /// Restores user settings from a file within the backup package.
     private func restoreUserSettings(from directoryURL: URL) throws {
         let fileURL = directoryURL.appendingPathComponent(userSettingsFileName)
@@ -202,13 +210,16 @@ class BackupManager {
 
         do {
             let data = try Data(contentsOf: fileURL)
-            if let settings = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+            if let settings = try JSONSerialization.jsonObject(with: data, options: [])
+                as? [String: Any]
+            {
                 for (key, value) in settings {
                     userDefaults.set(value, forKey: key)
                 }
             }
         } catch {
-            throw BackupError.restoreFailed(reason: "Could not deserialize user settings. \(error.localizedDescription)")
+            throw BackupError.restoreFailed(
+                reason: "Could not deserialize user settings. \(error.localizedDescription)")
         }
     }
 
@@ -219,33 +230,37 @@ class BackupManager {
         do {
             // Check schema version compatibility
             let versionFileURL = directoryURL.appendingPathComponent(schemaVersionFileName)
-            if fileManager.fileExists(atPath: versionFileURL.path()) { // Only check if file exists, for backward compatibility
+            // Only check if file exists, for backward compatibility
+            if fileManager.fileExists(atPath: versionFileURL.path()) {
                 let versionData = try Data(contentsOf: versionFileURL)
-                let backupSchemaVersion = try JSONDecoder().decode(Schema.Version.self, from: versionData)
+                let backupSchemaVersion = try JSONDecoder().decode(
+                    Schema.Version.self, from: versionData)
                 let currentSchemaVersion = DataProvider.default.sharedModelContainer.schema.version
                 guard backupSchemaVersion < currentSchemaVersion else {
-                    throw BackupError.schemaVersionIncompatible(highest: currentSchemaVersion, found: backupSchemaVersion)
+                    throw BackupError.schemaVersionIncompatible(
+                        highest: currentSchemaVersion, found: backupSchemaVersion)
                 }
             }
 
             // Remove current store files
-            let currentFiles = try fileManager.contentsOfDirectory(at: storeDirectory, includingPropertiesForKeys: nil)
-            for fileURL in currentFiles {
-                if fileURL.lastPathComponent.starts(with: "default.store") {
-                    try fileManager.removeItem(at: fileURL)
-                }
+            let currentFiles = try fileManager.contentsOfDirectory(
+                at: storeDirectory, includingPropertiesForKeys: nil)
+            for fileURL in currentFiles
+            where fileURL.lastPathComponent.starts(with: "default.store") {
+                try fileManager.removeItem(at: fileURL)
             }
 
             // Copy backed up files from the backup package
-            let backupFiles = try fileManager.contentsOfDirectory(at: directoryURL, includingPropertiesForKeys: nil)
-            for fileURL in backupFiles {
-                if fileURL.lastPathComponent.starts(with: "default.store") {
-                    let destinationURL = storeDirectory.appendingPathComponent(fileURL.lastPathComponent)
-                    try fileManager.copyItem(at: fileURL, to: destinationURL)
-                }
+            let backupFiles = try fileManager.contentsOfDirectory(
+                at: directoryURL, includingPropertiesForKeys: nil)
+            for fileURL in backupFiles where fileURL.lastPathComponent.starts(with: "default.store") {
+                let destinationURL = storeDirectory.appendingPathComponent(
+                    fileURL.lastPathComponent)
+                try fileManager.copyItem(at: fileURL, to: destinationURL)
             }
         } catch {
-            throw BackupError.restoreFailed(reason: "Could not replace the database files. \(error.localizedDescription)")
+            throw BackupError.restoreFailed(
+                reason: "Could not replace the database files. \(error.localizedDescription)")
         }
     }
 }

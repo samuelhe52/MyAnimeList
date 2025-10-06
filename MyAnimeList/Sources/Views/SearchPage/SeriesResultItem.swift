@@ -5,16 +5,16 @@
 //  Created by Samuel He on 2025/5/11.
 //
 
-import SwiftUI
 import DataProvider
 import Kingfisher
+import SwiftUI
 
 struct SeriesResultItem: View {
     @Environment(TMDbSearchService.self) var service
     let series: BasicInfo
     @State private var resultOption: ResultOption = .series
     @State private var seasons: [BasicInfo] = []
-        
+
     var body: some View {
         HStack {
             KFImageView(url: series.posterURL, diskCacheExpiration: .shortTerm)
@@ -54,7 +54,7 @@ struct SeriesResultItem: View {
             .foregroundStyle(.gray)
             .lineLimit(3)
     }
-    
+
     @ViewBuilder
     private var resultOptionsView: some View {
         Picker(selection: $resultOption) {
@@ -64,28 +64,35 @@ struct SeriesResultItem: View {
                 case .season: Text("Season").tag(option)
                 }
             }
-        } label: { }
+        } label: {
+        }
         .pickerStyle(.segmented)
     }
-    
+
     @ViewBuilder
     private var selectionIndicator: some View {
         if resultOption == .series {
-            ActionToggle(on: {
-                service.register(info: series)
-            }, off: {
-                service.unregister(info: series)
-            }, label: {
-                Image(systemName: "checkmark")
-            })
+            ActionToggle(
+                on: {
+                    service.register(info: series)
+                },
+                off: {
+                    service.unregister(info: series)
+                },
+                label: {
+                    Image(systemName: "checkmark")
+                }
+            )
             .toggleStyle(.button)
             .buttonStyle(.bordered)
             .buttonBorderShape(.circle)
             .frame(height: 0)
             .onDisappear { service.unregister(info: series) }
         } else {
-            SeasonSelector(seasons: seasons, register: service.register, unregister: service.unregister)
-                .padding(.trailing, 7)
+            SeasonSelector(
+                seasons: seasons, register: service.register, unregister: service.unregister
+            )
+            .padding(.trailing, 7)
         }
     }
     private func fetchSeasons() async throws {
@@ -95,13 +102,16 @@ struct SeriesResultItem: View {
             let seasonResults = try await withThrowingTaskGroup(of: BasicInfo.self) { group in
                 for season in fetchedSeasons {
                     group.addTask {
-                        let seriesBackdropURL = try await fetcher.tmdbClient.imagesConfiguration.backdropURL(for: series.backdropURL)
-                        let logoURL = try await fetcher.tmdbClient.imagesConfiguration.logoURL(for: series.logoURL)
-                        let seasonResult = try await season.basicInfo(client: fetcher.tmdbClient,
-                                                                      backdropURL: seriesBackdropURL,
-                                                                      logoURL: logoURL,
-                                                                      linkToDetails: series.linkToDetails,
-                                                                      parentSeriesID: series.tmdbID)
+                        let seriesBackdropURL = try await fetcher.tmdbClient.imagesConfiguration
+                            .backdropURL(for: series.backdropURL)
+                        let logoURL = try await fetcher.tmdbClient.imagesConfiguration.logoURL(
+                            for: series.logoURL)
+                        let seasonResult = try await season.basicInfo(
+                            client: fetcher.tmdbClient,
+                            backdropURL: seriesBackdropURL,
+                            logoURL: logoURL,
+                            linkToDetails: series.linkToDetails,
+                            parentSeriesID: series.tmdbID)
                         return seasonResult
                     }
                 }
@@ -120,7 +130,7 @@ struct SeriesResultItem: View {
             }
         }
     }
-    
+
     enum ResultOption: CaseIterable, Equatable {
         case series
         case season
@@ -132,7 +142,7 @@ fileprivate struct SeasonSelector: View {
     var register: (BasicInfo) -> Void
     var unregister: (BasicInfo) -> Void
     @State private var selectedSeasonIDs: Set<Int> = []
-    
+
     var body: some View {
         Menu {
             ForEach(seasons, id: \.tmdbID) { season in
@@ -147,7 +157,8 @@ fileprivate struct SeasonSelector: View {
                             selectedSeasonIDs.remove(season.tmdbID)
                         }
                     } label: {
-                        let title: LocalizedStringKey = seasonNumber != 0 ? "Season \(seasonNumber)" : "Specials"
+                        let title: LocalizedStringKey =
+                            seasonNumber != 0 ? "Season \(seasonNumber)" : "Specials"
                         if !selected {
                             Text(title)
                         } else {
@@ -162,7 +173,9 @@ fileprivate struct SeasonSelector: View {
         }
         .padding(9)
         .background(in: .circle)
-        .backgroundStyle(selectedSeasonIDs.isEmpty ? Color(uiColor: .systemGray5) : .blue.opacity(0.2))
+        .backgroundStyle(
+            selectedSeasonIDs.isEmpty ? Color(uiColor: .systemGray5) : .blue.opacity(0.2)
+        )
         .frame(height: 0)
         .animation(.smooth(duration: 0.2), value: selectedSeasonIDs)
         .menuActionDismissBehavior(.disabled)

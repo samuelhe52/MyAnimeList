@@ -5,8 +5,8 @@
 //  Created by Samuel He on 7/19/25.
 //
 
-import Foundation
 import DataProvider
+import Foundation
 import SwiftUI
 
 extension AnimeEntry.WatchStatus: @retroactive CustomLocalizedStringResourceConvertible {

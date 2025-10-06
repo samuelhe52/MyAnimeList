@@ -5,12 +5,12 @@
 //  Created by Samuel He on 8/23/25.
 //
 
-import SwiftUI
 import DataProvider
+import SwiftUI
 
 struct BackupManagerView: View {
     let backupManager: BackupManager
-    
+
     @State private var exportError: Error? = nil
     @State private var exportErrorOccurred: Bool = false
     @State private var restoreError: Error? = nil
@@ -19,7 +19,7 @@ struct BackupManagerView: View {
     @State private var restoreFileURL: URL? = nil
     @State private var showRestoreConfirmation: Bool = false
     @State private var restoreCompleted: Bool = false
-    
+
     var body: some View {
         VStack {
             Image(.appIcon)
@@ -62,32 +62,38 @@ struct BackupManagerView: View {
         .disabled(restoreCompleted)
         .multilineTextAlignment(.center)
         .padding()
-        .alert("Error exporting library",
-               isPresented: $exportErrorOccurred,
-               presenting: exportError) { _ in
-            Button("Cancel", role: .cancel) { }
+        .alert(
+            "Error exporting library",
+            isPresented: $exportErrorOccurred,
+            presenting: exportError
+        ) { _ in
+            Button("Cancel", role: .cancel) {}
         } message: { error in
             Text(error.localizedDescription)
         }
-        .alert("Error restoring library",
-               isPresented: $restoreErrorOccurred,
-               presenting: restoreError) { _ in
-            Button("Cancel", role: .cancel) { }
+        .alert(
+            "Error restoring library",
+            isPresented: $restoreErrorOccurred,
+            presenting: restoreError
+        ) { _ in
+            Button("Cancel", role: .cancel) {}
         } message: { error in
             Text(error.localizedDescription)
         }
         .alert("Overwrite the current library?", isPresented: $showRestoreConfirmation) {
-            Button("Cancel", role: .cancel) { }
+            Button("Cancel", role: .cancel) {}
             Button("Confirm", role: .destructive, action: restore)
         } message: {
             Text("Please backup the current library before proceeding.")
         }
-        .fileImporter(isPresented: $showFileImporter,
-                      allowedContentTypes: [.mallib]) { result in
+        .fileImporter(
+            isPresented: $showFileImporter,
+            allowedContentTypes: [.mallib]
+        ) { result in
             processFileImport(result)
         }
     }
-    
+
     @ViewBuilder
     private var exportButton: some View {
         LazyShareLink {
@@ -102,7 +108,7 @@ struct BackupManagerView: View {
             Label("Export", systemImage: "document.badge.arrow.up")
         }
     }
-    
+
     private func processFileImport(_ result: Result<URL, Error>) {
         switch result {
         case .success(let url):
@@ -111,30 +117,30 @@ struct BackupManagerView: View {
         case .failure(let error): restoreErrorOccurred(error)
         }
     }
-    
+
     private func exportErrorOccurred(_ error: Error) {
         exportError = error
         exportErrorOccurred = true
     }
-    
+
     private func restoreErrorOccurred(_ error: Error) {
         restoreError = error
         restoreErrorOccurred = true
     }
-    
+
     private func restore() {
         if let url = restoreFileURL {
             do {
-                if url.startAccessingSecurityScopedResource() {
-                    try backupManager.restoreBackup(from: url)
-                    url.stopAccessingSecurityScopedResource()
-                    withAnimation {
-                        restoreCompleted = true
-                    }
-                } else {
-                    throw NSError(domain: .bundleIdentifier,
-                                  code: 1,
-                                  userInfo: [url.path(): "Access denied to URL"])
+                guard url.startAccessingSecurityScopedResource() else {
+                    throw NSError(
+                        domain: .bundleIdentifier,
+                        code: 1,
+                        userInfo: [url.path(): "Access denied to URL"])
+                }
+                try backupManager.restoreBackup(from: url)
+                url.stopAccessingSecurityScopedResource()
+                withAnimation {
+                    restoreCompleted = true
                 }
             } catch {
                 restoreErrorOccurred(error)
@@ -147,7 +153,7 @@ struct BackupManagerView: View {
 #Preview {
     @Previewable let dataProvider = DataProvider.forPreview
     @Previewable @State var store = LibraryStore(dataProvider: .forPreview)
-    
+
     BackupManagerView(backupManager: store.backupManager)
         .onAppear {
             dataProvider.generateEntriesForPreview()

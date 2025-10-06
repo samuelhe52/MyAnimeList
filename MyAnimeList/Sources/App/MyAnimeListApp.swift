@@ -5,9 +5,9 @@
 //  Created by Samuel He on 2024/12/8.
 //
 
-import SwiftUI
-import SwiftData
 import DataProvider
+import SwiftData
+import SwiftUI
 
 @main
 struct MyAnimeListApp: App {

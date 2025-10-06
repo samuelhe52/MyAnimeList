@@ -16,27 +16,28 @@ struct RedirectingHTTPClient: HTTPClient {
     let toHost: String
 
     func perform(request: HTTPRequest) async throws -> HTTPResponse {
-        guard var components = URLComponents(url: request.url, resolvingAgainstBaseURL: false) else {
+        guard var components = URLComponents(url: request.url, resolvingAgainstBaseURL: false)
+        else {
             throw URLError(.badURL)
         }
         if components.host == fromHost {
             components.host = toHost
         }
-        
+
         guard let redirectedURL = components.url else {
             throw URLError(.badURL)
         }
-        
+
         var urlRequest = URLRequest(url: redirectedURL)
         urlRequest.httpMethod = request.method.rawValue
         urlRequest.allHTTPHeaderFields = request.headers
-        
+
         let (data, response) = try await URLSession.shared.data(for: urlRequest)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw URLError(.badServerResponse)
         }
-        
+
         return HTTPResponse(
             statusCode: httpResponse.statusCode,
             data: data

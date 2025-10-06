@@ -10,10 +10,12 @@ import SwiftUI
 struct EntryFavoriteButton: View {
     let favorited: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
-            Label(favorited ? "Unfavorite" : "Favorite", systemImage: favorited ? "star.circle.fill" : "star.circle")
+            Label(
+                favorited ? "Unfavorite" : "Favorite",
+                systemImage: favorited ? "star.circle.fill" : "star.circle")
         }
     }
 }

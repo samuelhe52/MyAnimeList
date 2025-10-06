@@ -5,16 +5,16 @@
 //  Created by Samuel He on 2025/10/5.
 //
 
-import SwiftUI
 import DataProvider
+import SwiftUI
 
 /// View responsible for displaying library search results and handling library-specific interactions.
 struct LibrarySearchContent: View {
     @Environment(LibrarySearchService.self) private var librarySearchService: LibrarySearchService
-    
+
     var body: some View {
         @Bindable var librarySearchService = librarySearchService
-        
+
         VStack {
             switch librarySearchService.status {
             case .loaded:
@@ -39,9 +39,11 @@ struct LibrarySearchContent: View {
             }
         }
         .listStyle(.inset)
-        .searchable(text: $librarySearchService.query,
-                   placement: .navigationBarDrawer(displayMode: .automatic),
-                   prompt: "Search in your library...")
+        .searchable(
+            text: $librarySearchService.query,
+            placement: .navigationBarDrawer(displayMode: .automatic),
+            prompt: "Search in your library..."
+        )
         .onSubmit(of: .search) { librarySearchService.updateResults() }
         .onAppear {
             if librarySearchService.results.isEmpty {
@@ -50,13 +52,14 @@ struct LibrarySearchContent: View {
         }
         .animation(.default, value: librarySearchService.status)
     }
-    
+
     @ViewBuilder
     private var libraryResults: some View {
         if librarySearchService.results.isEmpty {
-            ContentUnavailableView("No Results", 
-                                  systemImage: "magnifyingglass",
-                                  description: Text("Try a different search term"))
+            ContentUnavailableView(
+                "No Results",
+                systemImage: "magnifyingglass",
+                description: Text("Try a different search term"))
         } else {
             List {
                 ForEach(librarySearchService.results, id: \.tmdbID) { result in

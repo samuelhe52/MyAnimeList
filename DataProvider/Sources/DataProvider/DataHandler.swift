@@ -15,20 +15,21 @@ fileprivate let logger = Logger(subsystem: .moduleIdentifier, category: "DataHan
 public final class DataHandler {
     public let modelContext: ModelContext
     public let modelContainer: ModelContainer
-    
+
     init(modelContainer: ModelContainer) {
         self.modelContext = modelContainer.mainContext
         self.modelContainer = modelContainer
     }
-    
+
     public subscript<T: PersistentModel>(_ id: PersistentIdentifier, as type: T.Type) -> T? {
         get {
-            let descriptor = FetchDescriptor(predicate: #Predicate<T> { $0.persistentModelID == id })
+            let descriptor = FetchDescriptor(
+                predicate: #Predicate<T> { $0.persistentModelID == id })
             let model = try? modelContext.fetch(descriptor).first
             return model
         }
     }
-    
+
     /// Creates a new anime entry in the database.
     /// - Parameter entry: The anime entry to create.
     /// - Returns: The persistent identifier of the newly created entry.
@@ -40,14 +41,14 @@ public final class DataHandler {
         try modelContext.save()
         return entry.persistentModelID
     }
-    
-    /// Marks an anime entry as `planToWatch`
-    /// - Parameter id: The persistent identifier of the entry to update.
+
+    /// Marks an anime entry as `planToWatch`.
+    /// - Parameter entry: The entry to update.
     public func markEntryAsPlanToWatch(_ entry: AnimeEntry) {
         logger.debug("Marking entry as unwatched: \(entry.tmdbID), name: \(entry.name)")
         entry.watchStatus = .planToWatch
     }
-    
+
     /// Marks an anime entry as currently watching by the status to `.watching` setting the start date to now.
     /// - Parameter entry: The entry to update.
     public func markEntryAsWatching(_ entry: AnimeEntry) {
@@ -55,7 +56,7 @@ public final class DataHandler {
         entry.watchStatus = .watching
         entry.dateStarted = .now
     }
-    
+
     /// Marks an anime entry as watched by setting the status to `.watched` and finish date to now.
     /// - Parameter entry: The entry to update.
     /// - Note: If the entry hasn't been marked as currently watching yet, `dateStarted` will be set to `.now`
@@ -64,14 +65,14 @@ public final class DataHandler {
         entry.watchStatus = .watched
         entry.dateFinished = .now
     }
-    
+
     /// Marks an anime entry as a favorite.
     /// - Parameter entry: The entry to update.
     public func favorite(entry: AnimeEntry) {
         logger.debug("Marking entry as favorite: \(entry.tmdbID), name: \(entry.name)")
         entry.favorite = true
     }
-    
+
     /// Unmarks an anime entry as a favorite.
     /// - Parameter entry: The entry to update.
     public func unfavorite(entry: AnimeEntry) {
@@ -88,7 +89,7 @@ public final class DataHandler {
             favorite(entry: entry)
         }
     }
-        
+
     /// Deletes a specific anime entry.
     /// - Parameter entry: The entry to delete.
     /// - Throws: An error if the save operation fails.
@@ -97,7 +98,7 @@ public final class DataHandler {
         modelContext.delete(entry)
         try modelContext.save()
     }
-    
+
     /// Deletes all anime entries from the database.
     /// - Throws: An error if the fetch save operation fails.
     public func deleteAllEntries() throws {

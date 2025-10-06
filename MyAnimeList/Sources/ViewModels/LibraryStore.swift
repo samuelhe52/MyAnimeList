@@ -328,7 +328,11 @@ class LibraryStore {
         }
     }
 
-    enum AnimeSortStrategy: String, CaseIterable, CustomLocalizedStringResourceConvertible, Codable {
+    enum AnimeSortStrategy: String,
+        CaseIterable,
+        CustomLocalizedStringResourceConvertible,
+        Codable
+    {
         case dateSaved, dateStarted, dateFinished, dateOnAir
 
         func compare(_ lhs: AnimeEntry, _ rhs: AnimeEntry) -> Bool {

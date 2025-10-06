@@ -253,7 +253,8 @@ class BackupManager {
             // Copy backed up files from the backup package
             let backupFiles = try fileManager.contentsOfDirectory(
                 at: directoryURL, includingPropertiesForKeys: nil)
-            for fileURL in backupFiles where fileURL.lastPathComponent.starts(with: "default.store") {
+            for fileURL in backupFiles
+            where fileURL.lastPathComponent.starts(with: "default.store") {
                 let destinationURL = storeDirectory.appendingPathComponent(
                     fileURL.lastPathComponent)
                 try fileManager.copyItem(at: fileURL, to: destinationURL)

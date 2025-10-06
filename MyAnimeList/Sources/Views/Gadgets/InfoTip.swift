@@ -13,7 +13,7 @@ struct InfoTip: View {
     var message: LocalizedStringKey
     var width: CGFloat?
     var height: CGFloat?
-    
+
     var body: some View {
         Button(action: {
             showTip.toggle()

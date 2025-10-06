@@ -13,19 +13,21 @@ struct ActionToggle<ToggleLabel: View>: View {
     @ViewBuilder let label: () -> ToggleLabel
     let on: () -> Void
     let off: () -> Void
-    
-    init(isOn: Bool = false,
-         sensoryFeedback: SensoryFeedback? = .selection,
-         on: @escaping () -> Void = {},
-         off: @escaping () -> Void = {},
-         @ViewBuilder label: @escaping () -> ToggleLabel) {
+
+    init(
+        isOn: Bool = false,
+        sensoryFeedback: SensoryFeedback? = .selection,
+        on: @escaping () -> Void = {},
+        off: @escaping () -> Void = {},
+        @ViewBuilder label: @escaping () -> ToggleLabel
+    ) {
         self._isOn = .init(initialValue: isOn)
         self.sensoryFeedback = sensoryFeedback
         self.on = on
         self.off = off
         self.label = label
     }
-    
+
     var body: some View {
         Toggle(isOn: $isOn, label: label)
             .onChange(of: isOn) {
@@ -35,8 +37,8 @@ struct ActionToggle<ToggleLabel: View>: View {
                     off()
                 }
             }
-            .sensoryFeedback(trigger: isOn) { _,_ in
-                return sensoryFeedback
+            .sensoryFeedback(trigger: isOn) { _, _ in
+                sensoryFeedback
             }
     }
 }

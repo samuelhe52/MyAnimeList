@@ -12,7 +12,7 @@ public enum SchemaV2_1_1: VersionedSchema {
     public static var versionIdentifier: Schema.Version {
         .init(2, 1, 1)
     }
-    
+
     public static var models: [any PersistentModel.Type] {
         [AnimeEntry.self]
     }

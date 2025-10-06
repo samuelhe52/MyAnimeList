@@ -5,10 +5,10 @@
 //  Created by Samuel He on 2025/5/5.
 //
 
+import Collections
+import DataProvider
 import Foundation
 import SwiftUI
-import DataProvider
-import Collections
 import os
 
 fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "SearchService")
@@ -25,16 +25,18 @@ class TMDbSearchService {
     var query: String
     private(set) var movieResults: [BasicInfo] = []
     private(set) var seriesResults: [BasicInfo] = []
-    
+
     private var resultsToSubmit: OrderedSet<SearchResult> = []
     var processResults: (OrderedSet<SearchResult>) -> Void
-    
-    init(query: String = UserDefaults.standard.string(forKey: .searchPageQuery) ?? "",
-         processResults: @escaping (OrderedSet<SearchResult>) -> Void) {
+
+    init(
+        query: String = UserDefaults.standard.string(forKey: .searchPageQuery) ?? "",
+        processResults: @escaping (OrderedSet<SearchResult>) -> Void
+    ) {
         self.query = query
         self.processResults = processResults
     }
-    
+
     /// Submit the final results.
     func submit() { processResults(OrderedSet(resultsToSubmit.reversed())) }
     /// The count of all results pending submission.
@@ -42,18 +44,24 @@ class TMDbSearchService {
     /// Appends a result to the submission queue.
     func register(_ result: SearchResult) { resultsToSubmit.insert(result, at: 0) }
     /// Creates a result from a `BasicInfo` to the submission queue.
-    func register(info: BasicInfo) { resultsToSubmit.insert(.init(tmdbID: info.tmdbID, type: info.type), at: 0) }
+    func register(info: BasicInfo) {
+        resultsToSubmit.insert(.init(tmdbID: info.tmdbID, type: info.type), at: 0)
+    }
     /// Removes a result from the submission queue if it is present.
     func unregister(_ result: SearchResult) { resultsToSubmit.remove(result) }
     /// Removes a result corresponding to the provided `BasicInfo` from the submission queue if it is present.
-    func unregister(info: BasicInfo) { resultsToSubmit.remove(.init(tmdbID: info.tmdbID, type: info.type)) }
-    /// Removes all series/movie results
+    func unregister(info: BasicInfo) {
+        resultsToSubmit.remove(.init(tmdbID: info.tmdbID, type: info.type))
+    }
+    /// Removes all series/movie results.
     func clearAll() {
         resultsToSubmit.removeAll()
     }
-    
-    private func fetchPosterURLs(from items: [(tmdbID: Int, path: URL?)]) async throws -> [(tmdbID: Int, url: URL?)] {
-        return try await withThrowingTaskGroup(of: (tmdbID: Int, url: URL?).self) { group in
+
+    private func fetchPosterURLs(from items: [(tmdbID: Int, path: URL?)]) async throws -> [(
+        tmdbID: Int, url: URL?
+    )] {
+        try await withThrowingTaskGroup(of: (tmdbID: Int, url: URL?).self) { group in
             for item in items {
                 group.addTask {
                     let url = try await self.fetcher
@@ -63,7 +71,7 @@ class TMDbSearchService {
                     return (tmdbID: item.tmdbID, url: url)
                 }
             }
-            
+
             var results: [(tmdbID: Int, url: URL?)] = []
             for try await result in group {
                 results.append(result)
@@ -71,7 +79,7 @@ class TMDbSearchService {
             return results
         }
     }
-    
+
     func updateResults(language: Language) {
         UserDefaults.standard.set(query, forKey: .searchPageQuery)
         guard !query.isEmpty else { return }
@@ -80,30 +88,35 @@ class TMDbSearchService {
             status = .loading
             do {
                 let movies = try await fetcher.searchMovies(name: currentQuery, language: language)
-                let tvSeries = try await fetcher.searchTVSeries(name: currentQuery, language: language)
-                let moviesPosterURLs = try await fetchPosterURLs(from: movies.map { (tmdbID: $0.id, path: $0.posterPath) })
-                let seriesPosterURLs = try await fetchPosterURLs(from: tvSeries.map { (tmdbID: $0.id, path: $0.posterPath) })
+                let tvSeries = try await fetcher.searchTVSeries(
+                    name: currentQuery, language: language)
+                let moviesPosterURLs = try await fetchPosterURLs(
+                    from: movies.map { (tmdbID: $0.id, path: $0.posterPath) })
+                let seriesPosterURLs = try await fetchPosterURLs(
+                    from: tvSeries.map { (tmdbID: $0.id, path: $0.posterPath) })
                 let searchMovieResults = movies.map { movie in
-                    BasicInfo(name: movie.title,
-                              nameTranslations: [:],
-                              overview: movie.overview,
-                              overviewTranslations: [:],
-                              posterURL: moviesPosterURLs.filter { $0.tmdbID == movie.id }.first?.url,
-                              tmdbID: movie.id,
-                              onAirDate: movie.releaseDate,
-                              type: .movie)
+                    BasicInfo(
+                        name: movie.title,
+                        nameTranslations: [:],
+                        overview: movie.overview,
+                        overviewTranslations: [:],
+                        posterURL: moviesPosterURLs.filter { $0.tmdbID == movie.id }.first?.url,
+                        tmdbID: movie.id,
+                        onAirDate: movie.releaseDate,
+                        type: .movie)
                 }
                 let searchTVSeriesResults = tvSeries.map { series in
-                    BasicInfo(name: series.name,
-                              nameTranslations: [:],
-                              overview: series.overview,
-                              overviewTranslations: [:],
-                              posterURL: seriesPosterURLs.filter { $0.tmdbID == series.id }.first?.url,
-                              tmdbID: series.id,
-                              onAirDate: series.firstAirDate,
-                              type: .series)
+                    BasicInfo(
+                        name: series.name,
+                        nameTranslations: [:],
+                        overview: series.overview,
+                        overviewTranslations: [:],
+                        posterURL: seriesPosterURLs.filter { $0.tmdbID == series.id }.first?.url,
+                        tmdbID: series.id,
+                        onAirDate: series.firstAirDate,
+                        type: .series)
                 }
-                
+
                 if currentQuery == query {
                     withAnimation {
                         movieResults = searchMovieResults
@@ -116,8 +129,10 @@ class TMDbSearchService {
                 status = .error(error)
             }
         }
-        
-        func fetchSeasons(seriesInfo info: BasicInfo, language: Language) async throws -> [BasicInfo] {
+
+        func fetchSeasons(seriesInfo info: BasicInfo, language: Language) async throws
+            -> [BasicInfo]
+        {
             let fetcher = InfoFetcher()
             let series = try await fetcher.tvSeries(info.tmdbID, language: language)
             guard let seasons = series.seasons else { return [] }
@@ -125,9 +140,10 @@ class TMDbSearchService {
                 var results: [BasicInfo] = []
                 for season in seasons {
                     group.addTask {
-                        return try await fetcher.tvSeasonInfo(seasonNumber: season.seasonNumber,
-                                                              parentSeriesID: info.tmdbID,
-                                                              language: language)
+                        try await fetcher.tvSeasonInfo(
+                            seasonNumber: season.seasonNumber,
+                            parentSeriesID: info.tmdbID,
+                            language: language)
                     }
                 }
                 for try await result in group {
@@ -138,7 +154,7 @@ class TMDbSearchService {
             return infos
         }
     }
-    
+
     enum Status {
         case loading
         case loaded
@@ -152,8 +168,8 @@ extension TMDbSearchService.Status: Equatable {
         case (.loading, .loading), (.loaded, .loaded):
             return true
         case (.error(let e1), .error(let e2)):
-            return (e1 as NSError).domain == (e2 as NSError).domain &&
-            (e1 as NSError).code == (e2 as NSError).code
+            return (e1 as NSError).domain == (e2 as NSError).domain
+                && (e1 as NSError).code == (e2 as NSError).code
         default:
             return false
         }

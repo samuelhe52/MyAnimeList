@@ -5,16 +5,18 @@
 //  Created by Samuel He on 2025/6/19.
 //
 
-import Foundation
 import AlertToast
+import Foundation
 import SwiftUI
 
 extension AlertToast {
-    init(displayMode: DisplayMode = .alert,
-         type: AlertType,
-         titleResource: LocalizedStringResource? = nil,
-         subTitleResource: LocalizedStringResource? = nil,
-         style: AlertStyle? = nil) {
+    init(
+        displayMode: DisplayMode = .alert,
+        type: AlertType,
+        titleResource: LocalizedStringResource? = nil,
+        subTitleResource: LocalizedStringResource? = nil,
+        style: AlertStyle? = nil
+    ) {
         var title: String?
         var subTitle: String?
         if let titleResource {
@@ -23,10 +25,11 @@ extension AlertToast {
         if let subTitleResource {
             subTitle = String(localized: subTitleResource)
         }
-        self.init(displayMode: displayMode,
-                  type: type,
-                  title: title,
-                  subTitle: subTitle,
-                  style: style)
+        self.init(
+            displayMode: displayMode,
+            type: type,
+            title: title,
+            subTitle: subTitle,
+            style: style)
     }
 }

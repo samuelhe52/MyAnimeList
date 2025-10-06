@@ -5,8 +5,8 @@
 //  Created by Samuel He on 2025/3/30.
 //
 
-import SwiftUI
 import Collections
+import SwiftUI
 
 enum SearchMode: String, CaseIterable, CustomLocalizedStringResourceConvertible {
     case tmdb
@@ -24,34 +24,38 @@ enum SearchMode: String, CaseIterable, CustomLocalizedStringResourceConvertible 
 struct SearchPage: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage(.searchMode) private var mode: SearchMode = .tmdb
-    
+
     // View models owned by SearchPage
     @State private var tmdbSearchService: TMDbSearchService
     @State private var librarySearchService: LibrarySearchService
-    
+
     // Callbacks for TMDb search interactions
     private let onDuplicateTapped: (Int) -> Void
     private let checkDuplicate: (Int) -> Bool
-    
-    init(onDuplicateTapped: @escaping (_ tappedID: Int) -> Void,
-         checkDuplicate: @escaping (_ tmdbID: Int) -> Bool,
-         processTMDbSearchResults: @escaping (OrderedSet<SearchResult>) -> Void,
-         jumpToEntryInLibrary: @escaping (Int) -> Void = { _ in }) {
+
+    init(
+        onDuplicateTapped: @escaping (_ tappedID: Int) -> Void,
+        checkDuplicate: @escaping (_ tmdbID: Int) -> Bool,
+        processTMDbSearchResults: @escaping (OrderedSet<SearchResult>) -> Void,
+        jumpToEntryInLibrary: @escaping (Int) -> Void = { _ in }
+    ) {
         self.onDuplicateTapped = onDuplicateTapped
         self.checkDuplicate = checkDuplicate
-        
+
         // Initialize view models
         let query = UserDefaults.standard.string(forKey: .searchPageQuery) ?? ""
-        self._tmdbSearchService = State(initialValue: TMDbSearchService(
-            query: query,
-            processResults: processTMDbSearchResults
-        ))
-        self._librarySearchService = State(initialValue: LibrarySearchService(
-            query: query,
-            jumpToEntryInLibrary: jumpToEntryInLibrary
-        ))
+        self._tmdbSearchService = State(
+            initialValue: TMDbSearchService(
+                query: query,
+                processResults: processTMDbSearchResults
+            ))
+        self._librarySearchService = State(
+            initialValue: LibrarySearchService(
+                query: query,
+                jumpToEntryInLibrary: jumpToEntryInLibrary
+            ))
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
             Picker("Scope", selection: $mode) {
@@ -66,7 +70,7 @@ struct SearchPage: View {
             .glassEffect(.regular)
             .padding(.horizontal)
             .padding(.vertical, 8)
-            
+
             switch mode {
             case .tmdb:
                 TMDbSearchContent(
@@ -75,7 +79,7 @@ struct SearchPage: View {
                 )
                 .environment(tmdbSearchService)
                 .transition(.move(edge: .leading))
-                
+
             case .library:
                 LibrarySearchContent()
                     .environment(librarySearchService)

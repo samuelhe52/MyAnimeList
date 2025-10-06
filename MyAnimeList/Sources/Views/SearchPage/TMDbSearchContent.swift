@@ -5,26 +5,28 @@
 //  Created by Samuel He on 2025/10/5.
 //
 
-import SwiftUI
 import Collections
+import SwiftUI
 
 /// View responsible for displaying TMDb search results and handling TMDb-specific interactions.
 struct TMDbSearchContent: View {
     @Environment(TMDbSearchService.self) private var tmdbSearchService: TMDbSearchService
     @AppStorage(.searchTMDbLanguage) private var language: Language = .english
-    
+
     private let onDuplicateTapped: (Int) -> Void
     private let checkDuplicate: (Int) -> Bool
-    
-    init(onDuplicateTapped: @escaping (Int) -> Void,
-         checkDuplicate: @escaping (Int) -> Bool) {
+
+    init(
+        onDuplicateTapped: @escaping (Int) -> Void,
+        checkDuplicate: @escaping (Int) -> Bool
+    ) {
         self.onDuplicateTapped = onDuplicateTapped
         self.checkDuplicate = checkDuplicate
     }
-    
+
     var body: some View {
         @Bindable var tmdbSearchService = tmdbSearchService
-        
+
         VStack {
             switch tmdbSearchService.status {
             case .loaded:
@@ -54,9 +56,11 @@ struct TMDbSearchContent: View {
             }
         }
         .listStyle(.inset)
-        .searchable(text: $tmdbSearchService.query, 
-                   placement: .navigationBarDrawer(displayMode: .automatic), 
-                   prompt: "Search TV animation or movies...")
+        .searchable(
+            text: $tmdbSearchService.query,
+            placement: .navigationBarDrawer(displayMode: .automatic),
+            prompt: "Search TV animation or movies..."
+        )
         .safeAreaInset(edge: .bottom) {
             submitMenu
                 .offset(y: -30)
@@ -70,7 +74,7 @@ struct TMDbSearchContent: View {
         }
         .animation(.default, value: tmdbSearchService.status)
     }
-    
+
     @ViewBuilder
     private var languagePicker: some View {
         Picker("Language", selection: $language) {
@@ -79,29 +83,32 @@ struct TMDbSearchContent: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private var results: some View {
         if tmdbSearchService.movieResults.isEmpty && tmdbSearchService.seriesResults.isEmpty {
-            ContentUnavailableView("No Results", 
-                                  systemImage: "magnifyingglass",
-                                  description: Text("Try a different search term"))
+            ContentUnavailableView(
+                "No Results",
+                systemImage: "magnifyingglass",
+                description: Text("Try a different search term"))
         } else {
             seriesResults
             movieResults
         }
     }
-    
+
     private var alreadyAddedMessage: LocalizedStringKey { "Already in library." }
-    
+
     @ViewBuilder private var seriesResults: some View {
         if !tmdbSearchService.seriesResults.isEmpty {
             Section("TV Series") {
                 ForEach(tmdbSearchService.seriesResults.prefix(8), id: \.tmdbID) { series in
                     let isDuplicate = checkDuplicate(series.tmdbID)
                     SeriesResultItem(series: series)
-                        .indicateAlreadyAdded(added: isDuplicate,
-                                              message: alreadyAddedMessage)
+                        .indicateAlreadyAdded(
+                            added: isDuplicate,
+                            message: alreadyAddedMessage
+                        )
                         .onTapGesture {
                             if isDuplicate { onDuplicateTapped(series.tmdbID) }
                         }
@@ -116,8 +123,10 @@ struct TMDbSearchContent: View {
                 ForEach(tmdbSearchService.movieResults.prefix(8), id: \.tmdbID) { movie in
                     let isDuplicate = checkDuplicate(movie.tmdbID)
                     MovieResultItem(movie: movie)
-                        .indicateAlreadyAdded(added: isDuplicate,
-                                              message: alreadyAddedMessage)
+                        .indicateAlreadyAdded(
+                            added: isDuplicate,
+                            message: alreadyAddedMessage
+                        )
                         .onTapGesture {
                             if isDuplicate { onDuplicateTapped(movie.tmdbID) }
                         }
@@ -125,7 +134,7 @@ struct TMDbSearchContent: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private var submitMenu: some View {
         if tmdbSearchService.registeredCount != 0 {
@@ -137,7 +146,7 @@ struct TMDbSearchContent: View {
             .transition(.opacity.animation(.interactiveSpring(duration: 0.3)))
         }
     }
-    
+
     private func updateResults() {
         tmdbSearchService.updateResults(language: language)
     }
@@ -146,7 +155,7 @@ struct TMDbSearchContent: View {
 fileprivate struct AlreadyAddedIndicatorModifier: ViewModifier {
     var added: Bool
     var message: LocalizedStringKey
-    
+
     func body(content: Content) -> some View {
         if added {
             content
@@ -166,9 +175,11 @@ fileprivate struct AlreadyAddedIndicatorModifier: ViewModifier {
     }
 }
 
-fileprivate extension View {
-    func indicateAlreadyAdded(added: Bool = false,
-                              message: LocalizedStringKey) -> some View {
+extension View {
+    fileprivate func indicateAlreadyAdded(
+        added: Bool = false,
+        message: LocalizedStringKey
+    ) -> some View {
         modifier(AlreadyAddedIndicatorModifier(added: added, message: message))
     }
 }

@@ -5,23 +5,27 @@
 //  Created by Samuel He on 2025/5/3.
 //
 
-import SwiftUI
 import AlertToast
+import SwiftUI
 
 struct TMDbAPIConfigurator: View {
     @Environment(TMDbAPIKeyStorage.self) var keyStorage
-    
+
     var isEditing: Bool = false
     @State private var apiKeyInput: String = ""
-    
+
     @FocusState private var isTextFieldFocused: Bool
     @State private var status: KeyCheckStatus?
     private var checking: Bool { status == .checking }
     private var checkFailed: Bool { status == .invalid }
-    private var checkFailedBinding: Binding<Bool> { .init(get: { checkFailed }, set: { _ in status = nil }) }
+    private var checkFailedBinding: Binding<Bool> {
+        .init(get: { checkFailed }, set: { _ in status = nil })
+    }
     private var checkSuccess: Bool { status == .valid }
-    private var checkSuccessBinding: Binding<Bool> { .init(get: { checkSuccess }, set: { _ in status = nil }) }
-    
+    private var checkSuccessBinding: Binding<Bool> {
+        .init(get: { checkSuccess }, set: { _ in status = nil })
+    }
+
     var body: some View {
         VStack(spacing: 30) {
             if !isEditing {
@@ -33,7 +37,7 @@ struct TMDbAPIConfigurator: View {
                     .clipShape(.buttonBorder)
                     .foregroundColor(.blue)
                     .padding(.top, 40)
-                
+
                 Text("Welcome")
                     .font(.largeTitle)
                     .fontWeight(.bold)
@@ -43,13 +47,13 @@ struct TMDbAPIConfigurator: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
             }
-            
+
             Text("To continue, enter a TMDb API Key.")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
-            
+
             VStack(spacing: 0) {
                 TextField("TMDb API Key", text: $apiKeyInput)
                     .padding()
@@ -60,7 +64,7 @@ struct TMDbAPIConfigurator: View {
                     .privacySensitive()
             }
             .padding(.horizontal)
-            
+
             Button {
                 status = .checking
                 Task { await checkKey(apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines)) }
@@ -71,24 +75,41 @@ struct TMDbAPIConfigurator: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity)
-                .glassEffect(.regular.tint(isFieldEmpty ? Color.gray : Color.blue), in: .proportionalRounded)
+                .glassEffect(
+                    .regular.tint(isFieldEmpty ? Color.gray : Color.blue), in: .proportionalRounded
+                )
                 .animation(.default, value: isFieldEmpty)
                 .foregroundColor(.white)
                 .cornerRadius(10)
             }
             .disabled(apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            
+
             Spacer()
         }
-        .toast(isPresenting: .constant(checking), offsetY: 20, alert: {
-            AlertToast(displayMode: !isEditing ? .hud : .banner(.pop), type: .regular, titleResource: "Checking key...")
-        })
-        .toast(isPresenting: checkFailedBinding, offsetY: 20, alert: {
-            AlertToast(displayMode: !isEditing ? .hud : .banner(.pop), type: .error(.red), titleResource: "Key check failed!")
-        })
-        .toast(isPresenting: checkSuccessBinding, offsetY: 20, alert: {
-            AlertToast(displayMode: !isEditing ? .hud : .banner(.pop), type: .complete(.green), titleResource: "Key saved.")
-        })
+        .toast(
+            isPresenting: .constant(checking), offsetY: 20,
+            alert: {
+                AlertToast(
+                    displayMode: !isEditing ? .hud : .banner(.pop), type: .regular,
+                    titleResource: "Checking key...")
+            }
+        )
+        .toast(
+            isPresenting: checkFailedBinding, offsetY: 20,
+            alert: {
+                AlertToast(
+                    displayMode: !isEditing ? .hud : .banner(.pop), type: .error(.red),
+                    titleResource: "Key check failed!")
+            }
+        )
+        .toast(
+            isPresenting: checkSuccessBinding, offsetY: 20,
+            alert: {
+                AlertToast(
+                    displayMode: !isEditing ? .hud : .banner(.pop), type: .complete(.green),
+                    titleResource: "Key saved.")
+            }
+        )
         .onAppear {
             if isEditing {
                 apiKeyInput = keyStorage.key ?? ""
@@ -96,7 +117,7 @@ struct TMDbAPIConfigurator: View {
         }
         .padding(.horizontal)
         .padding()
-        .sensoryFeedback(trigger: status) { _,new in
+        .sensoryFeedback(trigger: status) { _, new in
             switch new {
             case .invalid: .error
             case .valid: .success
@@ -104,31 +125,34 @@ struct TMDbAPIConfigurator: View {
             }
         }
     }
-    
+
     private var isFieldEmpty: Bool {
         apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
-    
+
     func checkKey(_ key: String) async -> Bool {
         guard !key.isEmpty else {
             status = .invalid
             return false
         }
-        guard let url = URL(string: "https://tmdb-api.konakona52.com/3/configuration?api_key=\(key)") else {
+        guard
+            let url = URL(string: "https://tmdb-api.konakona52.com/3/configuration?api_key=\(key)")
+        else {
             return false
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        
+
         do {
             let (_, response) = try await URLSession.shared.data(for: request)
             guard let httpResponse = response as? HTTPURLResponse,
-                  httpResponse.statusCode == 200 else {
+                httpResponse.statusCode == 200
+            else {
                 status = .invalid
                 return false
             }
-            
+
             status = .valid
             if !isEditing {
                 isTextFieldFocused = false
@@ -137,7 +161,8 @@ struct TMDbAPIConfigurator: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     let result = keyStorage.saveKey(apiKeyInput)
                     if result {
-                        NotificationCenter.default.post(name: .TMDbAPIConfigurationDidChange, object: nil)
+                        NotificationCenter.default.post(
+                            name: .tmdbAPIConfigurationDidChange, object: nil)
                     }
                     continuation.resume()
                 }
@@ -148,7 +173,7 @@ struct TMDbAPIConfigurator: View {
             return false
         }
     }
-    
+
     enum KeyCheckStatus {
         case checking
         case valid
@@ -157,7 +182,7 @@ struct TMDbAPIConfigurator: View {
 }
 
 extension Notification.Name {
-    static let TMDbAPIConfigurationDidChange = Notification.Name("tmdbAPIKeyDidChange")
+    static let tmdbAPIConfigurationDidChange = Notification.Name("tmdbAPIKeyDidChange")
 }
 
 #Preview {

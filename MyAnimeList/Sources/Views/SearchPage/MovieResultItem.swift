@@ -5,13 +5,13 @@
 //  Created by Samuel He on 2025/5/11.
 //
 
-import SwiftUI
 import Kingfisher
+import SwiftUI
 
 struct MovieResultItem: View {
     @Environment(TMDbSearchService.self) var service
     let movie: BasicInfo
-    
+
     var body: some View {
         HStack {
             KFImageView(url: movie.posterURL, diskCacheExpiration: .shortTerm)
@@ -24,9 +24,11 @@ struct MovieResultItem: View {
                         .bold()
                         .lineLimit(1)
                     Spacer()
-                    ActionToggle(on: { service.register(info: movie) },
-                                 off: { service.unregister(info: movie) },
-                                 label: { Image(systemName: "checkmark") })
+                    ActionToggle(
+                        on: { service.register(info: movie) },
+                        off: { service.unregister(info: movie) },
+                        label: { Image(systemName: "checkmark") }
+                    )
                     .toggleStyle(.button)
                     .buttonStyle(.bordered)
                     .buttonBorderShape(.circle)
@@ -44,4 +46,3 @@ struct MovieResultItem: View {
         }
     }
 }
-

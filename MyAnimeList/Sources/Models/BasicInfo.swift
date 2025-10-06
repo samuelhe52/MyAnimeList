@@ -5,8 +5,8 @@
 //  Created by Samuel He on 2025/3/22.
 //
 
-import Foundation
 import DataProvider
+import Foundation
 
 /// A structure representing basic information about an anime.
 ///
@@ -24,9 +24,9 @@ struct BasicInfo: Equatable, Identifiable, Hashable {
     var onAirDate: Date?
     /// Home page URL of the anime.
     var linkToDetails: URL?
-    
+
     /// The type of anime (movie, TV series, season, etc.).
     var type: AnimeType
-    
+
     var id: Int { tmdbID }
 }

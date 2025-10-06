@@ -5,8 +5,8 @@
 //  Created by Samuel He on 2025/5/4.
 //
 
-import Foundation
 import Combine
+import Foundation
 
 @Observable @MainActor
 class ScrollState {

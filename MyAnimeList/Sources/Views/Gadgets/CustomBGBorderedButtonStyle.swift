@@ -10,12 +10,12 @@ import SwiftUI
 struct CustomBGBorderedButtonStyle<S: ShapeStyle, V: Shape>: ButtonStyle {
     var shapeStyle: S
     var backgroundShape: V
-    
+
     init(_ shapeStyle: S = .regularMaterial, backgroundIn backgroundShape: V = Capsule()) {
         self.shapeStyle = shapeStyle
         self.backgroundShape = backgroundShape
     }
-    
+
     func makeBody(configuration: ButtonStyleConfiguration) -> some View {
         configuration.label
             .foregroundStyle(.blue)

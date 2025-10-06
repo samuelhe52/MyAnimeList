@@ -10,24 +10,26 @@ import SwiftData
 
 enum MigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [SchemaV1.self,
-         SchemaV2.self,
-         SchemaV2_0_1.self,
-         SchemaV2_1_0.self,
-         SchemaV2_1_1.self,
-         SchemaV2_2_0.self,
-         SchemaV2_2_1.self,
-         SchemaV2_3_0.self,
-         SchemaV2_3_1.self,
-         SchemaV2_3_2.self,
-         SchemaV2_4_0.self]
+        [
+            SchemaV1.self,
+            SchemaV2.self,
+            SchemaV2_0_1.self,
+            SchemaV2_1_0.self,
+            SchemaV2_1_1.self,
+            SchemaV2_2_0.self,
+            SchemaV2_2_1.self,
+            SchemaV2_3_0.self,
+            SchemaV2_3_1.self,
+            SchemaV2_3_2.self,
+            SchemaV2_4_0.self
+        ]
     }
-    
+
     static var stages: [MigrationStage] {
         [
             .lightweight(fromVersion: SchemaV1.self, toVersion: SchemaV2.self),
             .lightweight(fromVersion: SchemaV2.self, toVersion: SchemaV2_0_1.self),
-            .migrateV2_0_1toV2_1_0(),
+            .migrateV201ToV210(),
             .lightweight(fromVersion: SchemaV2_1_0.self, toVersion: SchemaV2_1_1.self),
             .lightweight(fromVersion: SchemaV2_1_1.self, toVersion: SchemaV2_2_0.self),
             .lightweight(fromVersion: SchemaV2_2_0.self, toVersion: SchemaV2_2_1.self),
@@ -40,9 +42,9 @@ enum MigrationPlan: SchemaMigrationPlan {
 }
 
 extension MigrationStage {
-    static func migrateV2_0_1toV2_1_0() -> MigrationStage {
+    static func migrateV201ToV210() -> MigrationStage {
         var newEntries: [SchemaV2_1_0.AnimeEntry] = []
-        
+
         return MigrationStage.custom(
             fromVersion: SchemaV2_0_1.self,
             toVersion: SchemaV2_1_0.self,
@@ -57,7 +59,7 @@ extension MigrationStage {
                     case .tvSeason(let seasonNumber, let parentSeriesID):
                         type = .season(seasonNumber: seasonNumber, parentSeriesID: parentSeriesID)
                     }
-                    
+
                     let newEntry = SchemaV2_1_0.AnimeEntry(
                         name: old.name,
                         overview: old.overview,
@@ -76,7 +78,8 @@ extension MigrationStage {
                     return newEntry
                 }
                 try context.save()
-            }, didMigrate: { context in
+            },
+            didMigrate: { context in
                 for entry in newEntries {
                     context.insert(entry)
                 }

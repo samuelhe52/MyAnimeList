@@ -5,11 +5,11 @@
 //  Created by Samuel He on 2025/6/20.
 //
 
-import SwiftUI
-import DataProvider
-import SwiftData
-import SHContainers
 import AlertToast
+import DataProvider
+import SHContainers
+import SwiftData
+import SwiftUI
 import os
 
 typealias WatchedStatus = AnimeEntry.WatchStatus
@@ -22,24 +22,26 @@ struct AnimeEntryEditor: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
     @Bindable var entry: AnimeEntry
-    
+
     @State private var showPosterSelectionView: Bool = false
     @State private var showFavoritedToast: Bool = false
     @State private var showNavigationTitle: Bool = false
     @State private var originalUserInfo: UserEntryInfo
     @State private var showCancelEditsConfirmation: Bool = false
-        
+
     init(entry: AnimeEntry) {
         self.entry = entry
         self._originalUserInfo = .init(initialValue: entry.userInfo)
     }
-        
+
     var body: some View {
         SHForm(alignment: .leading) {
             navigationHeader
             SHSection("Notes") {
-                PlaceholderTextEditor(text: $entry.notes,
-                                      placeholder: "Write some thoughts...")
+                PlaceholderTextEditor(
+                    text: $entry.notes,
+                    placeholder: "Write some thoughts..."
+                )
                 .ignoresSafeArea(.keyboard, edges: .bottom)
                 .frame(height: 150)
             }
@@ -88,18 +90,22 @@ struct AnimeEntryEditor: View {
                 }
                 dismiss()
             }
-            Button("Cancel", role: .cancel) { }
+            Button("Cancel", role: .cancel) {}
         }
-        .toast(isPresenting: $showFavoritedToast, duration: 1.5, offsetY: 35, alert: {
-            let favoritedMessage: LocalizedStringResource = "Favorited"
-            let unFavoritedMessage: LocalizedStringResource = "Unfavorited"
-            return AlertToast(displayMode: .hud,
-                       type: .systemImage(entry.favorite ? "star.fill" : "star.slash.fill", .primary),
-                       titleResource: entry.favorite ? favoritedMessage : unFavoritedMessage)
-        })
+        .toast(
+            isPresenting: $showFavoritedToast, duration: 1.5, offsetY: 35,
+            alert: {
+                let favoritedMessage: LocalizedStringResource = "Favorited"
+                let unFavoritedMessage: LocalizedStringResource = "Unfavorited"
+                return AlertToast(
+                    displayMode: .hud,
+                    type: .systemImage(entry.favorite ? "star.fill" : "star.slash.fill", .primary),
+                    titleResource: entry.favorite ? favoritedMessage : unFavoritedMessage)
+            }
+        )
         .sensoryFeedback(.lighterImpact, trigger: entry.favorite)
     }
-    
+
     private var navigationHeader: some View {
         HStack(alignment: .top) {
             Menu {
@@ -135,7 +141,7 @@ struct AnimeEntryEditor: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private var seasonNumberAndDate: some View {
         HStack(alignment: .center) {
@@ -148,7 +154,7 @@ struct AnimeEntryEditor: View {
         }
         .font(.caption)
     }
-    
+
     @ViewBuilder
     private var name: some View {
         Text(entry.displayName)
@@ -158,7 +164,7 @@ struct AnimeEntryEditor: View {
             }
             .lineLimit(1)
     }
-    
+
     private var favoriteButton: some View {
         EntryFavoriteButton(favorited: entry.favorite) {
             withAnimation(.spring(duration: 0.2)) {
@@ -170,15 +176,15 @@ struct AnimeEntryEditor: View {
         .buttonStyle(.borderless)
         .labelStyle(.iconOnly)
     }
-    
+
     private var monthAndYearDateFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.dateFormat = "YYYY.MM"
         return formatter
     }
-    
+
     private var parentSeriesName: String? { entry.parentSeriesEntry?.name }
-    
+
     private func dismissAction() {
         do {
             try modelContext.save()
@@ -192,33 +198,36 @@ struct AnimeEntryEditor: View {
 struct AnimeEntryWatchedStatusPicker: View {
     var entry: AnimeEntry
     @Environment(\.dataHandler) var dataHandler
-    
+
     init(for entry: AnimeEntry) {
         self.entry = entry
     }
-    
+
     private var watchedStatusBinding: Binding<WatchedStatus> {
-        Binding(get: {
-            entry.watchStatus
-        }, set: {
-            entry.watchStatus = $0
-            switch $0 {
-            case .watched:
-                entry.dateFinished = .now
-            case .watching:
-                entry.dateStarted = .now
-                entry.dateFinished = nil
-            default: break
-            }
-        })
+        Binding(
+            get: {
+                entry.watchStatus
+            },
+            set: {
+                entry.watchStatus = $0
+                switch $0 {
+                case .watched:
+                    entry.dateFinished = .now
+                case .watching:
+                    entry.dateStarted = .now
+                    entry.dateFinished = nil
+                default: break
+                }
+            })
     }
-    
+
     var body: some View {
         Picker(selection: watchedStatusBinding) {
             Text("Plan to Watch").tag(WatchedStatus.planToWatch)
             Text("Watching").tag(WatchedStatus.watching)
             Text("Watched").tag(WatchedStatus.watched)
-        } label: { }
+        } label: {
+        }
     }
 }
 
@@ -227,42 +236,50 @@ struct AnimeEntryDatePickers: View {
     var labelsHidden: Bool = false
 
     private var dateStartedBinding: Binding<Date> {
-        Binding(get: {
-            entry.dateStarted ?? .now
-        }, set: {
-            entry.dateStarted = $0
-        })
+        Binding(
+            get: {
+                entry.dateStarted ?? .now
+            },
+            set: {
+                entry.dateStarted = $0
+            })
     }
-    
+
     private var dateFinishedBinding: Binding<Date> {
-        Binding(get: {
-            entry.dateFinished ?? .now
-        }, set: {
-            entry.dateFinished = $0
-            if $0 < .now {
-                entry.watchStatus = .watched
-            }
-        })
+        Binding(
+            get: {
+                entry.dateFinished ?? .now
+            },
+            set: {
+                entry.dateFinished = $0
+                if $0 < .now {
+                    entry.watchStatus = .watched
+                }
+            })
     }
-    
+
     var body: some View {
         HStack {
             Spacer()
-            DatePicker(selection: dateStartedBinding,
-                       in: Date.distantPast...(entry.dateFinished ?? .now),
-                       displayedComponents: [.date]) {
+            DatePicker(
+                selection: dateStartedBinding,
+                in: Date.distantPast...(entry.dateFinished ?? .now),
+                displayedComponents: [.date]
+            ) {
                 Text("Date Started")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
             Image(systemName: "ellipsis")
                 .alignmentGuide(VerticalAlignment.center) { d in
-                    return labelsHidden ? d[VerticalAlignment.center] : -6
+                    labelsHidden ? d[VerticalAlignment.center] : -6
                 }
                 .foregroundStyle(.secondary)
-            DatePicker(selection: dateFinishedBinding,
-                       in: (entry.dateStarted ?? .now)...Date.distantFuture,
-                       displayedComponents: [.date]) {
+            DatePicker(
+                selection: dateFinishedBinding,
+                in: (entry.dateStarted ?? .now)...Date.distantFuture,
+                displayedComponents: [.date]
+            ) {
                 Text("Date Finished")
                     .font(.footnote)
                     .foregroundStyle(.secondary)

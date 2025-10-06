@@ -16,9 +16,11 @@ struct LazyShareLink<LabelView: View>: View {
         self.label = { Label(text, systemImage: "square.and.arrow.up") }
         self.prepareData = prepareData
     }
-    
-    init(prepareData: @escaping () -> [Any]?,
-         @ViewBuilder label: @escaping () -> LabelView) {
+
+    init(
+        prepareData: @escaping () -> [Any]?,
+        @ViewBuilder label: @escaping () -> LabelView
+    ) {
         self.prepareData = prepareData
         self.label = label
     }
@@ -32,7 +34,7 @@ struct LazyShareLink<LabelView: View>: View {
             return
         }
         let activityVC = UIActivityViewController(activityItems: data, applicationActivities: nil)
-        
+
         if UIDevice.current.userInterfaceIdiom == .pad {
             // otherwise iPad crashes
             let thisViewVC = UIHostingController(rootView: self)
@@ -45,13 +47,15 @@ struct LazyShareLink<LabelView: View>: View {
             .first { $0.isKeyWindow }?
             .rootViewController
         guard let rootViewController else { return }
-        
+
         // Check if there is an existing presented view controller
         if let presentedVC = rootViewController.presentedViewController {
             // Dismiss the presented view controller if needed
-            presentedVC.dismiss(animated: true, completion: {
-                rootViewController.present(activityVC, animated: true, completion: nil)
-            })
+            presentedVC.dismiss(
+                animated: true,
+                completion: {
+                    rootViewController.present(activityVC, animated: true, completion: nil)
+                })
         } else {
             // No presented view controller, proceed to present the share sheet
             rootViewController.present(activityVC, animated: true, completion: nil)

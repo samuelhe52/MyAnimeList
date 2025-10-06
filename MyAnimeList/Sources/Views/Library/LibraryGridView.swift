@@ -5,14 +5,14 @@
 //  Created by Samuel He on 7/27/25.
 //
 
-import SwiftUI
 import DataProvider
+import SwiftUI
 
 struct LibraryGridView: View {
     let store: LibraryStore
     @Environment(\.dataHandler) var dataHandler
     @Environment(\.toggleFavorite) var toggleFavorite
-    
+
     @State private var deletingEntry: AnimeEntry?
     @State private var isDeletingEntry: Bool = false
     @State private var favoritedTrigger: Bool = false
@@ -23,24 +23,28 @@ struct LibraryGridView: View {
     @State private var triggerScroll: Bool = false
     @Binding var scrolledID: Int?
     @Binding var highlightedEntryID: Int?
-    
+
     private func showHighlightBinding(for entry: AnimeEntry) -> Binding<Bool> {
-        Binding(get: {
-            entry.tmdbID == highlightedEntryID
-        }, set: {
-            if !$0 {
-                highlightedEntryID = nil
-            }
-        })
+        Binding(
+            get: {
+                entry.tmdbID == highlightedEntryID
+            },
+            set: {
+                if !$0 {
+                    highlightedEntryID = nil
+                }
+            })
     }
-    
+
     var body: some View {
         ScrollViewReader { proxy in
-            ScrollView{
+            ScrollView {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 90))]) {
                     ForEach(store.libraryOnDisplay, id: \.tmdbID) { entry in
                         LibraryGridItem(entry: entry)
-                            .highlightEffect(showHighlight: showHighlightBinding(for: entry), delay: 0.2)
+                            .highlightEffect(
+                                showHighlight: showHighlightBinding(for: entry), delay: 0.2
+                            )
                             .contextMenu(menuItems: {
                                 contextMenu(for: entry)
                                     .onAppear { scrolledID = entry.tmdbID }
@@ -74,22 +78,27 @@ struct LibraryGridView: View {
             .animation(.spring, value: store.sortStrategy)
             .animation(.spring, value: store.filters)
             .padding(.horizontal)
-            .alert("Delete Anime?",
-                   isPresented: $isDeletingEntry,
-                   presenting: deletingEntry,
-                   actions: { entry in
-                Button("Delete", role: .destructive) { store.deleteEntry(entry) }
-                Button("Cancel", role: .cancel) {}
-            })
-            .alert("Paste Info?",
-                   isPresented: $showPasteAlert,
-                   presenting: pasteAction,
-                   actions: { action in
-                Button("Paste", role: .destructive, action: action)
-                Button("Cancel", role: .cancel) {}
-            }, message: { _ in
-                Text("This anime already has edits. Pasting will overwrite current info.")
-            })
+            .alert(
+                "Delete Anime?",
+                isPresented: $isDeletingEntry,
+                presenting: deletingEntry,
+                actions: { entry in
+                    Button("Delete", role: .destructive) { store.deleteEntry(entry) }
+                    Button("Cancel", role: .cancel) {}
+                }
+            )
+            .alert(
+                "Paste Info?",
+                isPresented: $showPasteAlert,
+                presenting: pasteAction,
+                actions: { action in
+                    Button("Paste", role: .destructive, action: action)
+                    Button("Cancel", role: .cancel) {}
+                },
+                message: { _ in
+                    Text("This anime already has edits. Pasting will overwrite current info.")
+                }
+            )
             .sheet(item: $switchingPosterForEntry) { entry in
                 NavigationStack {
                     PosterSelectionView(entry: entry)
@@ -103,7 +112,7 @@ struct LibraryGridView: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private func contextMenu(for entry: AnimeEntry) -> some View {
         deleteButton(for: entry)
@@ -124,10 +133,13 @@ struct LibraryGridView: View {
         Button("Paste Info", systemImage: "doc.on.clipboard") {
             pasteInfoAction(for: entry)
         }
-        .disabled(!UIPasteboard.general.contains(pasteboardTypes: [UserEntryInfo.pasteboardUTType.identifier]))
+        .disabled(
+            !UIPasteboard.general.contains(pasteboardTypes: [
+                UserEntryInfo.pasteboardUTType.identifier
+            ]))
         editButton(for: entry)
     }
-    
+
     @ViewBuilder
     private func deleteButton(for entry: AnimeEntry) -> some View {
         Button("Delete", systemImage: "trash") {
@@ -143,14 +155,14 @@ struct LibraryGridView: View {
         }
         .tint(.red)
     }
-    
+
     @ViewBuilder
     private func editButton(for entry: AnimeEntry) -> some View {
         Button("Edit", systemImage: "pencil") {
             editingEntry = entry
         }
     }
-    
+
     private func pasteInfoAction(for entry: AnimeEntry) {
         if let pasted = UserEntryInfo.fromPasteboard() {
             let paste = {
@@ -164,14 +176,15 @@ struct LibraryGridView: View {
                 pasteAction = paste
             }
         } else {
-            ToastCenter.global.completionState = .init(state: .failed, messageResource: "No info found on pasteboard.")
+            ToastCenter.global.completionState = .init(
+                state: .failed, messageResource: "No info found on pasteboard.")
         }
     }
 }
 
 fileprivate struct LibraryGridItem: View {
     var entry: AnimeEntry
-    
+
     var body: some View {
         VStack {
             KFImageView(url: entry.posterURL, diskCacheExpiration: .longTerm)
@@ -186,11 +199,13 @@ fileprivate struct LibraryGridItem: View {
 }
 
 #Preview {
-    LibraryGridView(store: LibraryStore(dataProvider: .forPreview),
-                    scrolledID: .constant(nil),
-                    highlightedEntryID: .constant(nil))
-        .onAppear {
-            DataProvider.forPreview.generateEntriesForPreview()
-        }
-        .environment(\.dataHandler, DataProvider.forPreview.dataHandler)
+    LibraryGridView(
+        store: LibraryStore(dataProvider: .forPreview),
+        scrolledID: .constant(nil),
+        highlightedEntryID: .constant(nil)
+    )
+    .onAppear {
+        DataProvider.forPreview.generateEntriesForPreview()
+    }
+    .environment(\.dataHandler, DataProvider.forPreview.dataHandler)
 }

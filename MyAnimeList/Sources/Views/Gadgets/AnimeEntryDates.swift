@@ -5,20 +5,20 @@
 //  Created by Samuel He on 7/19/25.
 //
 
-import SwiftUI
 import DataProvider
+import SwiftUI
 
 struct AnimeEntryDates: View {
     var entry: AnimeEntry
     var labelsHidden: Bool = false
-    
+
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .none
         return formatter
     }
-    
+
     var body: some View {
         HStack(spacing: 12) {
             Spacer()
@@ -36,7 +36,7 @@ struct AnimeEntryDates: View {
             }
             Image(systemName: "ellipsis")
                 .alignmentGuide(VerticalAlignment.center) { d in
-                    return labelsHidden ? d[VerticalAlignment.center] : -6
+                    labelsHidden ? d[VerticalAlignment.center] : -6
                 }
             VStack(spacing: 4) {
                 if !labelsHidden {

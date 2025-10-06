@@ -22,11 +22,11 @@ struct ProportionalRoundedRectangle: Shape {
 
 extension Shape where Self == ProportionalRoundedRectangle {
     static func proportionalRounded(cornerFraction: CGFloat = 0.1) -> Self {
-        return ProportionalRoundedRectangle(cornerFraction: cornerFraction)
+        ProportionalRoundedRectangle(cornerFraction: cornerFraction)
     }
-    
-    /// Default corner fraction is 0.1
+
+    /// Default corner fraction is 0.1.
     static var proportionalRounded: Self {
-        return ProportionalRoundedRectangle(cornerFraction: 0.1)
+        ProportionalRoundedRectangle(cornerFraction: 0.1)
     }
 }

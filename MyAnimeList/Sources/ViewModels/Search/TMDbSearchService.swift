@@ -11,7 +11,7 @@ import Foundation
 import SwiftUI
 import os
 
-fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "SearchService")
+fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "TMDbSearchService")
 
 struct SearchResult: Hashable {
     var tmdbID: Int
@@ -42,20 +42,45 @@ class TMDbSearchService {
     /// The count of all results pending submission.
     var registeredCount: Int { resultsToSubmit.count }
     /// Appends a result to the submission queue.
-    func register(_ result: SearchResult) { resultsToSubmit.insert(result, at: 0) }
+    func register(_ result: SearchResult) {
+        let (registered, _) = resultsToSubmit.insert(result, at: 0)
+        if registered {
+            logger.info("Registered result: \(result.tmdbID) of type \(result.type).")
+        } else {
+            logger.info("Result already registered: \(result.tmdbID) of type \(result.type).")
+        }
+    }
     /// Creates a result from a `BasicInfo` to the submission queue.
     func register(info: BasicInfo) {
-        resultsToSubmit.insert(.init(tmdbID: info.tmdbID, type: info.type), at: 0)
+        let (registered, _) = resultsToSubmit.insert(.init(tmdbID: info.tmdbID, type: info.type), at: 0)
+        if registered {
+            logger.info("Registered result: \(info.tmdbID) of type \(info.type).")
+        } else {
+            logger.info("Result already registered: \(info.tmdbID) of type \(info.type).")
+        }
     }
     /// Removes a result from the submission queue if it is present.
-    func unregister(_ result: SearchResult) { resultsToSubmit.remove(result) }
+    func unregister(_ result: SearchResult) {
+        let unregistered = resultsToSubmit.remove(result) != nil
+        if unregistered {
+            logger.info("Unregistered result: \(result.tmdbID) of type \(result.type).")
+        } else {
+            logger.info("Result not found for unregistration: \(result.tmdbID) of type \(result.type).")
+        }
+    }
     /// Removes a result corresponding to the provided `BasicInfo` from the submission queue if it is present.
     func unregister(info: BasicInfo) {
-        resultsToSubmit.remove(.init(tmdbID: info.tmdbID, type: info.type))
+        let unregistered = resultsToSubmit.remove(.init(tmdbID: info.tmdbID, type: info.type)) != nil
+        if unregistered {
+            logger.info("Unregistered result: \(info.tmdbID) of type \(info.type).")
+        } else {
+            logger.info("Result not found for unregistration: \(info.tmdbID) of type \(info.type).")
+        }
     }
     /// Removes all series/movie results.
     func clearAll() {
         resultsToSubmit.removeAll()
+        logger.info("Cleared all registered results.")
     }
 
     private func fetchPosterURLs(
@@ -129,10 +154,11 @@ class TMDbSearchService {
                 status = .error(error)
             }
         }
+    }
 
-        func fetchSeasons(seriesInfo info: BasicInfo, language: Language) async throws
-            -> [BasicInfo]
-        {
+
+    func fetchSeasons(seriesInfo info: BasicInfo, language: Language) async -> [BasicInfo] {
+        do {
             let fetcher = InfoFetcher()
             let series = try await fetcher.tvSeries(info.tmdbID, language: language)
             guard let seasons = series.seasons else { return [] }
@@ -152,6 +178,10 @@ class TMDbSearchService {
                 return results
             }
             return infos
+        } catch {
+            logger.error("Error fetching seasons for series \(info.tmdbID): \(error)")
+            status = .error(error)
+            return []
         }
     }
 

@@ -11,6 +11,7 @@ import SwiftUI
 
 struct SeriesResultItem: View {
     @Environment(TMDbSearchService.self) var service
+    @AppStorage(.searchTMDbLanguage) private var language: Language = .english
     let series: BasicInfo
     @State private var resultOption: ResultOption = .series
     @State private var seasons: [BasicInfo] = []
@@ -27,8 +28,12 @@ struct SeriesResultItem: View {
             }
         }
         .onChange(of: resultOption) {
+            service.unregister(info: series)
+            for season in seasons {
+                service.unregister(info: season)
+            }
             if resultOption == .season && seasons.isEmpty {
-                Task { try await fetchSeasons() }
+                Task { seasons = await service.fetchSeasons(seriesInfo: series, language: language) }
             }
         }
     }
@@ -65,6 +70,7 @@ struct SeriesResultItem: View {
                 }
             }
         } label: {
+            EmptyView()
         }
         .pickerStyle(.segmented)
     }
@@ -73,61 +79,19 @@ struct SeriesResultItem: View {
     private var selectionIndicator: some View {
         if resultOption == .series {
             ActionToggle(
-                on: {
-                    service.register(info: series)
-                },
-                off: {
-                    service.unregister(info: series)
-                },
-                label: {
-                    Image(systemName: "checkmark")
-                }
+                on: { service.register(info: series) },
+                off: { service.unregister(info: series) },
+                label: { Image(systemName: "checkmark") }
             )
             .toggleStyle(.button)
             .buttonStyle(.bordered)
             .buttonBorderShape(.circle)
             .frame(height: 0)
-            .onDisappear { service.unregister(info: series) }
         } else {
             SeasonSelector(
                 seasons: seasons, register: service.register, unregister: service.unregister
             )
             .padding(.trailing, 7)
-        }
-    }
-    private func fetchSeasons() async throws {
-        let fetcher = service.fetcher
-        let fetchedSeasons = try await fetcher.tvSeries(series.id, language: .japanese).seasons
-        if let fetchedSeasons {
-            let seasonResults = try await withThrowingTaskGroup(of: BasicInfo.self) { group in
-                for season in fetchedSeasons {
-                    group.addTask {
-                        let seriesBackdropURL = try await fetcher.tmdbClient.imagesConfiguration
-                            .backdropURL(for: series.backdropURL)
-                        let logoURL = try await fetcher.tmdbClient.imagesConfiguration.logoURL(
-                            for: series.logoURL)
-                        let seasonResult = try await season.basicInfo(
-                            client: fetcher.tmdbClient,
-                            backdropURL: seriesBackdropURL,
-                            logoURL: logoURL,
-                            linkToDetails: series.linkToDetails,
-                            parentSeriesID: series.tmdbID)
-                        return seasonResult
-                    }
-                }
-                var results: [BasicInfo] = []
-                for try await result in group {
-                    results.append(result)
-                }
-                return results
-            }
-            withAnimation {
-                seasons = seasonResults.sorted {
-                    let seasonNumber1 = $0.type.seasonNumber ?? 0
-                    let seasonNumber2 = $1.type.seasonNumber ?? 0
-                    return seasonNumber1 < seasonNumber2
-                }
-            }
         }
     }
 
@@ -180,10 +144,5 @@ fileprivate struct SeasonSelector: View {
         .animation(.smooth(duration: 0.2), value: selectedSeasonIDs)
         .menuActionDismissBehavior(.disabled)
         .sensoryFeedback(.selection, trigger: selectedSeasonIDs)
-        .onDisappear {
-            for season in seasons {
-                unregister(season)
-            }
-        }
     }
 }

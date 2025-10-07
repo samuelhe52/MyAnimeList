@@ -58,9 +58,9 @@ class TMDbSearchService {
         resultsToSubmit.removeAll()
     }
 
-    private func fetchPosterURLs(from items: [(tmdbID: Int, path: URL?)]) async throws -> [(
-        tmdbID: Int, url: URL?
-    )] {
+    private func fetchPosterURLs(
+        from items: [(tmdbID: Int, path: URL?)]
+    ) async throws -> [(tmdbID: Int, url: URL?)] {
         try await withThrowingTaskGroup(of: (tmdbID: Int, url: URL?).self) { group in
             for item in items {
                 group.addTask {

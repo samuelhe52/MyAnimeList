@@ -34,46 +34,16 @@ struct LibraryView: View {
 
     var body: some View {
         NavigationStack {
-            mainContent
+            libraryView
                 .environment(\.toggleFavorite, toggleFavorite)
-                .toolbar {
-                    ToolbarItem(placement: .bottomBar) {
-                        Picker("View Style", selection: $libraryViewStyle) {
-                            ForEach(LibraryViewStyle.allCases, id: \.self) { style in
-                                Label(style.nameKey, systemImage: style.systemImageName).tag(style)
-                            }
-                        }
-                        .labelsHidden()
-                    }
-                    ToolbarItemGroup(placement: .status) {
-                        sortOptions
-                        if let scrolledID = scrollState.scrolledID,
-                            let entry = store.libraryOnDisplay.entryWithID(scrolledID)
-                        {
-                            toggleFavoriteButton(for: entry)
-                                .disabled(libraryViewStyle != .gallery)
-                        } else {
-                            Button {
-                            } label: {
-                                Image(systemName: "heart")
-                            }
-                            .disabled(true)
-                        }
-                        filterOptions
-                    }
-                    ToolbarItem(placement: .bottomBar) {
-                        searchButton
-                    }
-                    ToolbarItemGroup(placement: .topBarTrailing) {
-                        settings
-                    }
-                }
+                .toolbar(content: { toolbarContent })
                 .sensoryFeedback(.success, trigger: newEntriesAddedToggle)
+                .sensoryFeedback(.impact, trigger: favoriteToggle)
         }
     }
 
     @ViewBuilder
-    private var mainContent: some View {
+    private var libraryView: some View {
         switch libraryViewStyle {
         case .gallery:
             LibraryGalleryView(
@@ -112,12 +82,45 @@ struct LibraryView: View {
                 Image(systemName: "heart")
             }
         }
-        .sensoryFeedback(.impact, trigger: favoriteToggle)
     }
 
     private func toggleFavorite(_ entry: AnimeEntry) {
         dataHandler?.toggleFavorite(entry: entry)
         favoriteToggle.toggle()
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .bottomBar) {
+            Picker("View Style", selection: $libraryViewStyle) {
+                ForEach(LibraryViewStyle.allCases, id: \.self) { style in
+                    Label(style.nameKey, systemImage: style.systemImageName).tag(style)
+                }
+            }
+            .labelsHidden()
+        }
+        ToolbarItemGroup(placement: .status) {
+            sortOptions
+            if let scrolledID = scrollState.scrolledID,
+                let entry = store.libraryOnDisplay.entryWithID(scrolledID)
+            {
+                toggleFavoriteButton(for: entry)
+                    .disabled(libraryViewStyle != .gallery)
+            } else {
+                Button {
+                } label: {
+                    Image(systemName: "heart")
+                }
+                .disabled(true)
+            }
+            filterOptions
+        }
+        ToolbarItem(placement: .bottomBar) {
+            searchButton
+        }
+        ToolbarItemGroup(placement: .topBarTrailing) {
+            settings
+        }
     }
 
     private var searchButton: some View {
@@ -351,9 +354,9 @@ struct LibraryView: View {
         }
     }
 
-    private func customButtonStyle<S: Shape>(in shape: S) -> CustomBGBorderedButtonStyle<
-        Material, S
-    > {
+    private func customButtonStyle<S: Shape>(in shape: S)
+        -> CustomBGBorderedButtonStyle<Material, S>
+    {
         CustomBGBorderedButtonStyle(.ultraThinMaterial, backgroundIn: shape)
     }
 

@@ -22,7 +22,6 @@ enum SearchMode: String, CaseIterable, CustomLocalizedStringResourceConvertible 
 
 /// Main search page that coordinates between TMDb and Library search modes.
 struct SearchPage: View {
-    @Environment(\.dismiss) private var dismiss
     @AppStorage(.searchMode) private var mode: SearchMode = .tmdb
 
     // View models owned by SearchPage

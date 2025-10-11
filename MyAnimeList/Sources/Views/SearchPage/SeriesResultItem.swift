@@ -8,6 +8,9 @@
 import DataProvider
 import Kingfisher
 import SwiftUI
+import os
+
+fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "SeriesResultItem")
 
 struct SeriesResultItem: View {
     @Environment(TMDbSearchService.self) var service
@@ -15,6 +18,7 @@ struct SeriesResultItem: View {
     let series: BasicInfo
     @State private var resultOption: ResultOption = .series
     @State private var seasons: [BasicInfo] = []
+    @State private var seasonFetchStatus: SeasonFetchStatus = .notStarted
 
     var body: some View {
         HStack {
@@ -33,7 +37,14 @@ struct SeriesResultItem: View {
                 service.unregister(info: season)
             }
             if resultOption == .season && seasons.isEmpty {
-                Task { seasons = await service.fetchSeasons(seriesInfo: series, language: language) }
+                guard seasonFetchStatus == .notStarted else { return }
+                logger.info("Fetching seasons for entry: \(series.tmdbID)")
+                Task {
+                    seasonFetchStatus = .fetching
+                    seasons = await service.fetchSeasons(for: series, language: language)
+                    logger.info("Fetched \(seasons.count) seasons for entry: \(series.tmdbID)")
+                    seasonFetchStatus = .fetched
+                }
             }
         }
     }
@@ -92,12 +103,20 @@ struct SeriesResultItem: View {
                 seasons: seasons, register: service.register, unregister: service.unregister
             )
             .padding(.trailing, 7)
+            .disabled(seasons.isEmpty)
+            .animation(.default, value: seasons.isEmpty)
         }
     }
 
     enum ResultOption: CaseIterable, Equatable {
         case series
         case season
+    }
+
+    enum SeasonFetchStatus {
+        case notStarted
+        case fetching
+        case fetched
     }
 }
 

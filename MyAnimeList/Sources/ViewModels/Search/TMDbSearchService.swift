@@ -157,30 +157,44 @@ class TMDbSearchService {
     }
 
 
-    func fetchSeasons(seriesInfo info: BasicInfo, language: Language) async -> [BasicInfo] {
+    func fetchSeasons(for seriesInfo: BasicInfo, language: Language) async -> [BasicInfo] {
         do {
             let fetcher = InfoFetcher()
-            let series = try await fetcher.tvSeries(info.tmdbID, language: language)
+            let series = try await fetcher.tvSeries(seriesInfo.tmdbID, language: language)
             guard let seasons = series.seasons else { return [] }
             let infos = try await withThrowingTaskGroup(of: BasicInfo.self) { group in
                 var results: [BasicInfo] = []
                 for season in seasons {
                     group.addTask {
-                        try await fetcher.tvSeasonInfo(
-                            seasonNumber: season.seasonNumber,
-                            parentSeriesID: info.tmdbID,
-                            language: language)
+                        let posterURL = try await fetcher.tmdbClient.imagesConfiguration
+                            .posterURL(for: season.posterPath, idealWidth: 200)
+                        return BasicInfo(
+                            name: season.name,
+                            nameTranslations: [:],
+                            overview: season.overview,
+                            overviewTranslations: [:],
+                            posterURL: posterURL,
+                            tmdbID: season.id,
+                            onAirDate: season.airDate,
+                            type: .season(seasonNumber: season.seasonNumber, parentSeriesID: seriesInfo.tmdbID))
                     }
                 }
                 for try await result in group {
                     results.append(result)
                 }
-                return results
+                return results.sorted(by: { 
+                    if case let .season(seasonNumber1, _) = $0.type,
+                       case let .season(seasonNumber2, _) = $1.type {
+                        return seasonNumber1 < seasonNumber2
+                    }
+                    return false
+                })
             }
             return infos
         } catch {
-            logger.error("Error fetching seasons for series \(info.tmdbID): \(error)")
+            logger.error("Error fetching seasons for series \(seriesInfo.tmdbID): \(error)")
             status = .error(error)
+            ToastCenter.global.completionState = .failed("Network Error!")
             return []
         }
     }

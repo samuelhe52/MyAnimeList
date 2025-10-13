@@ -182,9 +182,10 @@ class TMDbSearchService {
                 for try await result in group {
                     results.append(result)
                 }
-                return results.sorted(by: { 
-                    if case let .season(seasonNumber1, _) = $0.type,
-                       case let .season(seasonNumber2, _) = $1.type {
+                return results.sorted(by: {
+                    if case .season(let seasonNumber1, _) = $0.type,
+                        case .season(let seasonNumber2, _) = $1.type
+                    {
                         return seasonNumber1 < seasonNumber2
                     }
                     return false

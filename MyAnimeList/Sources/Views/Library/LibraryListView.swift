@@ -35,7 +35,7 @@ struct LibraryListView: View {
                             scrolledID: $scrolledID,
                             toggleFavorite: toggleFavorite
                         )
-                     } preview: {
+                    } preview: {
                         EntryPreview(entry: entry)
                             .onAppear { scrolledID = entry.tmdbID }
                     }

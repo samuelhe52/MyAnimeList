@@ -10,9 +10,9 @@ import SwiftUI
 
 struct LibraryListView: View {
     let store: LibraryStore
+    @Environment(LibraryEntryInteractionState.self) var interaction
     @Environment(\.toggleFavorite) var toggleFavorite
 
-    @State private var interaction = LibraryEntryInteractionState()
     @Binding var scrolledID: Int?
     @Binding var highlightedEntryID: Int?
 

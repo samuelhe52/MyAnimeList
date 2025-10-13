@@ -20,7 +20,7 @@ final class LibraryEntryInteractionState {
     var showPasteAlert: Bool = false
     var pasteAction: (() -> Void)?
 
-    func prepareDeletion(for entry: AnimeEntry, store: LibraryStore, scrolledID: Binding<Int?>) {
+    func setScrolledIDBeforeDeletion(for entry: AnimeEntry, in store: LibraryStore, scrolledID: Binding<Int?>) {
         if let index = store.libraryOnDisplay.firstIndex(of: entry) {
             if index != 0 {
                 scrolledID.wrappedValue = store.libraryOnDisplay[index - 1].tmdbID
@@ -28,6 +28,10 @@ final class LibraryEntryInteractionState {
                 scrolledID.wrappedValue = store.libraryOnDisplay.last?.tmdbID
             }
         }
+    }
+
+    func prepareDeletion(for entry: AnimeEntry, store: LibraryStore, scrolledID: Binding<Int?>) {
+        setScrolledIDBeforeDeletion(for: entry, in: store, scrolledID: scrolledID)
         deletingEntry = entry
         isDeletingEntry = true
     }

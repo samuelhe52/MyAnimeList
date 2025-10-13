@@ -11,8 +11,7 @@ import SwiftUI
 struct LibraryGridView: View {
     let store: LibraryStore
     @Environment(\.toggleFavorite) var toggleFavorite
-
-    @State private var interaction = LibraryEntryInteractionState()
+    @Environment(LibraryEntryInteractionState.self) var interaction
     @Binding var scrolledID: Int?
     @Binding var highlightedEntryID: Int?
 

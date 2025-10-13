@@ -17,6 +17,7 @@ extension EnvironmentValues {
 
 struct LibraryView: View {
     @Bindable var store: LibraryStore
+    @State private var interaction = LibraryEntryInteractionState()
     @Environment(\.dataHandler) var dataHandler
 
     @State private var isSearching = false
@@ -36,6 +37,7 @@ struct LibraryView: View {
         NavigationStack {
             libraryView
                 .environment(\.toggleFavorite, toggleFavorite)
+                .environment(interaction)
                 .toolbar(content: { toolbarContent })
                 .sensoryFeedback(.success, trigger: newEntriesAddedToggle)
                 .sensoryFeedback(.impact, trigger: favoriteToggle)

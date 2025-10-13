@@ -15,40 +15,43 @@ struct LibraryGalleryView: View {
     @Binding var scrolledID: Int?
 
     var body: some View {
+        if !store.libraryOnDisplay.isEmpty {
+            libraryContent
+        } else {
+            Color.clear
+                .overlay {
+                    Text("The library is empty.")
+                }
+        }
+    }
+
+    private var libraryContent: some View {
         GeometryReader { geometry in
             let isHorizontal = geometry.size.width < geometry.size.height
-            if !store.libraryOnDisplay.isEmpty {
-                ScrollView(.horizontal) {
-                    LazyHStack {
-                        ForEach(store.libraryOnDisplay, id: \.tmdbID) { entry in
-                            AnimeEntryCardWrapper(
-                                entry: entry,
-                                delete: {
-                                    if let index = store.libraryOnDisplay.firstIndex(of: entry) {
-                                        if index != 0 {
-                                            scrolledID = store.libraryOnDisplay[index - 1].tmdbID
-                                        } else {
-                                            scrolledID = store.libraryOnDisplay.last?.tmdbID
-                                        }
-                                    }
-                                    store.deleteEntry($0)
-                                }
-                            )
+            ScrollView(.horizontal) {
+                LazyHStack {
+                    ForEach(store.libraryOnDisplay, id: \.tmdbID) { entry in
+                        AnimeEntryCardWrapper(entry: entry, delete: deleteEntry)
                             .containerRelativeFrame(isHorizontal ? .horizontal : .vertical)
                             .transition(.opacity)
                             .onScrollVisibilityChange { _ in }
-                        }
-                    }.scrollTargetLayout()
-                }
-                .scrollPosition(id: $scrolledID)
-                .scrollTargetBehavior(.viewAligned)
-            } else {
-                Color.clear
-                    .overlay {
-                        Text("The library is empty.")
                     }
+                }.scrollTargetLayout()
+            }
+            .scrollPosition(id: $scrolledID)
+            .scrollTargetBehavior(.viewAligned)
+        }
+    }
+
+    private func deleteEntry(_ entry: AnimeEntry) {
+        if let index = store.libraryOnDisplay.firstIndex(of: entry) {
+            if index != 0 {
+                scrolledID = store.libraryOnDisplay[index - 1].tmdbID
+            } else {
+                scrolledID = store.libraryOnDisplay.last?.tmdbID
             }
         }
+        store.deleteEntry(entry)
     }
 }
 

@@ -24,18 +24,6 @@ struct LibraryGridView: View {
     @Binding var scrolledID: Int?
     @Binding var highlightedEntryID: Int?
 
-    private func showHighlightBinding(for entry: AnimeEntry) -> Binding<Bool> {
-        Binding(
-            get: {
-                entry.tmdbID == highlightedEntryID
-            },
-            set: {
-                if !$0 {
-                    highlightedEntryID = nil
-                }
-            })
-    }
-
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
@@ -56,23 +44,8 @@ struct LibraryGridView: View {
                             }
                     }
                 }
-                .onChange(of: scrolledID) {
-                    if let scrolledID {
-                        withAnimation {
-                            proxy.scrollTo(scrolledID)
-                        }
-                    }
-                }
-                .onAppear {
-                    // Prevent the problem of programmatic scrolling doesn't work when images aren't loaded yet.
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        if let scrolledID {
-                            withAnimation {
-                                proxy.scrollTo(scrolledID, anchor: .center)
-                            }
-                        }
-                    }
-                }
+                .onChange(of: scrolledID) { onChangeOfScrolledID(proxy: proxy) }
+                .onAppear { onGridViewAppear(proxy: proxy) }
             }
             .animation(.spring, value: store.sortReversed)
             .animation(.spring, value: store.sortStrategy)
@@ -111,6 +84,18 @@ struct LibraryGridView: View {
                 }
             }
         }
+    }
+
+    private func showHighlightBinding(for entry: AnimeEntry) -> Binding<Bool> {
+        Binding(
+            get: {
+                entry.tmdbID == highlightedEntryID
+            },
+            set: {
+                if !$0 {
+                    highlightedEntryID = nil
+                }
+            })
     }
 
     @ViewBuilder
@@ -178,6 +163,25 @@ struct LibraryGridView: View {
         } else {
             ToastCenter.global.completionState = .init(
                 state: .failed, messageResource: "No info found on pasteboard.")
+        }
+    }
+
+    private func onChangeOfScrolledID(proxy: ScrollViewProxy) {
+        if let scrolledID {
+            withAnimation {
+                proxy.scrollTo(scrolledID)
+            }
+        }
+    }
+
+    private func onGridViewAppear(proxy: ScrollViewProxy) {
+        // Prevent the problem of programmatic scrolling doesn't work when images aren't loaded yet.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            if let scrolledID {
+                withAnimation {
+                    proxy.scrollTo(scrolledID, anchor: .center)
+                }
+            }
         }
     }
 }

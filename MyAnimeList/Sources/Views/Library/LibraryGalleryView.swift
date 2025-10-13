@@ -12,6 +12,7 @@ import SwiftUI
 
 struct LibraryGalleryView: View {
     let store: LibraryStore
+    @Environment(LibraryEntryInteractionState.self) var interaction
     @Binding var scrolledID: Int?
 
     var body: some View {
@@ -44,13 +45,7 @@ struct LibraryGalleryView: View {
     }
 
     private func deleteEntry(_ entry: AnimeEntry) {
-        if let index = store.libraryOnDisplay.firstIndex(of: entry) {
-            if index != 0 {
-                scrolledID = store.libraryOnDisplay[index - 1].tmdbID
-            } else {
-                scrolledID = store.libraryOnDisplay.last?.tmdbID
-            }
-        }
+        interaction.setScrolledIDBeforeDeletion(for: entry, in: store, scrolledID: $scrolledID)
         store.deleteEntry(entry)
     }
 }

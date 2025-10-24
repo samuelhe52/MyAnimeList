@@ -83,8 +83,9 @@ public typealias AnimeEntry = CurrentSchema.AnimeEntry
     }
 
     /// Gets all persistent models of a certain type.
-    public func getAllModels<T: PersistentModel>(ofType: T.Type) throws -> [T] {
-        let descriptor = FetchDescriptor<T>()
+    public func getAllModels<T: PersistentModel>(ofType: T.Type, predicate: Predicate<T>? = nil) throws -> [T] {
+        let descriptor: FetchDescriptor<T>
+        descriptor = FetchDescriptor(predicate: predicate)
         return try sharedModelContainer.mainContext.fetch(descriptor)
     }
 }

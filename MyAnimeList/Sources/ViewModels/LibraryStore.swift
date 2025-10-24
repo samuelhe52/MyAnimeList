@@ -54,8 +54,7 @@ class LibraryStore {
 
     func refreshLibrary() throws {
         logger.debug("[\(Date().debugDescription)] Refreshing library...")
-        let descriptor = FetchDescriptor<AnimeEntry>(predicate: #Predicate { $0.onDisplay })
-        let entries = try dataProvider.sharedModelContainer.mainContext.fetch(descriptor)
+        let entries = try dataProvider.getAllModels(ofType: AnimeEntry.self, predicate: #Predicate { $0.onDisplay })
         withAnimation {
             library = entries
         }

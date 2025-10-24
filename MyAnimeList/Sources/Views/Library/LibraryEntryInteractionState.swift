@@ -88,6 +88,11 @@ extension LibraryEntryInteractionState {
         }
         EntryFavoriteButton(favorited: entry.favorite) {
             toggleFavorite(entry)
+            if entry.favorite {
+                ToastCenter.global.favorited = true
+            } else {
+                ToastCenter.global.unFavorited = true
+            }
         }
         Button("Copy Info", systemImage: "doc.on.doc") {
             entry.userInfo.copyToPasteboard()

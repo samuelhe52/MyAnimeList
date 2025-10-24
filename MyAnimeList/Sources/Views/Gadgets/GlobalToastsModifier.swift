@@ -108,6 +108,24 @@ struct GlobalToastsModifier: ViewModifier {
                     type: .systemImage("arrow.clockwise.circle", .blue),
                     titleResource: "Loading...")
             }
+            .toast(
+                isPresenting: $center.favorited, duration: 1.5, offsetY: 35,
+                alert: {
+                    return AlertToast(
+                        displayMode: .hud,
+                        type: .systemImage("star.fill", .pink),
+                        titleResource: "Favorited")
+                }
+            )
+            .toast(
+                isPresenting: $center.unFavorited, duration: 1.5, offsetY: 35,
+                alert: {
+                    return AlertToast(
+                        displayMode: .hud,
+                        type: .systemImage("star.slash.fill", .gray),
+                        titleResource: "Unfavorited")
+                }
+            )
     }
 }
 

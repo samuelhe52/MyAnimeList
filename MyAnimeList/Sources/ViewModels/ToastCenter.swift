@@ -18,6 +18,8 @@ class ToastCenter: ObservableObject {
 
     var copied: Bool = false
     var pasted: Bool = false
+    var favorited: Bool = false
+    var unFavorited: Bool = false
     var refreshingInfos: Bool = false
     var loading: Bool = false
     var prefetchingImages: Bool = false

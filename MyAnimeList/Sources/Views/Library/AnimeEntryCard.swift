@@ -15,29 +15,24 @@ fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "AnimeEn
 
 struct AnimeEntryCard: View {
     var entry: AnimeEntry
-    @State private var imageLoaded: Bool = false
+    @Binding var imageLoaded: Bool
     var imageMissing: Bool { entry.posterURL == nil }
 
     var body: some View {
-        VStack(spacing: 0) {
-            if imageLoaded {
-                AnimeEntryDates(entry: entry)
-            }
-            KFImageView(
-                url: entry.posterURL, diskCacheExpiration: .longTerm, imageLoaded: $imageLoaded
-            )
-            .scaledToFit()
-            .clipShape(.rect(cornerRadius: 10))
-            .overlay(alignment: .bottomTrailing) {
-                AnimeTypeIndicator(type: entry.type)
-                    .opacity(imageLoaded ? 1 : 0)
-                    .font(.footnote)
-            }
-            .padding()
+        KFImageView(
+            url: entry.posterURL, diskCacheExpiration: .longTerm, imageLoaded: $imageLoaded
+        )
+        .scaledToFit()
+        .clipShape(.rect(cornerRadius: 10))
+        .overlay(alignment: .bottomTrailing) {
+            AnimeTypeIndicator(type: entry.type)
+                .opacity(imageLoaded ? 1 : 0)
+                .font(.footnote)
         }
+        .padding()
     }
 }
 
 #Preview {
-    AnimeEntryCard(entry: .template())
+    AnimeEntryCard(entry: .template(), imageLoaded: .constant(true))
 }

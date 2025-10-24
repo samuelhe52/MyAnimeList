@@ -23,7 +23,6 @@ struct AnimeTypeIndicator: View {
     var body: some View {
         Text(description)
             .padding(padding)
-            .background(in: .buttonBorder)
-            .glassEffect(.clear)
+            .glassEffect(.regular, in: .rect(cornerRadius: 5))
     }
 }

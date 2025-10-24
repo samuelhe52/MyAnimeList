@@ -17,7 +17,6 @@ fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "AnimeEn
 
 struct AnimeEntryEditor: View {
     @Environment(\.dataHandler) var dataHandler
-    @Environment(\.undoManager) var undoManager
     @Environment(\.locale) var locale
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext

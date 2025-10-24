@@ -46,11 +46,11 @@ struct LibraryGridView: View {
                 }
                 .onChange(of: scrolledID) { onChangeOfScrolledID(proxy: proxy) }
                 .onAppear { onGridViewAppear(proxy: proxy) }
+                .padding(.horizontal)
             }
             .animation(.spring, value: store.sortReversed)
             .animation(.spring, value: store.sortStrategy)
             .animation(.spring, value: store.filters)
-            .padding(.horizontal)
         }
         .libraryEntryInteractionOverlays(state: interaction, store: store)
     }

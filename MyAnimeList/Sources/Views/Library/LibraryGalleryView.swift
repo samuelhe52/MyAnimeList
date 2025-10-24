@@ -58,43 +58,49 @@ fileprivate struct AnimeEntryCardWrapper: View {
     @State private var showDeleteToast: Bool = false
     @State private var isEditing: Bool = false
     @State private var isSwitchingPoster: Bool = false
+    @State private var imageLoaded: Bool = false
 
     var body: some View {
-        AnimeEntryCard(entry: entry)
-            .onTapGesture {
-                showDeleteToast = false
+        VStack(spacing: 0) {
+            if imageLoaded {
+                AnimeEntryDates(entry: entry)
             }
-            .onTapGesture(count: 2) {
-                isEditing = true
-            }
-            .toast(
-                isPresenting: $showDeleteToast, duration: 3,
-                alert: {
-                    AlertToast(
-                        displayMode: .alert, type: .regular,
-                        titleResource: "Delete Anime?",
-                        subTitleResource: "Tap me to confirm.")
-                },
-                onTap: {
-                    delete(entry)
-                    triggerDeleteHaptic.toggle()
+            AnimeEntryCard(entry: entry, imageLoaded: $imageLoaded)
+                .contextMenu {
+                    contextMenu(for: entry)
                 }
-            )
-            .contextMenu {
-                contextMenu(for: entry)
+        }
+        .onTapGesture {
+            showDeleteToast = false
+        }
+        .onTapGesture(count: 2) {
+            isEditing = true
+        }
+        .toast(
+            isPresenting: $showDeleteToast, duration: 3,
+            alert: {
+                AlertToast(
+                    displayMode: .alert, type: .regular,
+                    titleResource: "Delete Anime?",
+                    subTitleResource: "Tap me to confirm.")
+            },
+            onTap: {
+                delete(entry)
+                triggerDeleteHaptic.toggle()
             }
-            .sensoryFeedback(.success, trigger: triggerDeleteHaptic)
-            .sheet(isPresented: $isEditing) {
-                NavigationStack {
-                    AnimeEntryEditor(entry: entry)
-                }
+        )
+        .sensoryFeedback(.success, trigger: triggerDeleteHaptic)
+        .sheet(isPresented: $isEditing) {
+            NavigationStack {
+                AnimeEntryEditor(entry: entry)
             }
-            .sheet(isPresented: $isSwitchingPoster) {
-                NavigationStack {
-                    PosterSelectionView(entry: entry)
-                        .navigationTitle("Pick a poster")
-                }
+        }
+        .sheet(isPresented: $isSwitchingPoster) {
+            NavigationStack {
+                PosterSelectionView(entry: entry)
+                    .navigationTitle("Pick a poster")
             }
+        }
     }
 
     @ViewBuilder

@@ -236,7 +236,7 @@ class BackupManager {
                 let backupSchemaVersion = try JSONDecoder().decode(
                     Schema.Version.self, from: versionData)
                 let currentSchemaVersion = DataProvider.default.sharedModelContainer.schema.version
-                guard backupSchemaVersion < currentSchemaVersion else {
+                guard backupSchemaVersion <= currentSchemaVersion else {
                     throw BackupError.schemaVersionIncompatible(
                         highest: currentSchemaVersion, found: backupSchemaVersion)
                 }

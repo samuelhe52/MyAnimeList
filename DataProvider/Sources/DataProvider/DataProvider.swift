@@ -36,23 +36,16 @@ public typealias AnimeEntry = CurrentSchema.AnimeEntry
     /// - Important: This initializer will fatalError if the model container cannot be created.
     ///              This is intentional as the app cannot function without proper data storage.
     public init(inMemory: Bool = false) {
-        self.inMemory = inMemory
         // Data migration happens here
-        self.sharedModelContainer = {
-            let schema = Schema(CurrentSchema.models)
-            let modelConfiguration = ModelConfiguration(
-                schema: schema, isStoredInMemoryOnly: inMemory)
-
-            do {
-                return try ModelContainer(
-                    for: schema,
-                    migrationPlan: MigrationPlan.self,
-                    configurations: modelConfiguration)
-            } catch {
-                fatalError("Could not create ModelContainer: \(error)")
-            }
-        }()
-        dataHandler = .init(modelContainer: sharedModelContainer)
+        let container: ModelContainer
+        do {
+            container = try Self.createModelContainer(inMemory: inMemory)
+        } catch {
+            fatalError("Could not create ModelContainer: \(error)")
+        }
+        self.inMemory = inMemory
+        self.sharedModelContainer = container
+        self.dataHandler = .init(modelContainer: container)
     }
 
     /// Tears down the existing model container and re-initializes it from the persistent store.
@@ -68,18 +61,22 @@ public typealias AnimeEntry = CurrentSchema.AnimeEntry
     private func setupContainer() {
         // Data migration happens here
         do {
-            let schema = Schema(CurrentSchema.models)
-            let modelConfiguration = ModelConfiguration(
-                schema: schema, isStoredInMemoryOnly: inMemory)
-
-            sharedModelContainer = try ModelContainer(
-                for: schema,
-                migrationPlan: MigrationPlan.self,
-                configurations: modelConfiguration)
+            sharedModelContainer = try Self.createModelContainer(inMemory: inMemory)
         } catch {
             fatalError("Could not create or reload ModelContainer: \(error)")
         }
         dataHandler = .init(modelContainer: sharedModelContainer)
+    }
+
+    private static func createModelContainer(inMemory: Bool = false) throws -> ModelContainer {
+        let schema = Schema(versionedSchema: CurrentSchema.self)
+        let modelConfiguration = ModelConfiguration(
+            schema: schema, isStoredInMemoryOnly: inMemory)
+
+        return try ModelContainer(
+            for: schema,
+            migrationPlan: MigrationPlan.self,
+            configurations: modelConfiguration)
     }
 
     /// Gets all persistent models of a certain type.

@@ -69,6 +69,7 @@ struct LibraryView: View {
                 scrolledID: $scrollState.scrolledID,
                 highlightedEntryID: $highlightedEntryID
             )
+            .safeAreaPadding(.bottom, 20)
             .navigationTitle("\(store.libraryOnDisplay.count) Anime")
             .navigationBarTitleDisplayMode(.inline)
         }

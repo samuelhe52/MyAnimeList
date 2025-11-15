@@ -136,20 +136,8 @@ struct LibraryView: View {
                             scrollState.scrolledID = tappedID
                             highlightedEntryID = tappedID
                         },
-                        checkDuplicate: { id in
-                            store.libraryOnDisplay.map(\.tmdbID).contains(id)
-                        },
-                        processTMDbSearchResults: { results in
-                            Task {
-                                isSearching = false
-                                newEntriesAddedToggle.toggle()
-                                if await store.newEntryFromSearchResults(results) {
-                                    ToastCenter.global.completionState = .completed(
-                                        "\(results.count) item\(results.count > 1 ? "s" : "") added"
-                                    )
-                                }
-                            }
-                        },
+                        checkDuplicate: { store.libraryOnDisplay.map(\.tmdbID).contains($0) },
+                        processTMDbSearchResults: processTMDbSearchResults,
                         jumpToEntryInLibrary: { tmdbID in
                             isSearching = false
                             scrollState.scrolledID = tmdbID

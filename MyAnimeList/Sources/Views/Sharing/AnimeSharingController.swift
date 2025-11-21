@@ -67,15 +67,15 @@ final class AnimeSharingController {
         aspectRatio(for: loadedImage)
     }
 
-    var renderTrigger: PosterExportRenderTrigger {
-        PosterExportRenderTrigger(posterURL: selectedPosterURL, language: selectedLanguage)
+    var renderTrigger: SharingCardRenderTrigger {
+        SharingCardRenderTrigger(posterURL: selectedPosterURL, language: selectedLanguage)
     }
 
     private var translations: [Language: String]
-    @ObservationIgnored private var renderCache: [PosterExportRenderTrigger: URL] = [:]
+    @ObservationIgnored private var renderCache: [SharingCardRenderTrigger: URL] = [:]
     @ObservationIgnored private var lastLoadedPosterURL: URL?
     @ObservationIgnored private var preferredLanguage: Language
-    @ObservationIgnored private let pipeline: PosterExportPipeline
+    @ObservationIgnored private let pipeline: SharingCardExportPipeline
 
     init(entry: AnimeEntry, defaultLanguage: Language = .english) {
         self.entry = entry.parentSeriesEntry ?? entry
@@ -83,7 +83,7 @@ final class AnimeSharingController {
         self.selectedLanguage = defaultLanguage
         self.preferredLanguage = defaultLanguage
         self.translations = AnimeSharingController.buildTranslations(from: self.entry)
-        self.pipeline = PosterExportPipeline(
+        self.pipeline = SharingCardExportPipeline(
             baseWidth: AnimeSharingController.previewCardWidth,
             jpegQuality: AnimeSharingController.jpegQuality)
         applyPreferredLanguage(defaultLanguage, respectingCurrentSelection: false)
@@ -110,7 +110,7 @@ final class AnimeSharingController {
         selectedPosterURL = resolvedURL
     }
 
-    func processRenderRequest(for trigger: PosterExportRenderTrigger) async {
+    func processRenderRequest(for trigger: SharingCardRenderTrigger) async {
         guard let posterURL = trigger.posterURL else { return }
         guard !Task.isCancelled else { return }
 
@@ -154,7 +154,7 @@ final class AnimeSharingController {
         }
     }
 
-    private func renderPoster(using image: UIImage, for trigger: PosterExportRenderTrigger) async {
+    private func renderPoster(using image: UIImage, for trigger: SharingCardRenderTrigger) async {
         guard !Task.isCancelled else { return }
         let language = trigger.language
         let metadata = PosterMetadata(
@@ -181,11 +181,11 @@ final class AnimeSharingController {
         }
     }
 
-    private func fileName(for trigger: PosterExportRenderTrigger) -> String {
+    private func fileName(for trigger: SharingCardRenderTrigger) -> String {
         "poster_\(entry.tmdbID)_\(trigger.language).jpg"
     }
 
-    private func storeRenderedFile(_ url: URL, for trigger: PosterExportRenderTrigger) {
+    private func storeRenderedFile(_ url: URL, for trigger: SharingCardRenderTrigger) {
         if let existingURL = renderCache[trigger], existingURL != url {
             try? FileManager.default.removeItem(at: existingURL)
         }
@@ -193,7 +193,7 @@ final class AnimeSharingController {
         useCachedRender(at: url, for: trigger)
     }
 
-    private func useCachedRender(at url: URL, for trigger: PosterExportRenderTrigger) {
+    private func useCachedRender(at url: URL, for trigger: SharingCardRenderTrigger) {
         renderedImageURL = url
     }
 
@@ -251,134 +251,5 @@ final class AnimeSharingController {
             }
             result[language] = pair.value.isEmpty ? entry.name : pair.value
         }
-    }
-}
-
-struct PosterExportRenderTrigger: Hashable {
-    let posterURL: URL?
-    let language: Language
-}
-
-private struct PosterMetadata {
-    let title: String
-    let subtitle: String?
-    let detail: String?
-}
-
-private enum PosterExportError: LocalizedError {
-    case renderFailed
-    case persistFailed
-    case invalidImage
-
-    var errorDescription: String? {
-        switch self {
-        case .renderFailed:
-            return "Unable to render poster preview."
-        case .persistFailed:
-            return "Unable to persist rendered poster to disk."
-        case .invalidImage:
-            return "Poster data is invalid."
-        }
-    }
-}
-
-@MainActor
-private struct PosterExportPipeline {
-    private let baseWidth: CGFloat
-    private let jpegQuality: CGFloat
-
-    init(baseWidth: CGFloat, jpegQuality: CGFloat) {
-        self.baseWidth = baseWidth
-        self.jpegQuality = jpegQuality
-    }
-
-    func loadImage(from url: URL) async throws -> UIImage {
-        let result = try await KingfisherManager.shared.retrieveImage(with: url)
-        try Task.checkCancellation()
-        return PosterExportPipeline.convertToSRGB(result.image)
-    }
-
-    func renderPoster(
-        image: UIImage,
-        metadata: PosterMetadata,
-        aspectRatio: CGFloat,
-        fileName: String
-    ) async throws -> URL {
-        let baseHeight = baseWidth / max(aspectRatio, 0.0001)
-        let nativePixelWidth = image.cgImage.map { CGFloat($0.width) } ?? image.size.width * image.scale
-        let exportWidth = max(nativePixelWidth, baseWidth)
-        let scaleFactor = max(exportWidth / baseWidth, 1)
-
-        let renderer = ImageRenderer(content:
-            SharingCardView(
-                image: image,
-                title: metadata.title,
-                subtitle: metadata.subtitle,
-                detail: metadata.detail,
-                aspectRatio: aspectRatio
-            )
-            .frame(width: baseWidth, height: baseHeight)
-        )
-        renderer.scale = scaleFactor
-
-        guard let renderedImage = renderer.uiImage else {
-            throw PosterExportError.renderFailed
-        }
-
-        let normalizedImage = PosterExportPipeline.convertToSRGB(renderedImage)
-        return try await persist(normalizedImage, fileName: fileName)
-    }
-
-    private func persist(_ image: UIImage, fileName: String) async throws -> URL {
-        try await Task.detached(priority: .utility) {
-            let tempDir = FileManager.default.temporaryDirectory
-            let fileURL = tempDir.appendingPathComponent(fileName)
-
-            guard let cgImage = image.cgImage else {
-                throw PosterExportError.invalidImage
-            }
-
-            guard
-                let destination = CGImageDestinationCreateWithURL(
-                    fileURL as CFURL,
-                    UTType.jpeg.identifier as CFString,
-                    1,
-                    nil
-                )
-            else {
-                throw PosterExportError.persistFailed
-            }
-
-            let options: [CFString: Any] = [
-                kCGImageDestinationLossyCompressionQuality: jpegQuality
-            ]
-
-            CGImageDestinationAddImage(destination, cgImage, options as CFDictionary)
-
-            guard CGImageDestinationFinalize(destination) else {
-                try? FileManager.default.removeItem(at: fileURL)
-                throw PosterExportError.persistFailed
-            }
-
-            return fileURL
-        }.value
-    }
-
-    private static let srgbColorSpace: CGColorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
-    private static let ciContext: CIContext = CIContext(options: [
-        .workingColorSpace: PosterExportPipeline.srgbColorSpace,
-        .outputColorSpace: PosterExportPipeline.srgbColorSpace
-    ])
-
-    private static func convertToSRGB(_ image: UIImage) -> UIImage {
-        guard let ciImage = CIImage(image: image) else { return image }
-        let extent = ciImage.extent.integral
-        guard let cgImage = PosterExportPipeline.ciContext.createCGImage(
-            ciImage,
-            from: extent,
-            format: .RGBA8,
-            colorSpace: PosterExportPipeline.srgbColorSpace
-        ) else { return image }
-        return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
     }
 }

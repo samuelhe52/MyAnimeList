@@ -14,44 +14,23 @@ struct SharingCardView: View {
     let detail: String?
     let aspectRatio: CGFloat
 
-    private let minAspectRatio: CGFloat = 0.45
-    private let maxAspectRatio: CGFloat = 0.85
+    private struct Constants {
+        static let minAspectRatio: CGFloat = 0.45
+        static let maxAspectRatio: CGFloat = 0.85
+    }
 
     private var safeAspectRatio: CGFloat {
-        max(minAspectRatio, min(aspectRatio, maxAspectRatio))
+        max(Constants.minAspectRatio, min(aspectRatio, Constants.maxAspectRatio))
     }
 
     var body: some View {
         ZStack {
             backdropLayer
-
             overlayGradient
-
-            VStack(alignment: .leading, spacing: 10) {
-                if let detail {
-                    Text(detail.uppercased())
-                        .font(.caption.smallCaps())
-                        .fontWeight(.medium)
-                        .foregroundStyle(.white.opacity(0.85))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 4)
-                        .background(.white.opacity(0.12), in: Capsule())
-                }
-
-                Text(title)
-                    .font(.system(size: 30, weight: .heavy, design: .rounded))
-                    .foregroundStyle(.white)
-                    .lineLimit(3)
-                    .minimumScaleFactor(0.8)
-                    .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
-
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.title3.weight(.medium))
-                        .foregroundStyle(.white.opacity(0.85))
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.9)
-                }
+            VStack(alignment: .leading, spacing: 8) {
+                detailLine
+                titleLine
+                subtitleLine
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
             .padding(24)
@@ -63,6 +42,39 @@ struct SharingCardView: View {
                 .strokeBorder(.white.opacity(0.25), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.25), radius: 30, x: 0, y: 25)
+    }
+
+    @ViewBuilder
+    private var detailLine: some View {
+        if let detail {
+            Text(detail.uppercased())
+                .font(.caption2.smallCaps().weight(.medium))
+                .foregroundStyle(.white.opacity(0.85))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 2)
+                .background(.white.opacity(0.12), in: Capsule())
+        }
+    }
+
+    @ViewBuilder
+    private var titleLine: some View {
+        Text(title)
+            .font(.system(size: 24, weight: .heavy, design: .rounded))
+            .foregroundStyle(.white)
+            .lineLimit(3)
+            .minimumScaleFactor(0.8)
+            .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
+    }
+
+    @ViewBuilder
+    private var subtitleLine: some View {
+        if let subtitle {
+            Text(subtitle)
+                .font(.system(size: 16).weight(.medium))
+                .foregroundStyle(.white.opacity(0.85))
+                .lineLimit(2)
+                .minimumScaleFactor(0.9)
+        }
     }
 
     private var backdropLayer: some View {
@@ -79,10 +91,10 @@ struct SharingCardView: View {
                 )
             }
         }
-        .overlay(Color.black.opacity(0.15))
+        .overlay(Color.black.opacity(0.05))
         .overlay(
             Rectangle()
-                .fill(.black.opacity(0.4))
+                .fill(.black.opacity(0.2))
                 .blendMode(.overlay)
         )
     }
@@ -99,16 +111,4 @@ struct SharingCardView: View {
             endPoint: .bottom
         )
     }
-}
-
-#Preview {
-    SharingCardView(
-        image: UIImage(systemName: "photo"),
-        title: "Frieren: Beyond Journey's End",
-        subtitle: "葬送のフリーレン",
-        detail: "2023 • TV Series",
-        aspectRatio: 2 / 3
-    )
-    .padding()
-    .background(Color.black)
 }

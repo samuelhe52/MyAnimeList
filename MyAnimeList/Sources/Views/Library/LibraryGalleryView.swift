@@ -58,7 +58,7 @@ fileprivate struct AnimeEntryCardWrapper: View {
     @State private var showDeleteToast: Bool = false
     @State private var isEditing: Bool = false
     @State private var isSwitchingPoster: Bool = false
-    @State private var isExportingPoster: Bool = false
+    @State private var isSharingAnime: Bool = false
     @State private var imageLoaded: Bool = false
 
     var body: some View {
@@ -105,7 +105,7 @@ fileprivate struct AnimeEntryCardWrapper: View {
                 .navigationTitle("Pick a poster")
             }
         }
-        .sheet(isPresented: $isExportingPoster) {
+        .sheet(isPresented: $isSharingAnime) {
             AnimeSharingSheet(entry: entry)
         }
     }
@@ -121,9 +121,9 @@ fileprivate struct AnimeEntryCardWrapper: View {
             Label("Switch Poster", systemImage: "photo")
         }
         Button {
-            isExportingPoster = true
+            isSharingAnime = true
         } label: {
-            Label("Share Poster", systemImage: "square.and.arrow.up")
+            Label("Share Anime", systemImage: "square.and.arrow.up")
         }
         Button("Poster URL", systemImage: "document.on.clipboard") {
             UIPasteboard.general.string = entry.posterURL?.absoluteString ?? ""

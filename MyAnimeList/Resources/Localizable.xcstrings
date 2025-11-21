@@ -169,7 +169,14 @@
       }
     },
     "Artwork" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "背景"
+          }
+        }
+      }
     },
     "Backup & Restore" : {
       "localizations" : {
@@ -334,7 +341,14 @@
       }
     },
     "Controls" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "控制面板"
+          }
+        }
+      }
     },
     "Copied!" : {
       "extractionState" : "manual",
@@ -386,7 +400,14 @@
       }
     },
     "Date On Air" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上映日期"
+          }
+        }
+      }
     },
     "Date Saved" : {
       "localizations" : {
@@ -677,9 +698,6 @@
           }
         }
       }
-    },
-    "Export Poster" : {
-
     },
     "Favorite" : {
       "localizations" : {
@@ -1193,7 +1211,14 @@
       }
     },
     "Preview" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预览"
+          }
+        }
+      }
     },
     "Refresh Infos" : {
       "localizations" : {
@@ -1223,7 +1248,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在刷新信息..."
+            "value" : "正在刷新信息…"
           }
         }
       }
@@ -1245,7 +1270,14 @@
       }
     },
     "Rendering…" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "渲染中…"
+          }
+        }
+      }
     },
     "Restart app to see changes." : {
       "localizations" : {
@@ -1455,7 +1487,7 @@
         }
       }
     },
-    "Share Poster" : {
+    "Share Anime" : {
 
     },
     "Size: %.2f MB" : {

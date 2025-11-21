@@ -23,6 +23,9 @@ struct SharingCardView: View {
         max(Constants.minAspectRatio, min(aspectRatio, Constants.maxAspectRatio))
     }
 
+    private var titleLineLimit: Int { subtitle == nil ? 3 : 2 }
+    private let subtitleLineLimit: Int = 2
+
     var body: some View {
         ZStack {
             backdropLayer
@@ -61,7 +64,7 @@ struct SharingCardView: View {
         Text(title)
             .font(.system(size: 24, weight: .heavy, design: .rounded))
             .foregroundStyle(.white)
-            .lineLimit(3)
+            .lineLimit(titleLineLimit)
             .minimumScaleFactor(0.8)
             .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
     }
@@ -72,7 +75,7 @@ struct SharingCardView: View {
             Text(subtitle)
                 .font(.system(size: 16).weight(.medium))
                 .foregroundStyle(.white.opacity(0.85))
-                .lineLimit(2)
+                .lineLimit(subtitleLineLimit)
                 .minimumScaleFactor(0.9)
         }
     }

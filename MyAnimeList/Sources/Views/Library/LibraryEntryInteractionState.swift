@@ -17,7 +17,7 @@ final class LibraryEntryInteractionState {
     var isDeletingEntry: Bool = false
     var editingEntry: AnimeEntry?
     var switchingPosterForEntry: AnimeEntry?
-    var exportingPosterForEntry: AnimeEntry?
+    var sharingAnimeEntry: AnimeEntry?
     var showPasteAlert: Bool = false
     var pasteAction: (() -> Void)?
 
@@ -83,8 +83,8 @@ extension LibraryEntryInteractionState {
         Button("Switch Poster", systemImage: "photo") {
             self.switchingPosterForEntry = entry
         }
-        Button("Share Poster", systemImage: "square.and.arrow.up") {
-            self.exportingPosterForEntry = entry
+        Button("Share Anime", systemImage: "square.and.arrow.up") {
+            self.sharingAnimeEntry = entry
         }
         Button("Poster URL", systemImage: "document.on.clipboard") {
             UIPasteboard.general.string = entry.posterURL?.absoluteString ?? ""
@@ -162,8 +162,8 @@ extension View {
             }
             .sheet(
                 item: Binding(
-                    get: { state.exportingPosterForEntry },
-                    set: { state.exportingPosterForEntry = $0 }
+                    get: { state.sharingAnimeEntry },
+                    set: { state.sharingAnimeEntry = $0 }
                 )
             ) { entry in
                 AnimeSharingSheet(entry: entry)

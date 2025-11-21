@@ -1,6 +1,6 @@
 # MyAnimeList - Project Overview
 
-**Last Updated:** 2025-10-28  
+**Last Updated:** 2025-11-21
 **Created by:** AI Assistant
 
 ## Project Purpose
@@ -43,16 +43,29 @@ MyAnimeList/
 │   │   │   ├── ToastCenter.swift   # Toast notification system
 │   │   │   ├── ScrollState.swift   # Scroll state management
 │   │   │   └── Search/             # Search-related view models
+│   │   │       ├── LibrarySearchService.swift
+│   │   │       └── TMDbSearchService.swift
 │   │   ├── Views/                  # SwiftUI views
-│   │   │   ├── Library/            # Library viewing UI (grid, list, gallery)
+│   │   │   ├── Library/            # Library viewing UI
+│   │   │   │   ├── LibraryView.swift
+│   │   │   │   ├── EntryDetailView.swift
+│   │   │   │   ├── AnimeEntryEditor.swift
+│   │   │   │   └── ... (Grid/List/Gallery views)
 │   │   │   ├── SearchPage/         # Search interface
+│   │   │   │   ├── SearchPage.swift
+│   │   │   │   ├── LibrarySearchContent.swift
+│   │   │   │   └── TMDbSearchContent.swift
 │   │   │   └── Gadgets/            # Reusable UI components
+│   │   │       ├── TMDbAPIConfigurator.swift
+│   │   │       ├── BackupManagerView.swift
+│   │   │       └── ...
 │   │   ├── Network/                # Networking layer
 │   │   │   ├── InfoFetcher.swift   # TMDb API wrapper
 │   │   │   └── RedirectingHTTPClient.swift
 │   │   ├── Utils/                  # Utility classes
 │   │   │   ├── BackupManager.swift # Data backup/restore
-│   │   │   └── TMDbAPIKeyStorage.swift
+│   │   │   ├── TMDbAPIKeyStorage.swift
+│   │   │   └── DebouncedUserDefaultsWriter.swift
 │   │   └── Extensions/             # Swift extensions
 │   ├── Resources/                  # Assets and resources
 │   └── Tests/                      # Unit tests
@@ -62,9 +75,11 @@ MyAnimeList/
 │   └── Sources/
 │       └── DataProvider/
 │           ├── DataProvider.swift  # Main data provider class
+│           ├── DataHandler.swift   # ModelContext wrapper
+│           ├── MigrationPlan.swift # Schema migration plan
 │           ├── Models/             # SwiftData models with versioning
 │           │   ├── V1/             # Schema version 1
-│           │   ├── V2/             # Schema version 2 (current)
+│           │   ├── V2/             # Schema version 2 (up to V2.4.0)
 │           │   └── Other/          # Shared types (AnimeType, etc.)
 │           └── Tests/
 │
@@ -78,69 +93,58 @@ MyAnimeList/
 ## Key Architecture Components
 
 ### Data Layer
+
 - **DataProvider** (SPM package): Encapsulates SwiftData model container and data operations
-- **Schema Versioning**: Uses versioned schemas (V1, V2) for data migration support
+- **DataHandler**: Main actor-isolated wrapper around `ModelContext` for safe data access
+- **Schema Versioning**: Extensive schema migration support (V1 to V2.4.0) via `MigrationPlan`
 - **AnimeEntry**: The core SwiftData model representing an anime entry in the library
 - **AnimeType**: Enum distinguishing between movies, series, and individual seasons
 
 ### Business Logic Layer
+
 - **LibraryStore**: Observable class managing library state, filtering, and sorting
+- **Search Services**:
+  - `LibrarySearchService`: Handles searching within the local SwiftData library
+  - `TMDbSearchService`: Handles searching the external TMDb API
 - **InfoFetcher**: Handles fetching anime metadata from TMDb API
 - **BackupManager**: Manages export/import of library data
 
 ### Presentation Layer
+
 - **SwiftUI Views**: Declarative UI with support for grid, list, and gallery viewing modes
-- **Search**: Dual search functionality (local library + TMDb online search)
-- **Toast System**: Global toast notifications for user feedback
+- **Key Views**:
+  - `EntryDetailView`: Detailed view of an anime entry
+  - `AnimeEntryEditor`: Edit interface for library entries
+  - `SearchPage`: Unified search interface switching between Library and TMDb modes
+- **Toast System**: Global toast notifications for user feedback via `ToastCenter`
 
 ### Network Layer
+
 - **TMDb Integration**: Uses TMDb API for fetching anime details, posters, backdrops
 - **RedirectingHTTPClient**: Custom HTTP client for API relay
 - **Language Support**: Multi-language support for anime titles and descriptions
 
-## Key Features
-
-1. **Anime Library Management**
-   - Add/edit/remove anime entries
-   - Track viewing status and progress
-   - Multiple view modes (grid, list, gallery)
-   - Filtering and sorting capabilities
-
-2. **TMDb Integration**
-   - Search TMDb database for anime
-   - Fetch detailed information (posters, backdrops, logos, overviews)
-   - Multi-language support
-   - Support for movies, TV series, and individual seasons
-
-3. **Data Persistence**
-   - SwiftData-based storage with schema migration
-   - Backup and restore functionality
-   - iCloud sync capability (via SwiftData)
-
-4. **UI/UX**
-   - Native iOS/macOS experience with SwiftUI
-   - Responsive design with adaptive layouts
-   - Image caching with Kingfisher
-   - Toast notifications for user feedback
-
 ## Development Workflow
 
 ### Build Commands (via Makefile)
+
 - `make clean` - Clean build artifacts
 - `make refresh-packages` - Resolve Swift package dependencies
 - `make format` - Format code with swift-format
 - `make lint` - Lint code with swift-format
 
 ### Code Style
+
 - Uses `swift-format` for consistent code formatting
 - Configuration in `.swift-format` file
 
 ### Testing
+
 - Unit tests located in `MyAnimeList/Tests/` and `DataProvider/Tests/`
 
 ## Data Flow
 
-1. **App Launch**: 
+1. **App Launch**:
    - Initialize DataProvider with SwiftData container
    - Check for TMDb API key, show configurator if needed
    - Load library from persistent storage
@@ -162,24 +166,20 @@ MyAnimeList/
    - ModelContext.didSave notifications trigger UI updates
    - BackupManager can export/import for manual backups
 
-## Configuration
-
-- **TMDb API Key**: Stored in UserDefaults via TMDbAPIKeyStorage
-- **Language Preference**: Stored in AppStorage
-- **Sort Strategy**: Persisted in UserDefaults
-
 ## Commit Message Style
 
 This project follows the conventional commit message format recommended by Git:
 
 ### Format
-```
+
+```text
 <type>: <subject line (50 chars max)>
 
 <body (optional, 72 chars per line)>
 ```
 
 ### Guidelines
+
 - **Subject line**: Imperative mood, capitalized, no period at end
   - ✅ "Add Library search functionality to SearchPage"
   - ✅ "Fix bug in backup & restore function"
@@ -191,7 +191,8 @@ This project follows the conventional commit message format recommended by Git:
   - Separate from subject with blank line
   - Wrap at 72 characters
   - Examples from commit history:
-    ```
+
+    ```text
     Fix bug in backup & restore function
 
     Use Schema(versionedSchema: VersionSchema) to ensure version
@@ -200,27 +201,3 @@ This project follows the conventional commit message format recommended by Git:
 
 - **Common types observed in this project**:
   - Add, Fix, Remove, Refactor, Improve, Enhance, Bump, Use
-
-### Examples from Project History
-```
-Add favorited toast for favorite toggle
-
-Trigger a toast to be displayed when using the context menu in
-LibraryListView or LibraryGridView
-```
-
-```
-Refactor Library views to reduce duplicate code
-```
-
-```
-Enhance season fetching in SeriesResultItem
-```
-
-## License
-
-Apache License 2.0
-
----
-
-*This overview was generated by analyzing the project structure and codebase (~2,252 lines of Swift code across the main app and DataProvider package).*

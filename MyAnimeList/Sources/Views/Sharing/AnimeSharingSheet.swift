@@ -1,29 +1,29 @@
 //
-//  PosterExportSheet.swift
+//  AnimeSharingSheet.swift
 //  MyAnimeList
 //
-//  Created by GitHub Copilot on 2025/11/22.
+//  Created by Samuel He on 2025/11/22.
 //
 
 import SwiftUI
 import DataProvider
 
-struct PosterExportSheet: View {
-    @State private var controller: PosterExportController
+struct AnimeSharingSheet: View {
+    @State private var controller: AnimeSharingController
     @Environment(\.dismiss) private var dismiss
     @AppStorage(.preferredAnimeInfoLanguage) private var defaultLanguage: Language = .english
 
     @State private var showPosterSelection = false
 
     init(entry: AnimeEntry) {
-        _controller = State(initialValue: PosterExportController(entry: entry))
+        _controller = State(initialValue: AnimeSharingController(entry: entry))
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    PosterExportPreviewSection(
+                    AnimeSharingPreviewSection(
                         title: controller.currentTitle,
                         subtitle: controller.previewSubtitle,
                         detail: controller.previewDetailLine,
@@ -32,7 +32,7 @@ struct PosterExportSheet: View {
                         animationTrigger: controller.selectedLanguage
                     )
 
-                    PosterExportControlsSection(
+                    AnimeSharingControlsSection(
                         availableLanguages: controller.availableLanguages,
                         selectedLanguage: $controller.selectedLanguage,
                         canSelectLanguage: controller.canSelectLanguage,

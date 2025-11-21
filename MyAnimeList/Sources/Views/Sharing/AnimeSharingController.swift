@@ -1,8 +1,8 @@
 //
-//  PosterExportController.swift
+//  AnimeSharingController.swift
 //  MyAnimeList
 //
-//  Created by GitHub Copilot on 2025/11/22.
+//  Created by Samuel He on 2025/11/22.
 //
 
 import SwiftUI
@@ -14,7 +14,7 @@ import CoreImage
 import Observation
 
 @MainActor @Observable
-final class PosterExportController {
+final class AnimeSharingController {
     static let previewCardWidth: CGFloat = 320
 
     private static let defaultAspectRatio: CGFloat = 2.0 / 3.0
@@ -82,10 +82,10 @@ final class PosterExportController {
         self.selectedPosterURL = self.entry.posterURL
         self.selectedLanguage = defaultLanguage
         self.preferredLanguage = defaultLanguage
-        self.translations = PosterExportController.buildTranslations(from: self.entry)
+        self.translations = AnimeSharingController.buildTranslations(from: self.entry)
         self.pipeline = PosterExportPipeline(
-            baseWidth: PosterExportController.previewCardWidth,
-            jpegQuality: PosterExportController.jpegQuality)
+            baseWidth: AnimeSharingController.previewCardWidth,
+            jpegQuality: AnimeSharingController.jpegQuality)
         applyPreferredLanguage(defaultLanguage, respectingCurrentSelection: false)
     }
 
@@ -219,7 +219,7 @@ final class PosterExportController {
 
     private func releaseYearText() -> String? {
         guard let date = entry.onAirDate else { return nil }
-        return PosterExportController.yearFormatter.string(from: date)
+        return AnimeSharingController.yearFormatter.string(from: date)
     }
 
     private func entryTypeLabel() -> String {
@@ -234,9 +234,9 @@ final class PosterExportController {
     }
 
     private func aspectRatio(for image: UIImage?) -> CGFloat {
-        guard let image else { return PosterExportController.defaultAspectRatio }
+        guard let image else { return AnimeSharingController.defaultAspectRatio }
         let ratio = image.size.width / max(image.size.height, 1)
-        return PosterExportController.clampAspectRatio(ratio)
+        return AnimeSharingController.clampAspectRatio(ratio)
     }
 
     private static func clampAspectRatio(_ ratio: CGFloat) -> CGFloat {
@@ -310,7 +310,7 @@ private struct PosterExportPipeline {
         let scaleFactor = max(exportWidth / baseWidth, 1)
 
         let renderer = ImageRenderer(content:
-            PosterCardView(
+            SharingCardView(
                 image: image,
                 title: metadata.title,
                 subtitle: metadata.subtitle,

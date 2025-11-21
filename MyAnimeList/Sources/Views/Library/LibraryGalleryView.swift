@@ -106,7 +106,7 @@ fileprivate struct AnimeEntryCardWrapper: View {
             }
         }
         .sheet(isPresented: $isExportingPoster) {
-            PosterExportSheet(entry: entry)
+            AnimeSharingSheet(entry: entry)
         }
     }
 

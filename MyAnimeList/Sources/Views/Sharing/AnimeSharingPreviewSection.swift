@@ -1,14 +1,14 @@
 //
-//  PosterExportPreviewSection.swift
+//  AnimeSharingPreviewSection.swift
 //  MyAnimeList
 //
-//  Created by GitHub Copilot on 2025/11/22.
+//  Created by Samuel He on 2025/11/22.
 //
 
 import SwiftUI
 import DataProvider
 
-struct PosterExportPreviewSection: View {
+struct AnimeSharingPreviewSection: View {
     let title: String
     let subtitle: String?
     let detail: String?
@@ -22,7 +22,7 @@ struct PosterExportPreviewSection: View {
                 .font(.headline)
                 .foregroundStyle(.secondary)
 
-            PosterCardView(
+            SharingCardView(
                 image: image,
                 title: title,
                 subtitle: subtitle,
@@ -33,7 +33,7 @@ struct PosterExportPreviewSection: View {
                 .spring(response: 0.35, dampingFraction: 0.85),
                 value: animationTrigger
             )
-            .frame(maxWidth: PosterExportController.previewCardWidth)
+            .frame(maxWidth: AnimeSharingController.previewCardWidth)
             .padding(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 32, style: .continuous)

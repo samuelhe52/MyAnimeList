@@ -166,7 +166,7 @@ extension View {
                     set: { state.exportingPosterForEntry = $0 }
                 )
             ) { entry in
-                PosterExportSheet(entry: entry)
+                AnimeSharingSheet(entry: entry)
             }
             .sheet(
                 item: Binding(

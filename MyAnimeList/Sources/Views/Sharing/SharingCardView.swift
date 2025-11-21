@@ -1,13 +1,13 @@
 //
-//  PosterCardView.swift
+//  SharingCardView.swift
 //  MyAnimeList
 //
-//  Created by GitHub Copilot on 2025/11/22.
+//  Created by Samuel He on 2025/11/22.
 //
 
 import SwiftUI
 
-struct PosterCardView: View {
+struct SharingCardView: View {
     let image: UIImage?
     let title: String
     let subtitle: String?
@@ -102,7 +102,7 @@ struct PosterCardView: View {
 }
 
 #Preview {
-    PosterCardView(
+    SharingCardView(
         image: UIImage(systemName: "photo"),
         title: "Frieren: Beyond Journey's End",
         subtitle: "葬送のフリーレン",

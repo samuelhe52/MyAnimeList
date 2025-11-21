@@ -333,6 +333,9 @@
         }
       }
     },
+    "Controls" : {
+
+    },
     "Copied!" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -976,6 +979,9 @@
         }
       }
     },
+    "No Posters Available" : {
+
+    },
     "No Results" : {
       "localizations" : {
         "ja" : {
@@ -1153,12 +1159,6 @@
         }
       }
     },
-    "Poster Controls" : {
-
-    },
-    "Poster Preview" : {
-
-    },
     "Poster URL" : {
       "localizations" : {
         "ja" : {
@@ -1191,6 +1191,9 @@
           }
         }
       }
+    },
+    "Preview" : {
+
     },
     "Refresh Infos" : {
       "localizations" : {
@@ -1620,6 +1623,9 @@
           }
         }
       }
+    },
+    "TMDb did not return posters for this selection yet." : {
+
     },
     "To continue, enter a TMDb API Key." : {
       "localizations" : {

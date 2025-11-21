@@ -1,14 +1,14 @@
 //
-//  PosterExportControlsSection.swift
+//  AnimeSharingControlsSection.swift
 //  MyAnimeList
 //
-//  Created by GitHub Copilot on 2025/11/22.
+//  Created by Samuel He on 2025/11/22.
 //
 
 import SwiftUI
 import DataProvider
 
-struct PosterExportControlsSection: View {
+struct AnimeSharingControlsSection: View {
     let availableLanguages: [Language]
     @Binding var selectedLanguage: Language
     let canSelectLanguage: Bool

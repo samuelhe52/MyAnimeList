@@ -16,13 +16,17 @@ fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "PosterS
 typealias Poster = ImageURLWithMetadata
 
 struct PosterSelectionView: View {
-    var entry: AnimeEntry
+    let tmdbID: Int
+    let type: AnimeType
     let fetcher: InfoFetcher
+    let onPosterSelected: (URL) -> Void
     @State private var imageLoadState: ImageLoadState = .loading
 
-    init(entry: AnimeEntry, infoFetcher: InfoFetcher = .init()) {
-        self.entry = entry
+    init(tmdbID: Int, type: AnimeType, infoFetcher: InfoFetcher = .init(), onPosterSelected: @escaping (URL) -> Void) {
+        self.tmdbID = tmdbID
+        self.type = type
         self.fetcher = infoFetcher
+        self.onPosterSelected = onPosterSelected
     }
 
     @State var availablePosters: [Poster] = []
@@ -46,7 +50,7 @@ struct PosterSelectionView: View {
 
     var body: some View {
         VStack {
-            if entry.isSeason {
+            if case .season = type {
                 Picker(selection: $useSeriesPoster) {
                     Text("Season").tag(false)
                     Text("TV Series").tag(true)
@@ -88,13 +92,20 @@ struct PosterSelectionView: View {
         .animation(.default, value: availablePosters)
         .padding(.horizontal)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") {
+                    dismiss()
+                }
+            }
+        }
         .fullScreenCover(item: $previewPoster) { poster in
             PosterPreview(
                 previewPoster: poster,
                 updatePoster: { url in
-                    entry.posterURL = url
-                    entry.usingCustomPoster = true
-                    logger.info("Updated poster for ID: \(entry.tmdbID)")
+                    if let url {
+                        onPosterSelected(url)
+                    }
                     dismiss()
                 }
             )
@@ -106,13 +117,13 @@ struct PosterSelectionView: View {
         .onChange(of: useSeriesPoster) {
             Task {
                 imageLoadState = .loading
-                if let tmdbID = entry.parentSeriesID,
+                if let parentSeriesID = type.parentSeriesID,
                     useSeriesPoster,
                     seriesPosters.isEmpty
                 {
                     do {
                         seriesPosters = try await fetcher.postersForSeries(
-                            seriesID: tmdbID,
+                            seriesID: parentSeriesID,
                             idealWidth: Constants.idealWidth
                         )
                         .filteredAndSorted()
@@ -152,13 +163,13 @@ struct PosterSelectionView: View {
         do {
             imageLoadState = .loading
             var posters: [Poster]
-            switch entry.type {
+            switch type {
             case .movie:
                 posters = try await fetcher.postersForMovie(
-                    for: entry.tmdbID, idealWidth: Constants.idealWidth)
+                    for: tmdbID, idealWidth: Constants.idealWidth)
             case .series:
                 posters = try await fetcher.postersForSeries(
-                    seriesID: entry.tmdbID, idealWidth: Constants.idealWidth)
+                    seriesID: tmdbID, idealWidth: Constants.idealWidth)
             case .season(let seasonNumber, let parentSeriesID):
                 posters = try await fetcher.postersForSeason(
                     forSeason: seasonNumber,
@@ -230,9 +241,9 @@ extension Array where Element == Poster {
 #Preview {
     NavigationStack {
         PosterSelectionView(
-            entry: .init(
-                name: "Frieren",
-                type: .season(seasonNumber: 1, parentSeriesID: 209867),
-                tmdbID: 307972))
+            tmdbID: 307972,
+            type: .season(seasonNumber: 1, parentSeriesID: 209867),
+            onPosterSelected: { _ in }
+        )
     }
 }

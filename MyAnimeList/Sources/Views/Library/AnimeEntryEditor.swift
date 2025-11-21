@@ -68,9 +68,14 @@ struct AnimeEntryEditor: View {
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $showPosterSelectionView) {
             NavigationStack {
-                PosterSelectionView(entry: entry)
-                    .navigationTitle("Change Poster")
-                    .toolbar {
+                PosterSelectionView(
+                    tmdbID: entry.tmdbID,
+                    type: entry.type) { url in
+                    entry.posterURL = url
+                    entry.usingCustomPoster = true
+                }
+                .navigationTitle("Change Poster")
+                .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
                             Button("Done") {
                                 showPosterSelectionView = false

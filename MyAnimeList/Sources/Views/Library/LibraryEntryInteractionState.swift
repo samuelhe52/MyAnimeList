@@ -17,6 +17,7 @@ final class LibraryEntryInteractionState {
     var isDeletingEntry: Bool = false
     var editingEntry: AnimeEntry?
     var switchingPosterForEntry: AnimeEntry?
+    var exportingPosterForEntry: AnimeEntry?
     var showPasteAlert: Bool = false
     var pasteAction: (() -> Void)?
 
@@ -81,6 +82,9 @@ extension LibraryEntryInteractionState {
         }
         Button("Switch Poster", systemImage: "photo") {
             self.switchingPosterForEntry = entry
+        }
+        Button("Share Poster", systemImage: "square.and.arrow.up") {
+            self.exportingPosterForEntry = entry
         }
         Button("Poster URL", systemImage: "document.on.clipboard") {
             UIPasteboard.general.string = entry.posterURL?.absoluteString ?? ""
@@ -149,9 +153,20 @@ extension View {
                 )
             ) { entry in
                 NavigationStack {
-                    PosterSelectionView(entry: entry)
-                        .navigationTitle("Pick a poster")
+                    PosterSelectionView(tmdbID: entry.tmdbID, type: entry.type) { url in
+                        entry.posterURL = url
+                        entry.usingCustomPoster = true
+                    }
+                    .navigationTitle("Pick a poster")
                 }
+            }
+            .sheet(
+                item: Binding(
+                    get: { state.exportingPosterForEntry },
+                    set: { state.exportingPosterForEntry = $0 }
+                )
+            ) { entry in
+                PosterExportSheet(entry: entry)
             }
             .sheet(
                 item: Binding(

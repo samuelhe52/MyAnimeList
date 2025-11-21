@@ -58,6 +58,7 @@ fileprivate struct AnimeEntryCardWrapper: View {
     @State private var showDeleteToast: Bool = false
     @State private var isEditing: Bool = false
     @State private var isSwitchingPoster: Bool = false
+    @State private var isExportingPoster: Bool = false
     @State private var imageLoaded: Bool = false
 
     var body: some View {
@@ -97,9 +98,15 @@ fileprivate struct AnimeEntryCardWrapper: View {
         }
         .sheet(isPresented: $isSwitchingPoster) {
             NavigationStack {
-                PosterSelectionView(entry: entry)
-                    .navigationTitle("Pick a poster")
+                PosterSelectionView(tmdbID: entry.tmdbID, type: entry.type) { url in
+                    entry.posterURL = url
+                    entry.usingCustomPoster = true
+                }
+                .navigationTitle("Pick a poster")
             }
+        }
+        .sheet(isPresented: $isExportingPoster) {
+            PosterExportSheet(entry: entry)
         }
     }
 
@@ -112,6 +119,11 @@ fileprivate struct AnimeEntryCardWrapper: View {
             isSwitchingPoster = true
         } label: {
             Label("Switch Poster", systemImage: "photo")
+        }
+        Button {
+            isExportingPoster = true
+        } label: {
+            Label("Share Poster", systemImage: "square.and.arrow.up")
         }
         Button("Poster URL", systemImage: "document.on.clipboard") {
             UIPasteboard.general.string = entry.posterURL?.absoluteString ?? ""

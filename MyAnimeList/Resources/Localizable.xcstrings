@@ -168,6 +168,9 @@
         }
       }
     },
+    "Artwork" : {
+
+    },
     "Backup & Restore" : {
       "localizations" : {
         "ja" : {
@@ -672,6 +675,9 @@
         }
       }
     },
+    "Export Poster" : {
+
+    },
     "Favorite" : {
       "localizations" : {
         "ja" : {
@@ -1147,6 +1153,12 @@
         }
       }
     },
+    "Poster Controls" : {
+
+    },
+    "Poster Preview" : {
+
+    },
     "Poster URL" : {
       "localizations" : {
         "ja" : {
@@ -1228,6 +1240,9 @@
           }
         }
       }
+    },
+    "Rendering…" : {
+
     },
     "Restart app to see changes." : {
       "localizations" : {
@@ -1436,6 +1451,9 @@
           }
         }
       }
+    },
+    "Share Poster" : {
+
     },
     "Size: %.2f MB" : {
       "localizations" : {

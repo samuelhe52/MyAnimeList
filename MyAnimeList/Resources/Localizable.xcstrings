@@ -170,6 +170,12 @@
     },
     "Artwork" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アートワーク"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -342,6 +348,12 @@
     },
     "Controls" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コントロール"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -401,6 +413,12 @@
     },
     "Date On Air" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放送日"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -998,7 +1016,20 @@
       }
     },
     "No Posters Available" : {
-
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "利用できるポスターがありません"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无海报可用"
+          }
+        }
+      }
     },
     "No Results" : {
       "localizations" : {
@@ -1212,6 +1243,12 @@
     },
     "Preview" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プレビュー"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1271,6 +1308,12 @@
     },
     "Rendering…" : {
       "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "レンダリング中…"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1488,7 +1531,20 @@
       }
     },
     "Share Anime" : {
-
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アニメを共有"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享动画"
+          }
+        }
+      }
     },
     "Size: %.2f MB" : {
       "localizations" : {
@@ -1657,7 +1713,20 @@
       }
     },
     "TMDb did not return posters for this selection yet." : {
-
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TMDb はこの選択のポスターをまだ返していません。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TMDb 中找不到相关海报"
+          }
+        }
+      }
     },
     "To continue, enter a TMDb API Key." : {
       "localizations" : {

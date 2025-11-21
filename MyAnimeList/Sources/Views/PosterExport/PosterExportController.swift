@@ -1,12 +1,20 @@
+//
+//  PosterExportController.swift
+//  MyAnimeList
+//
+//  Created by GitHub Copilot on 2025/11/22.
+//
+
 import SwiftUI
 import DataProvider
 import Kingfisher
 import UniformTypeIdentifiers
 import CoreGraphics
 import CoreImage
+import Observation
 
-@MainActor
-final class PosterExportViewModel: ObservableObject {
+@MainActor @Observable
+final class PosterExportController {
     static let previewCardWidth: CGFloat = 320
 
     private static let defaultAspectRatio: CGFloat = 2.0 / 3.0
@@ -30,10 +38,10 @@ final class PosterExportViewModel: ObservableObject {
 
     let entry: AnimeEntry
 
-    @Published var selectedLanguage: Language
-    @Published var selectedPosterURL: URL?
-    @Published private(set) var renderedImageURL: URL?
-    @Published private(set) var loadedImage: UIImage?
+    var selectedLanguage: Language
+    var selectedPosterURL: URL?
+    private(set) var renderedImageURL: URL?
+    private(set) var loadedImage: UIImage?
 
     var availableLanguages: [Language] {
         Array(translations.keys).sorted { $0.rawValue < $1.rawValue }
@@ -64,16 +72,20 @@ final class PosterExportViewModel: ObservableObject {
     }
 
     private var translations: [Language: String]
-    private var renderCache: [PosterExportRenderTrigger: URL] = [:]
-    private var lastLoadedPosterURL: URL?
-    private var preferredLanguage: Language
+    @ObservationIgnored private var renderCache: [PosterExportRenderTrigger: URL] = [:]
+    @ObservationIgnored private var lastLoadedPosterURL: URL?
+    @ObservationIgnored private var preferredLanguage: Language
+    @ObservationIgnored private let pipeline: PosterExportPipeline
 
     init(entry: AnimeEntry, defaultLanguage: Language = .english) {
         self.entry = entry.parentSeriesEntry ?? entry
         self.selectedPosterURL = self.entry.posterURL
         self.selectedLanguage = defaultLanguage
         self.preferredLanguage = defaultLanguage
-        self.translations = PosterExportViewModel.buildTranslations(from: self.entry)
+        self.translations = PosterExportController.buildTranslations(from: self.entry)
+        self.pipeline = PosterExportPipeline(
+            baseWidth: PosterExportController.previewCardWidth,
+            jpegQuality: PosterExportController.jpegQuality)
         applyPreferredLanguage(defaultLanguage, respectingCurrentSelection: false)
     }
 
@@ -93,8 +105,9 @@ final class PosterExportViewModel: ObservableObject {
     }
 
     func updateSelectedPosterURL(_ url: URL?) {
-        guard selectedPosterURL != url else { return }
-        selectedPosterURL = url
+        let resolvedURL = url ?? entry.posterURL
+        guard selectedPosterURL != resolvedURL else { return }
+        selectedPosterURL = resolvedURL
     }
 
     func processRenderRequest(for trigger: PosterExportRenderTrigger) async {
@@ -129,9 +142,7 @@ final class PosterExportViewModel: ObservableObject {
 
     private func loadImage(from url: URL) async -> UIImage? {
         do {
-            let result = try await KingfisherManager.shared.retrieveImage(with: url)
-            try Task.checkCancellation()
-            let image = convertToSRGB(result.image)
+            let image = try await pipeline.loadImage(from: url)
             loadedImage = image
             lastLoadedPosterURL = url
             return image
@@ -146,75 +157,32 @@ final class PosterExportViewModel: ObservableObject {
     private func renderPoster(using image: UIImage, for trigger: PosterExportRenderTrigger) async {
         guard !Task.isCancelled else { return }
         let language = trigger.language
-        let aspectRatio = aspectRatio(for: image)
-        let baseWidth = PosterExportViewModel.previewCardWidth
-        let baseHeight = baseWidth / max(aspectRatio, 0.0001)
-        let nativePixelWidth = image.cgImage.map { CGFloat($0.width) } ?? image.size.width * image.scale
-        let exportWidth = max(nativePixelWidth, baseWidth)
-        let scaleFactor = max(exportWidth / baseWidth, 1)
-
         let metadata = PosterMetadata(
             title: title(for: language),
             subtitle: subtitle(for: language),
             detail: detailLineText()
         )
+        let aspectRatio = aspectRatio(for: image)
+        let fileName = fileName(for: trigger)
 
-        let renderer = ImageRenderer(content:
-            PosterCardView(
+        do {
+            let fileURL = try await pipeline.renderPoster(
                 image: image,
-                title: metadata.title,
-                subtitle: metadata.subtitle,
-                detail: metadata.detail,
-                aspectRatio: aspectRatio
+                metadata: metadata,
+                aspectRatio: aspectRatio,
+                fileName: fileName
             )
-            .frame(width: baseWidth, height: baseHeight)
-        )
-        renderer.scale = scaleFactor
-
-        guard let renderedImage = renderer.uiImage else { return }
-        guard !Task.isCancelled else { return }
-
-        let normalizedImage = convertToSRGB(renderedImage)
-        let fileName = "poster_\(entry.tmdbID)_\(language).jpg"
-
-        guard let fileURL = await persist(normalizedImage, fileName: fileName) else { return }
-        guard !Task.isCancelled else { return }
-
-        storeRenderedFile(fileURL, for: trigger)
+            guard !Task.isCancelled else { return }
+            storeRenderedFile(fileURL, for: trigger)
+        } catch is CancellationError {
+            return
+        } catch {
+            print("Error rendering poster: \(error)")
+        }
     }
 
-    private func persist(_ image: UIImage, fileName: String) async -> URL? {
-        let quality = PosterExportViewModel.jpegQuality
-        return await Task.detached(priority: .utility) {
-            let tempDir = FileManager.default.temporaryDirectory
-            let fileURL = tempDir.appendingPathComponent(fileName)
-
-            guard let cgImage = image.cgImage else { return nil }
-
-            guard
-                let destination = CGImageDestinationCreateWithURL(
-                    fileURL as CFURL,
-                    UTType.jpeg.identifier as CFString,
-                    1,
-                    nil
-                )
-            else {
-                return nil
-            }
-
-            let options: [CFString: Any] = [
-                kCGImageDestinationLossyCompressionQuality: quality
-            ]
-
-            CGImageDestinationAddImage(destination, cgImage, options as CFDictionary)
-
-            guard CGImageDestinationFinalize(destination) else {
-                try? FileManager.default.removeItem(at: fileURL)
-                return nil
-            }
-
-            return fileURL
-        }.value
+    private func fileName(for trigger: PosterExportRenderTrigger) -> String {
+        "poster_\(entry.tmdbID)_\(trigger.language).jpg"
     }
 
     private func storeRenderedFile(_ url: URL, for trigger: PosterExportRenderTrigger) {
@@ -251,7 +219,7 @@ final class PosterExportViewModel: ObservableObject {
 
     private func releaseYearText() -> String? {
         guard let date = entry.onAirDate else { return nil }
-        return PosterExportViewModel.yearFormatter.string(from: date)
+        return PosterExportController.yearFormatter.string(from: date)
     }
 
     private func entryTypeLabel() -> String {
@@ -266,9 +234,9 @@ final class PosterExportViewModel: ObservableObject {
     }
 
     private func aspectRatio(for image: UIImage?) -> CGFloat {
-        guard let image else { return PosterExportViewModel.defaultAspectRatio }
+        guard let image else { return PosterExportController.defaultAspectRatio }
         let ratio = image.size.width / max(image.size.height, 1)
-        return PosterExportViewModel.clampAspectRatio(ratio)
+        return PosterExportController.clampAspectRatio(ratio)
     }
 
     private static func clampAspectRatio(_ ratio: CGFloat) -> CGFloat {
@@ -297,20 +265,120 @@ private struct PosterMetadata {
     let detail: String?
 }
 
-private let posterExportSRGBColorSpace: CGColorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
-private let posterExportCIContext: CIContext = CIContext(options: [
-    .workingColorSpace: posterExportSRGBColorSpace,
-    .outputColorSpace: posterExportSRGBColorSpace
-])
+private enum PosterExportError: LocalizedError {
+    case renderFailed
+    case persistFailed
+    case invalidImage
 
-private func convertToSRGB(_ image: UIImage) -> UIImage {
-    guard let ciImage = CIImage(image: image) else { return image }
-    let extent = ciImage.extent.integral
-    guard let cgImage = posterExportCIContext.createCGImage(
-        ciImage,
-        from: extent,
-        format: .RGBA8,
-        colorSpace: posterExportSRGBColorSpace
-    ) else { return image }
-    return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
+    var errorDescription: String? {
+        switch self {
+        case .renderFailed:
+            return "Unable to render poster preview."
+        case .persistFailed:
+            return "Unable to persist rendered poster to disk."
+        case .invalidImage:
+            return "Poster data is invalid."
+        }
+    }
+}
+
+@MainActor
+private struct PosterExportPipeline {
+    private let baseWidth: CGFloat
+    private let jpegQuality: CGFloat
+
+    init(baseWidth: CGFloat, jpegQuality: CGFloat) {
+        self.baseWidth = baseWidth
+        self.jpegQuality = jpegQuality
+    }
+
+    func loadImage(from url: URL) async throws -> UIImage {
+        let result = try await KingfisherManager.shared.retrieveImage(with: url)
+        try Task.checkCancellation()
+        return PosterExportPipeline.convertToSRGB(result.image)
+    }
+
+    func renderPoster(
+        image: UIImage,
+        metadata: PosterMetadata,
+        aspectRatio: CGFloat,
+        fileName: String
+    ) async throws -> URL {
+        let baseHeight = baseWidth / max(aspectRatio, 0.0001)
+        let nativePixelWidth = image.cgImage.map { CGFloat($0.width) } ?? image.size.width * image.scale
+        let exportWidth = max(nativePixelWidth, baseWidth)
+        let scaleFactor = max(exportWidth / baseWidth, 1)
+
+        let renderer = ImageRenderer(content:
+            PosterCardView(
+                image: image,
+                title: metadata.title,
+                subtitle: metadata.subtitle,
+                detail: metadata.detail,
+                aspectRatio: aspectRatio
+            )
+            .frame(width: baseWidth, height: baseHeight)
+        )
+        renderer.scale = scaleFactor
+
+        guard let renderedImage = renderer.uiImage else {
+            throw PosterExportError.renderFailed
+        }
+
+        let normalizedImage = PosterExportPipeline.convertToSRGB(renderedImage)
+        return try await persist(normalizedImage, fileName: fileName)
+    }
+
+    private func persist(_ image: UIImage, fileName: String) async throws -> URL {
+        try await Task.detached(priority: .utility) {
+            let tempDir = FileManager.default.temporaryDirectory
+            let fileURL = tempDir.appendingPathComponent(fileName)
+
+            guard let cgImage = image.cgImage else {
+                throw PosterExportError.invalidImage
+            }
+
+            guard
+                let destination = CGImageDestinationCreateWithURL(
+                    fileURL as CFURL,
+                    UTType.jpeg.identifier as CFString,
+                    1,
+                    nil
+                )
+            else {
+                throw PosterExportError.persistFailed
+            }
+
+            let options: [CFString: Any] = [
+                kCGImageDestinationLossyCompressionQuality: jpegQuality
+            ]
+
+            CGImageDestinationAddImage(destination, cgImage, options as CFDictionary)
+
+            guard CGImageDestinationFinalize(destination) else {
+                try? FileManager.default.removeItem(at: fileURL)
+                throw PosterExportError.persistFailed
+            }
+
+            return fileURL
+        }.value
+    }
+
+    private static let srgbColorSpace: CGColorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
+    private static let ciContext: CIContext = CIContext(options: [
+        .workingColorSpace: PosterExportPipeline.srgbColorSpace,
+        .outputColorSpace: PosterExportPipeline.srgbColorSpace
+    ])
+
+    private static func convertToSRGB(_ image: UIImage) -> UIImage {
+        guard let ciImage = CIImage(image: image) else { return image }
+        let extent = ciImage.extent.integral
+        guard let cgImage = PosterExportPipeline.ciContext.createCGImage(
+            ciImage,
+            from: extent,
+            format: .RGBA8,
+            colorSpace: PosterExportPipeline.srgbColorSpace
+        ) else { return image }
+        return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
+    }
 }

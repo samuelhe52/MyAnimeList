@@ -36,6 +36,10 @@ struct PosterSelectionView: View {
     @Environment(\.dismiss) var dismiss
     @Namespace var preview
 
+    private var currentPosters: [Poster] {
+        useSeriesPoster ? seriesPosters : availablePosters
+    }
+
     @MainActor
     private struct Constants {
         static let gridItemMinSize: CGFloat = 100
@@ -63,33 +67,24 @@ struct PosterSelectionView: View {
             case .loading:
                 ProgressView()
             case .loaded:
-                ScrollView {
-                    LazyVGrid(
-                        columns: [
-                            GridItem(
-                                .adaptive(
-                                    minimum: Constants.gridItemMinSize,
-                                    maximum: Constants.gridItemMaxSize),
-                                spacing: Constants.gridItemHorizontalSpacing)
-                        ],
-                        spacing: Constants.gridItemVerticalSpacing
-                    ) {
-                        ForEach(useSeriesPoster ? seriesPosters : availablePosters, id: \.url) {
-                            poster in
-                            posterWithInfo(poster: poster)
-                                .transition(.opacity)
-                                .onTapGesture {
-                                    previewPoster = poster
-                                }
-                        }
-                    }
-                }
+                posterGrid
+            case .empty:
+                ContentUnavailableView(
+                    "No Posters Available",
+                    systemImage: "photo.on.rectangle",
+                    description: Text("TMDb did not return posters for this selection yet.")
+                )
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
             case .error(let error):
                 Text("Error loading posters: \(error.localizedDescription)")
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.red)
             }
         }
         .animation(.default.delay(0.5), value: useSeriesPoster)
         .animation(.default, value: availablePosters)
+        .animation(.default, value: seriesPosters)
         .padding(.horizontal)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -114,32 +109,41 @@ struct PosterSelectionView: View {
                     sourceID: poster.metadata.filePath,
                     in: preview))
         }
-        .onChange(of: useSeriesPoster) {
+        .onChange(of: useSeriesPoster, initial: false) { _, newValue in
+            guard case .season = type else { return }
             Task {
-                imageLoadState = .loading
-                if let parentSeriesID = type.parentSeriesID,
-                    useSeriesPoster,
-                    seriesPosters.isEmpty
-                {
-                    do {
-                        seriesPosters = try await fetcher.postersForSeries(
-                            seriesID: parentSeriesID,
-                            idealWidth: Constants.idealWidth
-                        )
-                        .filteredAndSorted()
-                        imageLoadState = .loaded
-                    } catch {
-                        logger.error("Error fetching posters: \(error.localizedDescription)")
-                        imageLoadState = .error(error)
-                    }
+                if newValue {
+                    await fetchSeriesPostersIfNeeded()
                 } else {
-                    fatalError()
+                    await ensurePrimaryPostersLoadedIfNeeded()
                 }
             }
         }
         .task {
-            if availablePosters.isEmpty {
-                await fetchImages()
+            await ensurePrimaryPostersLoadedIfNeeded()
+        }
+    }
+
+    @ViewBuilder
+    private var posterGrid: some View {
+        ScrollView {
+            LazyVGrid(
+                columns: [
+                    GridItem(
+                        .adaptive(
+                            minimum: Constants.gridItemMinSize,
+                            maximum: Constants.gridItemMaxSize),
+                        spacing: Constants.gridItemHorizontalSpacing)
+                ],
+                spacing: Constants.gridItemVerticalSpacing
+            ) {
+                ForEach(currentPosters, id: \.url) { poster in
+                    posterWithInfo(poster: poster)
+                        .transition(.opacity)
+                        .onTapGesture {
+                            previewPoster = poster
+                        }
+                }
             }
         }
     }
@@ -159,34 +163,85 @@ struct PosterSelectionView: View {
         .matchedTransitionSource(id: poster.metadata.filePath, in: preview)
     }
 
-    private func fetchImages() async {
+    @MainActor
+    private func ensurePrimaryPostersLoadedIfNeeded() async {
+        if availablePosters.isEmpty {
+            await fetchPrimaryPosters()
+        } else {
+            syncLoadStateWithCurrentData()
+        }
+    }
+
+    @MainActor
+    private func fetchPrimaryPosters() async {
         do {
             imageLoadState = .loading
-            var posters: [Poster]
-            switch type {
-            case .movie:
-                posters = try await fetcher.postersForMovie(
-                    for: tmdbID, idealWidth: Constants.idealWidth)
-            case .series:
-                posters = try await fetcher.postersForSeries(
-                    seriesID: tmdbID, idealWidth: Constants.idealWidth)
-            case .season(let seasonNumber, let parentSeriesID):
-                posters = try await fetcher.postersForSeason(
-                    forSeason: seasonNumber,
-                    inParentSeries: parentSeriesID,
-                    idealWidth: Constants.idealWidth)
-            }
+            let posters = try await primaryPosterRequest()
             availablePosters = posters.filteredAndSorted()
-            imageLoadState = .loaded
+            if !useSeriesPoster {
+                syncLoadStateWithCurrentData(sourceOverride: availablePosters)
+            }
         } catch {
             logger.error("Error fetching posters: \(error.localizedDescription)")
             imageLoadState = .error(error)
         }
     }
 
+    @MainActor
+    private func fetchSeriesPostersIfNeeded() async {
+        guard case .season(_, let parentSeriesID) = type else { return }
+        if !seriesPosters.isEmpty {
+            if useSeriesPoster {
+                syncLoadStateWithCurrentData()
+            }
+            return
+        }
+
+        do {
+            imageLoadState = .loading
+            seriesPosters = try await fetcher.postersForSeries(
+                seriesID: parentSeriesID,
+                idealWidth: Constants.idealWidth
+            )
+            .filteredAndSorted()
+            if useSeriesPoster {
+                syncLoadStateWithCurrentData(sourceOverride: seriesPosters)
+            }
+        } catch {
+            logger.error("Error fetching posters: \(error.localizedDescription)")
+            imageLoadState = .error(error)
+        }
+    }
+
+    @MainActor
+    private func primaryPosterRequest() async throws -> [Poster] {
+        switch type {
+        case .movie:
+            return try await fetcher.postersForMovie(
+                for: tmdbID,
+                idealWidth: Constants.idealWidth)
+        case .series:
+            return try await fetcher.postersForSeries(
+                seriesID: tmdbID,
+                idealWidth: Constants.idealWidth)
+        case .season(let seasonNumber, let parentSeriesID):
+            return try await fetcher.postersForSeason(
+                forSeason: seasonNumber,
+                inParentSeries: parentSeriesID,
+                idealWidth: Constants.idealWidth)
+        }
+    }
+
+    @MainActor
+    private func syncLoadStateWithCurrentData(sourceOverride: [Poster]? = nil) {
+        let posters = sourceOverride ?? currentPosters
+        imageLoadState = posters.isEmpty ? .empty : .loaded
+    }
+
     private enum ImageLoadState {
         case loading
         case loaded
+        case empty
         case error(Error)
     }
 }
@@ -232,9 +287,11 @@ struct PosterPreview: View {
 
 extension Array where Element == Poster {
     func filteredAndSorted(language: Language = .japanese) -> [Poster] {
-        self
-            .filter { $0.metadata.languageCode == language.rawValue }
+        let prioritized = self
             .sorted { $0.metadata.width > $1.metadata.width }
+
+        let filtered = prioritized.filter { $0.metadata.languageCode == language.rawValue }
+        return filtered.isEmpty ? prioritized : filtered
     }
 }
 

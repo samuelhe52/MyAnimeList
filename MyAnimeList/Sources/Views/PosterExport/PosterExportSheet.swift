@@ -1,15 +1,22 @@
+//
+//  PosterExportSheet.swift
+//  MyAnimeList
+//
+//  Created by GitHub Copilot on 2025/11/22.
+//
+
 import SwiftUI
 import DataProvider
 
 struct PosterExportSheet: View {
-    @StateObject private var viewModel: PosterExportViewModel
+    @State private var controller: PosterExportController
     @Environment(\.dismiss) private var dismiss
     @AppStorage(.preferredAnimeInfoLanguage) private var defaultLanguage: Language = .english
 
     @State private var showPosterSelection = false
 
     init(entry: AnimeEntry) {
-        _viewModel = StateObject(wrappedValue: PosterExportViewModel(entry: entry))
+        _controller = State(initialValue: PosterExportController(entry: entry))
     }
 
     var body: some View {
@@ -17,18 +24,18 @@ struct PosterExportSheet: View {
             ScrollView {
                 VStack(spacing: 24) {
                     PosterExportPreviewSection(
-                        title: viewModel.currentTitle,
-                        subtitle: viewModel.previewSubtitle,
-                        detail: viewModel.previewDetailLine,
-                        aspectRatio: viewModel.previewAspectRatio,
-                        image: viewModel.loadedImage,
-                        animationTrigger: viewModel.selectedLanguage
+                        title: controller.currentTitle,
+                        subtitle: controller.previewSubtitle,
+                        detail: controller.previewDetailLine,
+                        aspectRatio: controller.previewAspectRatio,
+                        image: controller.loadedImage,
+                        animationTrigger: controller.selectedLanguage
                     )
 
                     PosterExportControlsSection(
-                        availableLanguages: viewModel.availableLanguages,
-                        selectedLanguage: $viewModel.selectedLanguage,
-                        canSelectLanguage: viewModel.canSelectLanguage,
+                        availableLanguages: controller.availableLanguages,
+                        selectedLanguage: $controller.selectedLanguage,
+                        canSelectLanguage: controller.canSelectLanguage,
                         onChangePoster: { showPosterSelection = true }
                     )
                 }
@@ -45,7 +52,7 @@ struct PosterExportSheet: View {
                 }
 
                 ToolbarItem(placement: .primaryAction) {
-                    if let url = viewModel.renderedImageURL {
+                    if let url = controller.renderedImageURL {
                         ShareLink(item: url) {
                             Label("Share", systemImage: "square.and.arrow.up")
                         }
@@ -58,25 +65,25 @@ struct PosterExportSheet: View {
             .fullScreenCover(isPresented: $showPosterSelection) {
                 NavigationStack {
                     PosterSelectionView(
-                        tmdbID: viewModel.entry.tmdbID,
-                        type: viewModel.entry.type,
+                        tmdbID: controller.entry.tmdbID,
+                        type: controller.entry.type,
                         onPosterSelected: { url in
-                            viewModel.updateSelectedPosterURL(url)
+                            controller.updateSelectedPosterURL(url)
                         })
                 }
             }
-            .task(id: viewModel.renderTrigger) {
-                let trigger = viewModel.renderTrigger
-                await viewModel.processRenderRequest(for: trigger)
+            .task(id: controller.renderTrigger) {
+                let trigger = controller.renderTrigger
+                await controller.processRenderRequest(for: trigger)
             }
             .onAppear {
-                viewModel.applyPreferredLanguage(defaultLanguage, respectingCurrentSelection: false)
+                controller.applyPreferredLanguage(defaultLanguage, respectingCurrentSelection: false)
             }
             .onDisappear {
-                viewModel.cleanupRenderedFiles()
+                controller.cleanupRenderedFiles()
             }
             .onChange(of: defaultLanguage, initial: false) { _, newValue in
-                viewModel.applyPreferredLanguage(newValue, respectingCurrentSelection: true)
+                controller.applyPreferredLanguage(newValue, respectingCurrentSelection: true)
             }
         }
     }

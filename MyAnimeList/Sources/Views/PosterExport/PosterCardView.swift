@@ -1,3 +1,10 @@
+//
+//  PosterCardView.swift
+//  MyAnimeList
+//
+//  Created by GitHub Copilot on 2025/11/22.
+//
+
 import SwiftUI
 
 struct PosterCardView: View {

@@ -1,3 +1,10 @@
+//
+//  PosterExportControlsSection.swift
+//  MyAnimeList
+//
+//  Created by GitHub Copilot on 2025/11/22.
+//
+
 import SwiftUI
 import DataProvider
 

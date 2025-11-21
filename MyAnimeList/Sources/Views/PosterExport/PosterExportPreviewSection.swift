@@ -1,3 +1,10 @@
+//
+//  PosterExportPreviewSection.swift
+//  MyAnimeList
+//
+//  Created by GitHub Copilot on 2025/11/22.
+//
+
 import SwiftUI
 import DataProvider
 
@@ -26,7 +33,7 @@ struct PosterExportPreviewSection: View {
                 .spring(response: 0.35, dampingFraction: 0.85),
                 value: animationTrigger
             )
-            .frame(maxWidth: PosterExportViewModel.previewCardWidth)
+            .frame(maxWidth: PosterExportController.previewCardWidth)
             .padding(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 32, style: .continuous)
@@ -37,7 +44,7 @@ struct PosterExportPreviewSection: View {
         .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 32, style: .continuous)
-                .fill(Color(.systemBackground).opacity(0.65))
+                .fill(.ultraThinMaterial)
         )
         .shadow(color: Color.black.opacity(0.08), radius: 24, x: 0, y: 12)
     }

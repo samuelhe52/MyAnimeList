@@ -7,15 +7,19 @@
 
 MyAnimeList is a native iOS/macOS anime library management application that allows users to track and organize their anime viewing. The app integrates with The Movie Database (TMDb) API to fetch detailed information about anime titles including movies, TV series, and individual seasons.
 
+> **Platform note:** iOS remains the primary target. macOS builds are supported for the core library workflow, but newer features (like the Sharing sheet) can temporarily launch iOS-only until we circle back for Mac polish.
+
 ## Tech Stack
 
 ### Platforms & Languages
+
 - **Swift 6.1+** - Primary programming language
 - **iOS 18+** - Minimum iOS version
-- **macOS 15+** - Minimum macOS version
+- **macOS 15+** - Minimum macOS version (feature parity pending; prioritize iOS when time-constrained)
 - **Xcode** - Development environment
 
 ### Frameworks & Libraries
+
 - **SwiftUI** - UI framework for building views
 - **SwiftData** - Apple's modern data persistence framework (replacing Core Data)
 - **Combine** - Reactive programming for handling async events
@@ -23,6 +27,7 @@ MyAnimeList is a native iOS/macOS anime library management application that allo
 - **TMDb SDK** - The Movie Database API client integration
 
 ### Build Tools
+
 - **Xcode Build System** - Primary build system
 - **Swift Package Manager (SPM)** - Dependency management
 - **xcode-build-server** - BSP (Build Server Protocol) support for editor integration
@@ -30,7 +35,7 @@ MyAnimeList is a native iOS/macOS anime library management application that allo
 
 ## Project Structure
 
-```
+```text
 MyAnimeList/
 ├── MyAnimeList/                    # Main iOS/macOS app
 │   ├── Sources/

@@ -25,7 +25,7 @@ struct LibraryView: View {
     @State private var showCacheAlert = false
     @State private var showClearAllAlert = false
     @State private var cacheSizeResult: Result<UInt, KingfisherError>? = nil
-    @State private var showBackupManager = false
+    @SceneStorage("LibraryView.showBackupManager") private var showBackupManager = false
     @State private var scrollState = ScrollState()
     @State private var newEntriesAddedToggle = false
     @State private var favoriteToggle = false

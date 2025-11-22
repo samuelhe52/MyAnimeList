@@ -11,6 +11,7 @@ import SwiftUI
 struct BackupManagerView: View {
     let backupManager: BackupManager
 
+    @Environment(\.dismiss) private var dismiss
     @State private var exportError: Error? = nil
     @State private var exportErrorOccurred: Bool = false
     @State private var restoreError: Error? = nil
@@ -18,7 +19,7 @@ struct BackupManagerView: View {
     @State private var showFileImporter: Bool = false
     @State private var restoreFileURL: URL? = nil
     @State private var showRestoreConfirmation: Bool = false
-    @State private var restoreCompleted: Bool = false
+    @SceneStorage("BackupManagerView.restoreCompleted") private var restoreCompleted = false
 
     var body: some View {
         VStack {
@@ -39,27 +40,30 @@ struct BackupManagerView: View {
             HStack(alignment: .firstTextBaseline) {
                 exportButton
                 Button("Restore", systemImage: "document.badge.clock", role: .destructive) {
+                    restoreCompleted = false
                     showFileImporter = true
                 }
             }
             .padding(.top, 5)
             .padding(.bottom, 3)
             .buttonStyle(.borderedProminent)
+            .disabled(restoreCompleted)
             if restoreCompleted {
-                VStack(spacing: 0) {
-                    Text("Restore completed!")
-                    Text("Restart app to see changes.")
+                VStack(spacing: 6) {
+                    VStack(spacing: 0) {
+                        Text("Restore completed!")
+                        Text("Restart app to see changes.")
+                    }
+                    .foregroundStyle(.green)
+                    .font(.callout)
                 }
-                .foregroundStyle(.green)
                 .transition(.opacityScale)
-                .font(.callout)
             }
             Spacer()
             Text("* For security reasons, your TMDb API Key will not be exported.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
-        .disabled(restoreCompleted)
         .multilineTextAlignment(.center)
         .padding()
         .alert(
@@ -129,6 +133,7 @@ struct BackupManagerView: View {
     }
 
     private func restore() {
+        restoreCompleted = false
         if let url = restoreFileURL {
             do {
                 guard url.startAccessingSecurityScopedResource() else {
@@ -137,8 +142,8 @@ struct BackupManagerView: View {
                         code: 1,
                         userInfo: [url.path(): "Access denied to URL"])
                 }
+                defer { url.stopAccessingSecurityScopedResource() }
                 try backupManager.restoreBackup(from: url)
-                url.stopAccessingSecurityScopedResource()
                 withAnimation {
                     restoreCompleted = true
                 }
@@ -146,6 +151,11 @@ struct BackupManagerView: View {
                 restoreErrorOccurred(error)
             }
         }
+    }
+
+    private func acknowledgeRestore() {
+        restoreCompleted = false
+        dismiss()
     }
 }
 

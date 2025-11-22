@@ -78,11 +78,11 @@ extension LibraryEntryInteractionState {
         toggleFavorite: @escaping (AnimeEntry) -> Void
     ) -> some View {
         ControlGroup {
-            Button("Share", systemImage: "square.and.arrow.up") {
-                self.sharingAnimeEntry = entry
-            }
             Button("Edit", systemImage: "pencil") {
                 self.editingEntry = entry
+            }
+            Button("Share", systemImage: "square.and.arrow.up") {
+                self.sharingAnimeEntry = entry
             }
         }
         Button("Switch Poster", systemImage: "photo") {

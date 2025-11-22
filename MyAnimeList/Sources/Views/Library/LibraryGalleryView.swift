@@ -113,13 +113,11 @@ fileprivate struct AnimeEntryCardWrapper: View {
     @ViewBuilder
     func contextMenu(for entry: AnimeEntry) -> some View {
         ControlGroup {
-            Button {
-                isSharingAnime = true
-            } label: {
-                Label("Share", systemImage: "square.and.arrow.up")
-            }
             Button("Edit", systemImage: "pencil") {
                 isEditing = true
+            }
+            Button("Share", systemImage: "square.and.arrow.up") {
+                isSharingAnime = true
             }
         }
         Button {

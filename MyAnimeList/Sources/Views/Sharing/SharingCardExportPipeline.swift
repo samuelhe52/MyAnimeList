@@ -117,8 +117,8 @@ struct SharingCardRenderTrigger: Hashable {
 }
 
 struct PosterMetadata {
-    let title: String
-    let subtitle: String?
+    let title: AttributedString
+    let subtitle: AttributedString?
     let detail: String?
 }
 

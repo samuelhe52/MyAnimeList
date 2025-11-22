@@ -9,8 +9,8 @@ import SwiftUI
 
 struct SharingCardView: View {
     let image: UIImage?
-    let title: String
-    let subtitle: String?
+    let title: AttributedString
+    let subtitle: AttributedString?
     let detail: String?
     let aspectRatio: CGFloat
 

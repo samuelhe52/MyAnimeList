@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Foundation
 import DataProvider
 import Kingfisher
 import UniformTypeIdentifiers
@@ -35,6 +36,12 @@ final class AnimeSharingController {
         "zh-CN": .chinese,
         "en-US": .english
     ]
+    private static let titleLanguageIdentifiers: [Language: String] = [
+        .english: "en-US",
+        .japanese: "ja-JP",
+        .chinese: "zh-CN"
+    ]
+    private static let subtitleLanguageIdentifier = "ja-JP"
 
     let entry: AnimeEntry
 
@@ -51,12 +58,12 @@ final class AnimeSharingController {
         !translations.isEmpty
     }
 
-    var currentTitle: String {
-        title(for: selectedLanguage)
+    var currentTitle: AttributedString {
+        attributedTitle(for: selectedLanguage)
     }
 
-    var previewSubtitle: String? {
-        subtitle(for: selectedLanguage)
+    var previewSubtitle: AttributedString? {
+        attributedSubtitle(for: selectedLanguage)
     }
 
     var previewDetailLine: String? {
@@ -158,8 +165,8 @@ final class AnimeSharingController {
         guard !Task.isCancelled else { return }
         let language = trigger.language
         let metadata = PosterMetadata(
-            title: title(for: language),
-            subtitle: subtitle(for: language),
+            title: attributedTitle(for: language),
+            subtitle: attributedSubtitle(for: language),
             detail: detailLineText()
         )
         let aspectRatio = aspectRatio(for: image)
@@ -195,6 +202,20 @@ final class AnimeSharingController {
 
     private func useCachedRender(at url: URL, for trigger: SharingCardRenderTrigger) {
         renderedImageURL = url
+    }
+
+    private func attributedTitle(for language: Language) -> AttributedString {
+        var attributed = AttributedString(title(for: language))
+        attributed.languageIdentifier = AnimeSharingController.titleLanguageIdentifiers[language]
+            ?? Locale.current.identifier
+        return attributed
+    }
+
+    private func attributedSubtitle(for language: Language) -> AttributedString? {
+        guard let subtitleText = subtitle(for: language) else { return nil }
+        var attributed = AttributedString(subtitleText)
+        attributed.languageIdentifier = AnimeSharingController.subtitleLanguageIdentifier
+        return attributed
     }
 
     private func title(for language: Language) -> String {

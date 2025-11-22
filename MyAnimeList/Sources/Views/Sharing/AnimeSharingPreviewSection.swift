@@ -11,8 +11,8 @@ import DataProvider
 struct AnimeSharingPreviewSection: View {
     @Environment(\.colorScheme) var colorScheme
     
-    let title: String
-    let subtitle: String?
+    let title: AttributedString
+    let subtitle: AttributedString?
     let detail: String?
     let aspectRatio: CGFloat
     let image: UIImage?

@@ -1208,22 +1208,6 @@
         }
       }
     },
-    "Poster URL" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ポスターURL"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "海报链接"
-          }
-        }
-      }
-    },
     "Prefetching images..." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1382,6 +1366,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "倒序"
+          }
+        }
+      }
+    },
+    "Save Poster" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ポスターを保存"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存海报"
           }
         }
       }

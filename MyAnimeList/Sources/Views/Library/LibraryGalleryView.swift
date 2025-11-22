@@ -123,11 +123,12 @@ fileprivate struct AnimeEntryCardWrapper: View {
         Button {
             isSwitchingPoster = true
         } label: {
-            Label("Switch Poster", systemImage: "photo")
+            Label("Switch Poster", systemImage: "photo.badge.magnifyingglass")
         }
-        Button("Poster URL", systemImage: "document.on.clipboard") {
-            UIPasteboard.general.string = entry.posterURL?.absoluteString ?? ""
-            ToastCenter.global.copied = true
+        if let posterURL = entry.posterURL {
+            ShareLink(item: posterURL) {
+                Label("Save Poster", systemImage: "photo.badge.arrow.down")
+            }
         }
         Button("Delete", systemImage: "trash", role: .destructive) {
             showDeleteToast = true

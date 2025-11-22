@@ -85,12 +85,13 @@ extension LibraryEntryInteractionState {
                 self.sharingAnimeEntry = entry
             }
         }
-        Button("Switch Poster", systemImage: "photo") {
+        Button("Switch Poster", systemImage: "photo.badge.magnifyingglass") {
             self.switchingPosterForEntry = entry
         }
-        Button("Poster URL", systemImage: "document.on.clipboard") {
-            UIPasteboard.general.string = entry.posterURL?.absoluteString ?? ""
-            ToastCenter.global.copied = true
+        if let posterURL = entry.posterURL {
+            ShareLink(item: posterURL) {
+                Label("Save Poster", systemImage: "photo.badge.arrow.down")
+            }
         }
         Menu("User Info", systemImage: "person.crop.circle") {
             Button("Copy Info", systemImage: "doc.on.doc") {

@@ -40,7 +40,7 @@ struct AnimeSharingSheet: View {
                     )
                 }
                 .padding(.horizontal)
-                .padding(.vertical, 24)
+                .padding(.bottom, 24)
             }
             .navigationTitle("Share")
             .navigationBarTitleDisplayMode(.inline)
@@ -87,4 +87,8 @@ struct AnimeSharingSheet: View {
             }
         }
     }
+}
+
+#Preview {
+    AnimeSharingSheet(entry: AnimeEntry.frieren)
 }

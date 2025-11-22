@@ -48,7 +48,7 @@ extension AnimeEntry {
     public static var frieren: AnimeEntry {
         AnimeEntry(
             name: "葬送のフリーレン",
-            nameTranslations: ["jp": "葬送のフリーレン", "en": "Frieren: Beyond Journey's End"],
+            nameTranslations: ["ja-JP": "葬送のフリーレン", "en-US": "Frieren: Beyond Journey's End", "zh-CN": "葬送的芙莉莲"],
             overview:
                 "勇者ヒンメルたちと共に、10年に及ぶ冒険の末に魔王を打ち倒し、世界に平和をもたらした魔法使いフリーレン。千年以上生きるエルフである彼女は、ヒンメルたちと再会の約束をし、独り旅に出る。それから50年後、フリーレンはヒンメルのもとを訪ねるが、50年前と変わらぬ彼女に対し、ヒンメルは老い、人生は残りわずかだった。その後、死を迎えたヒンメルを目の当たりにし、これまで“人を知る”ことをしてこなかった自分を痛感し、それを悔いるフリーレンは、“人を知るため”の旅に出る。その旅路には、さまざまな人との出会い、さまざまな出来事が待っていた―。",
             onAirDate: .now,

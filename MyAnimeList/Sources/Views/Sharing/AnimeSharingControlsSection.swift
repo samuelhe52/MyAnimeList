@@ -49,7 +49,7 @@ struct AnimeSharingControlsSection: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(.ultraThinMaterial)
+                .fill(.thinMaterial)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 28, style: .continuous)

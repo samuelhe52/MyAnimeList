@@ -9,6 +9,8 @@ import SwiftUI
 import DataProvider
 
 struct AnimeSharingPreviewSection: View {
+    @Environment(\.colorScheme) var colorScheme
+    
     let title: String
     let subtitle: String?
     let detail: String?
@@ -37,10 +39,11 @@ struct AnimeSharingPreviewSection: View {
             .padding(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 32, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                    .strokeBorder(Color.white.opacity(colorScheme == .dark ? 0.08 : 0.4), lineWidth: 1)
             )
         }
-        .padding(.vertical, 16)
+        .padding(.top, 16)
+        .padding(.bottom, 8)
         .frame(maxWidth: .infinity)
         .shadow(color: Color.black.opacity(0.08), radius: 24, x: 0, y: 12)
     }

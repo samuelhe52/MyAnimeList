@@ -15,7 +15,7 @@ import Observation
 
 @MainActor @Observable
 final class AnimeSharingController {
-    static let previewCardWidth: CGFloat = 320
+    static let previewCardWidth: CGFloat = 360
 
     private static let defaultAspectRatio: CGFloat = 2.0 / 3.0
     private static let minAspectRatio: CGFloat = 0.45

@@ -10,22 +10,31 @@ import Kingfisher
 import SwiftUI
 import UniformTypeIdentifiers
 
+/// Renders poster previews into JPEG files using SwiftUI's ImageRenderer while
+/// normalizing color space and controlling output size/quality.
 @MainActor
 struct SharingCardExportPipeline {
+    /// Logical width (points) the SwiftUI poster layout targets before scaling.
     private let baseWidth: CGFloat
+    /// Compression ratio applied when persisting the rendered JPEG.
     private let jpegQuality: CGFloat
 
+    /// Creates an export pipeline tuned for the given layout width and quality.
     init(baseWidth: CGFloat, jpegQuality: CGFloat) {
         self.baseWidth = baseWidth
         self.jpegQuality = jpegQuality
     }
 
+    /// Fetches an image through Kingfisher and converts it to sRGB for
+    /// consistent downstream rendering.
     func loadImage(from url: URL) async throws -> UIImage {
         let result = try await KingfisherManager.shared.retrieveImage(with: url)
         try Task.checkCancellation()
         return SharingCardExportPipeline.convertToSRGB(result.image)
     }
 
+    /// Renders the SwiftUI sharing card into a JPEG on disk, returning the file
+    /// location for later sharing.
     func renderPoster(
         image: UIImage,
         metadata: PosterMetadata,
@@ -57,6 +66,7 @@ struct SharingCardExportPipeline {
         return try await persist(normalizedImage, fileName: fileName)
     }
 
+    /// Persists the rendered JPEG to a temporary file on a background queue.
     private func persist(_ image: UIImage, fileName: String) async throws -> URL {
         try await Task.detached(priority: .utility) {
             let tempDir = FileManager.default.temporaryDirectory
@@ -98,6 +108,7 @@ struct SharingCardExportPipeline {
         .outputColorSpace: SharingCardExportPipeline.srgbColorSpace
     ])
 
+    /// Forces any UIImage into sRGB so colors match across devices/exports.
     private static func convertToSRGB(_ image: UIImage) -> UIImage {
         guard let ciImage = CIImage(image: image) else { return image }
         let extent = ciImage.extent.integral
@@ -111,17 +122,20 @@ struct SharingCardExportPipeline {
     }
 }
 
+/// Identity of a render request based on the poster URL and chosen language.
 struct SharingCardRenderTrigger: Hashable {
     let posterURL: URL?
     let language: Language
 }
 
+/// Bundle of attributed strings that decorate the rendered sharing poster.
 struct PosterMetadata {
     let title: AttributedString
     let subtitle: AttributedString?
     let detail: String?
 }
 
+/// Errors that can occur while rendering or persisting the sharing poster.
 enum SharingCardRenderError: LocalizedError {
     case renderFailed
     case persistFailed

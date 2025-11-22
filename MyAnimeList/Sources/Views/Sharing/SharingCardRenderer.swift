@@ -3,13 +3,18 @@ import SwiftUI
 import UIKit
 import os
 
+/// Output payload returned after a poster render completes.
 @MainActor
 struct SharingCardRenderOutcome {
+    /// Final JPEG location.
     let imageURL: URL
+    /// Cached bitmap used for previews while the sheet stays open.
     let image: UIImage?
+    /// Aspect ratio used to render the card, already clamped to allowed bounds.
     let aspectRatio: CGFloat
 }
 
+/// Handles poster loading, caching, and export so the controller stays lean.
 @MainActor
 final class SharingCardRenderer {
     private let pipeline: SharingCardExportPipeline
@@ -24,6 +29,7 @@ final class SharingCardRenderer {
 
     private let logger = Logger(subsystem: "com.samuelhe.MyAnimeList", category: "SharingCardRenderer")
 
+    /// Configures a renderer with the desired poster dimensions and quality.
     init(
         baseWidth: CGFloat,
         jpegQuality: CGFloat,
@@ -38,6 +44,7 @@ final class SharingCardRenderer {
         self.cachedAspectRatio = defaultAspectRatio
     }
 
+    /// Produces (or reuses) a rendered poster for the given trigger.
     func renderPoster(
         for trigger: SharingCardRenderTrigger,
         metadata: PosterMetadata,
@@ -76,6 +83,7 @@ final class SharingCardRenderer {
         }
     }
 
+    /// Deletes cached files and resets any memoized bitmaps/aspect ratios.
     func cleanup() {
         for url in renderCache.values {
             try? FileManager.default.removeItem(at: url)
@@ -86,6 +94,7 @@ final class SharingCardRenderer {
         cachedAspectRatio = defaultAspectRatio
     }
 
+    /// Retrieves the poster image, respecting the last-loaded cache.
     private func loadImageIfNeeded(from url: URL) async -> UIImage? {
         if lastLoadedPosterURL == url, let cachedImage {
             return cachedImage
@@ -105,11 +114,13 @@ final class SharingCardRenderer {
         }
     }
 
+    /// Converts an image's intrinsic ratio into the nearest supported variant.
     private func clampAspectRatio(for image: UIImage) -> CGFloat {
         let ratio = image.size.width / max(image.size.height, 1)
         return clampAspectRatio(ratio)
     }
 
+    /// Hard-limits arbitrary aspect ratios so the layout stays predictable.
     private func clampAspectRatio(_ ratio: CGFloat) -> CGFloat {
         guard ratio.isFinite, ratio > 0 else { return defaultAspectRatio }
         return min(max(ratio, minAspectRatio), maxAspectRatio)

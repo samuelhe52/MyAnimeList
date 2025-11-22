@@ -49,6 +49,7 @@ final class AnimeSharingController {
     var selectedPosterURL: URL?
     private(set) var renderedImageURL: URL?
     private(set) var loadedImage: UIImage?
+    /// Aspect ratio applied to previews and exports, sourced from renderer output.
     private(set) var posterAspectRatio: CGFloat = AnimeSharingController.defaultAspectRatio
 
     private var translations: [Language: String]

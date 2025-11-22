@@ -42,7 +42,7 @@ struct AnimeSharingSheet: View {
                 .padding(.horizontal)
                 .padding(.vertical, 24)
             }
-            .navigationTitle("Share Anime")
+            .navigationTitle("Share")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

@@ -112,25 +112,27 @@ fileprivate struct AnimeEntryCardWrapper: View {
 
     @ViewBuilder
     func contextMenu(for entry: AnimeEntry) -> some View {
-        Button("Delete", systemImage: "trash", role: .destructive) {
-            showDeleteToast = true
+        ControlGroup {
+            Button {
+                isSharingAnime = true
+            } label: {
+                Label("Share", systemImage: "square.and.arrow.up")
+            }
+            Button("Edit", systemImage: "pencil") {
+                isEditing = true
+            }
         }
         Button {
             isSwitchingPoster = true
         } label: {
             Label("Switch Poster", systemImage: "photo")
         }
-        Button {
-            isSharingAnime = true
-        } label: {
-            Label("Share Anime", systemImage: "square.and.arrow.up")
-        }
         Button("Poster URL", systemImage: "document.on.clipboard") {
             UIPasteboard.general.string = entry.posterURL?.absoluteString ?? ""
             ToastCenter.global.copied = true
         }
-        Button("Edit", systemImage: "pencil") {
-            isEditing = true
+        Button("Delete", systemImage: "trash", role: .destructive) {
+            showDeleteToast = true
         }
     }
 }

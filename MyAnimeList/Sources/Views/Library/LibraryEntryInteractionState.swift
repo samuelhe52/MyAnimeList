@@ -77,18 +77,34 @@ extension LibraryEntryInteractionState {
         scrolledID: Binding<Int?>,
         toggleFavorite: @escaping (AnimeEntry) -> Void
     ) -> some View {
-        Button("Delete", systemImage: "trash", role: .destructive) {
-            self.prepareDeletion(for: entry, store: store, scrolledID: scrolledID)
+        ControlGroup {
+            Button("Share", systemImage: "square.and.arrow.up") {
+                self.sharingAnimeEntry = entry
+            }
+            Button("Edit", systemImage: "pencil") {
+                self.editingEntry = entry
+            }
         }
         Button("Switch Poster", systemImage: "photo") {
             self.switchingPosterForEntry = entry
         }
-        Button("Share Anime", systemImage: "square.and.arrow.up") {
-            self.sharingAnimeEntry = entry
-        }
         Button("Poster URL", systemImage: "document.on.clipboard") {
             UIPasteboard.general.string = entry.posterURL?.absoluteString ?? ""
             ToastCenter.global.copied = true
+        }
+        Menu("User Info", systemImage: "person.crop.circle") {
+            Button("Copy Info", systemImage: "doc.on.doc") {
+                entry.userInfo.copyToPasteboard()
+                ToastCenter.global.copied = true
+            }
+            Button("Paste Info", systemImage: "doc.on.clipboard") {
+                self.pasteInfo(for: entry)
+            }
+            .disabled(
+                !UIPasteboard.general.contains(
+                    pasteboardTypes: [UserEntryInfo.pasteboardUTType.identifier]
+                )
+            )
         }
         EntryFavoriteButton(favorited: entry.favorite) {
             toggleFavorite(entry)
@@ -98,21 +114,10 @@ extension LibraryEntryInteractionState {
                 ToastCenter.global.unFavorited = true
             }
         }
-        Button("Copy Info", systemImage: "doc.on.doc") {
-            entry.userInfo.copyToPasteboard()
-            ToastCenter.global.copied = true
+        Button("Delete", systemImage: "trash", role: .destructive) {
+            self.prepareDeletion(for: entry, store: store, scrolledID: scrolledID)
         }
-        Button("Paste Info", systemImage: "doc.on.clipboard") {
-            self.pasteInfo(for: entry)
-        }
-        .disabled(
-            !UIPasteboard.general.contains(
-                pasteboardTypes: [UserEntryInfo.pasteboardUTType.identifier]
-            )
-        )
-        Button("Edit", systemImage: "pencil") {
-            self.editingEntry = entry
-        }
+
     }
 }
 

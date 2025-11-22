@@ -1519,29 +1519,13 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "共有する"
+            "value" : "共有"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "分享"
-          }
-        }
-      }
-    },
-    "Share Anime" : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アニメを共有"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "分享动画"
           }
         }
       }
@@ -1820,6 +1804,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "设为海报"
+          }
+        }
+      }
+    },
+    "User Info" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ユーザー情報"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用户信息"
           }
         }
       }

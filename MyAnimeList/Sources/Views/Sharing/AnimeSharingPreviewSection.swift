@@ -42,10 +42,6 @@ struct AnimeSharingPreviewSection: View {
         }
         .padding(.vertical, 16)
         .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 32, style: .continuous)
-                .fill(.ultraThinMaterial)
-        )
         .shadow(color: Color.black.opacity(0.08), radius: 24, x: 0, y: 12)
     }
 }

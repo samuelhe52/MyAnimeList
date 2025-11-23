@@ -5,12 +5,12 @@
 //  Created by Samuel He on 2025/11/22.
 //
 
-import SwiftUI
 import DataProvider
+import SwiftUI
 
 struct AnimeSharingPreviewSection: View {
     @Environment(\.colorScheme) var colorScheme
-    
+
     let title: AttributedString
     let subtitle: AttributedString?
     let detail: String?

@@ -46,8 +46,8 @@ struct SharingCardExportPipeline {
         let exportWidth = max(nativePixelWidth, baseWidth)
         let scaleFactor = max(exportWidth / baseWidth, 1)
 
-        let renderer = ImageRenderer(content:
-            SharingCardView(
+        let renderer = ImageRenderer(
+            content: SharingCardView(
                 image: image,
                 title: metadata.title,
                 subtitle: metadata.subtitle,
@@ -112,12 +112,16 @@ struct SharingCardExportPipeline {
     private static func convertToSRGB(_ image: UIImage) -> UIImage {
         guard let ciImage = CIImage(image: image) else { return image }
         let extent = ciImage.extent.integral
-        guard let cgImage = SharingCardExportPipeline.ciContext.createCGImage(
-            ciImage,
-            from: extent,
-            format: .RGBA8,
-            colorSpace: SharingCardExportPipeline.srgbColorSpace
-        ) else { return image }
+        guard
+            let cgImage = SharingCardExportPipeline
+                .ciContext
+                .createCGImage(
+                    ciImage,
+                    from: extent,
+                    format: .RGBA8,
+                    colorSpace: SharingCardExportPipeline.srgbColorSpace
+                )
+        else { return image }
         return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
     }
 }

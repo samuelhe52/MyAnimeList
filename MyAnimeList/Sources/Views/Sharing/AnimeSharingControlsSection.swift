@@ -5,8 +5,8 @@
 //  Created by Samuel He on 2025/11/22.
 //
 
-import SwiftUI
 import DataProvider
+import SwiftUI
 
 struct AnimeSharingControlsSection: View {
     let availableLanguages: [Language]

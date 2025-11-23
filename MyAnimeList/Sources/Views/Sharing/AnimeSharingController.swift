@@ -5,10 +5,10 @@
 //  Created by Samuel He on 2025/11/22.
 //
 
-import SwiftUI
-import Foundation
 import DataProvider
+import Foundation
 import Observation
+import SwiftUI
 
 /// Observable controller that prepares localized poster previews and
 /// manages cached renders for the sharing sheet.
@@ -142,11 +142,13 @@ final class AnimeSharingController {
         let metadata = posterMetadata(for: trigger.language)
         let fileName = fileName(for: trigger)
 
-        guard let outcome = await renderer.renderPoster(
-            for: trigger,
-            metadata: metadata,
-            fileName: fileName
-        ) else { return }
+        guard
+            let outcome = await renderer.renderPoster(
+                for: trigger,
+                metadata: metadata,
+                fileName: fileName
+            )
+        else { return }
         guard !Task.isCancelled else { return }
 
         renderedImageURL = outcome.imageURL
@@ -172,7 +174,8 @@ final class AnimeSharingController {
 
     private func attributedTitle(for language: Language) -> AttributedString {
         var attributed = AttributedString(title(for: language))
-        attributed.languageIdentifier = AnimeSharingController.titleLanguageIdentifiers[language]
+        attributed.languageIdentifier =
+            AnimeSharingController.titleLanguageIdentifiers[language]
             ?? Locale.current.identifier
         return attributed
     }
@@ -236,7 +239,8 @@ final class AnimeSharingController {
     private static func buildTranslations(from entry: AnimeEntry) -> [Language: String] {
         entry.nameTranslations.reduce(into: [Language: String]()) { result, pair in
             guard let language = languageCodeToLanguage[pair.key],
-                validLanguageCodes.contains(pair.key) else { return }
+                validLanguageCodes.contains(pair.key)
+            else { return }
             result[language] = pair.value.isEmpty ? entry.name : pair.value
         }
     }

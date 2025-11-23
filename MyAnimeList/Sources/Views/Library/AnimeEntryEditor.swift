@@ -70,18 +70,19 @@ struct AnimeEntryEditor: View {
             NavigationStack {
                 PosterSelectionView(
                     tmdbID: entry.tmdbID,
-                    type: entry.type) { url in
+                    type: entry.type
+                ) { url in
                     entry.posterURL = url
                     entry.usingCustomPoster = true
                 }
                 .navigationTitle("Change Poster")
                 .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button("Done") {
-                                showPosterSelectionView = false
-                            }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done") {
+                            showPosterSelectionView = false
                         }
                     }
+                }
             }
         }
         .confirmationDialog("Discard all changes?", isPresented: $showCancelEditsConfirmation) {

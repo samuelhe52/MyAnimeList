@@ -287,8 +287,9 @@ struct PosterPreview: View {
 
 extension Array where Element == Poster {
     func filteredAndSorted(language: Language = .japanese) -> [Poster] {
-        let prioritized = self
-            .sorted { $0.metadata.width > $1.metadata.width }
+        let prioritized = self.sorted {
+            $0.metadata.width > $1.metadata.width
+        }
 
         let filtered = prioritized.filter { $0.metadata.languageCode == language.rawValue }
         return filtered.isEmpty ? prioritized : filtered

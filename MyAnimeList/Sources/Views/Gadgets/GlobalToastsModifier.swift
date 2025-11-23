@@ -111,7 +111,7 @@ struct GlobalToastsModifier: ViewModifier {
             .toast(
                 isPresenting: $center.favorited, duration: 1.5, offsetY: 35,
                 alert: {
-                    return AlertToast(
+                    AlertToast(
                         displayMode: .hud,
                         type: .systemImage("star.fill", .pink),
                         titleResource: "Favorited")
@@ -120,7 +120,7 @@ struct GlobalToastsModifier: ViewModifier {
             .toast(
                 isPresenting: $center.unFavorited, duration: 1.5, offsetY: 35,
                 alert: {
-                    return AlertToast(
+                    AlertToast(
                         displayMode: .hud,
                         type: .systemImage("star.slash.fill", .gray),
                         titleResource: "Unfavorited")

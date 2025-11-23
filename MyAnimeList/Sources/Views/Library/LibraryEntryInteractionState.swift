@@ -78,16 +78,25 @@ extension LibraryEntryInteractionState {
         toggleFavorite: @escaping (AnimeEntry) -> Void
     ) -> some View {
         ControlGroup {
-            Button("Edit", systemImage: "pencil") {
-                self.editingEntry = entry
+            EntryFavoriteButton(favorited: entry.favorite) {
+                toggleFavorite(entry)
+                if entry.favorite {
+                    ToastCenter.global.favorited = true
+                } else {
+                    ToastCenter.global.unFavorited = true
+                }
             }
             Button("Share", systemImage: "square.and.arrow.up") {
                 self.sharingAnimeEntry = entry
             }
         }
+        Button("Edit", systemImage: "pencil") {
+            self.editingEntry = entry
+        }
         Button("Switch Poster", systemImage: "photo.badge.magnifyingglass") {
             self.switchingPosterForEntry = entry
         }
+        Divider()
         if let posterURL = entry.posterURL {
             ShareLink(item: posterURL) {
                 Label("Save Poster", systemImage: "photo.badge.arrow.down")
@@ -106,14 +115,6 @@ extension LibraryEntryInteractionState {
                     pasteboardTypes: [UserEntryInfo.pasteboardUTType.identifier]
                 )
             )
-        }
-        EntryFavoriteButton(favorited: entry.favorite) {
-            toggleFavorite(entry)
-            if entry.favorite {
-                ToastCenter.global.favorited = true
-            } else {
-                ToastCenter.global.unFavorited = true
-            }
         }
         Button("Delete", systemImage: "trash", role: .destructive) {
             self.prepareDeletion(for: entry, store: store, scrolledID: scrolledID)

@@ -80,7 +80,7 @@ fileprivate struct LibraryGridItem: View {
 
     var body: some View {
         VStack {
-            KFImageView(url: entry.posterURL, diskCacheExpiration: .longTerm)
+            KFImageView(url: entry.posterURL, targetWidth: 300, diskCacheExpiration: .longTerm)
                 .clipShape(.proportionalRounded(cornerFraction: 0.05))
                 .aspectRatio(contentMode: .fit)
             Text(entry.displayName)

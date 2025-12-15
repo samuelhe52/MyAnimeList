@@ -14,16 +14,19 @@ fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "PosterV
 struct KFImageView: View {
     let url: URL?
     let diskCacheExpiration: StorageExpiration
+    let targetWidth: CGFloat?
     @Binding var imageLoaded: Bool
     @State private var image: UIImage? = nil
 
     init(
         url: URL?,
+        targetWidth: CGFloat? = nil,
         diskCacheExpiration: StorageExpiration,
         imageLoaded: Binding<Bool> = .constant(false)
     ) {
         self.url = url
         self.diskCacheExpiration = diskCacheExpiration
+        self.targetWidth = targetWidth
         self._imageLoaded = imageLoaded
     }
 
@@ -43,11 +46,17 @@ struct KFImageView: View {
     }
 
     private func loadImage() async {
-        let kfRetrieveOptions: KingfisherOptionsInfo = [
+        var kfRetrieveOptions: KingfisherOptionsInfo = [
             .cacheOriginalImage,
             .diskCacheExpiration(diskCacheExpiration),
             .onFailureImage(UIImage(named: "missing_image_resource"))
         ]
+
+        if let targetWidth {
+            let size = CGSize(width: targetWidth, height: targetWidth * 1.5)
+            let processor = DownsamplingImageProcessor(size: size)
+            kfRetrieveOptions.append(.processor(processor))
+        }
 
         if let url {
             do {

@@ -153,7 +153,7 @@ struct PosterSelectionView: View {
         let width = poster.metadata.width
         let height = poster.metadata.height
         VStack {
-            KFImageView(url: poster.url, diskCacheExpiration: Constants.cacheExpiration)
+            KFImageView(url: poster.url, targetWidth: 300, diskCacheExpiration: Constants.cacheExpiration)
                 .clipShape(RoundedRectangle(cornerRadius: Constants.posterCornerRadius))
                 .aspectRatio(contentMode: .fit)
             Text("\(width) x \(height)")

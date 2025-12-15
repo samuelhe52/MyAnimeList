@@ -14,7 +14,7 @@ struct AnimeEntryListRow: View {
 
     var body: some View {
         HStack {
-            KFImageView(url: entry.posterURL, diskCacheExpiration: .longTerm)
+            KFImageView(url: entry.posterURL, targetWidth: 240, diskCacheExpiration: .longTerm)
                 .scaledToFit()
                 .clipShape(.rect(cornerRadius: 6))
                 .frame(width: 80, height: 120)

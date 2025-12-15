@@ -118,7 +118,7 @@ struct AnimeEntryEditor: View {
                     showPosterSelectionView = true
                 }
             } label: {
-                KFImageView(url: entry.posterURL, diskCacheExpiration: .longTerm)
+                KFImageView(url: entry.posterURL, targetWidth: 300, diskCacheExpiration: .longTerm)
                     .aspectRatio(contentMode: .fit)
                     .clipShape(.rect(cornerRadius: 6))
                     .frame(width: 120)

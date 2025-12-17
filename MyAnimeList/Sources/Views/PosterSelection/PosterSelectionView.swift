@@ -148,6 +148,7 @@ struct PosterSelectionView: View {
     }
 
     /// Fetches posters for the current TMDb entity (movie/series/season) and updates state.
+    ///
     /// This is the default poster path; seasons use it unless toggled to parent-series posters.
     @MainActor
     private func fetchPrimaryPosters() async {

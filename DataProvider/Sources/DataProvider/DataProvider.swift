@@ -35,12 +35,14 @@ let persistenStoreURL = URL.applicationSupportDirectory
 
     /// Whether this instance's data is stored in memory.
     public let inMemory: Bool
-    
+
     /// The URL of the persistent store used by the model container.
     public let url: URL
 
     /// Creates a new data provider instance.
-    /// - Parameter inMemory: If true, uses in-memory storage instead of persistent storage.
+    /// - Parameters:
+    ///     - inMemory: If true, uses in-memory storage instead of persistent storage.
+    ///     - url: The URL of the persistent store.
     /// - Important: This initializer will fatalError if the model container cannot be created.
     ///              This is intentional as the app cannot function without proper data storage.
     public init(inMemory: Bool = false, url: URL = persistenStoreURL) {
@@ -79,7 +81,8 @@ let persistenStoreURL = URL.applicationSupportDirectory
 
     private static func createModelContainer(
         inMemory: Bool = false,
-        url: URL) throws -> ModelContainer {
+        url: URL
+    ) throws -> ModelContainer {
         let schema = Schema(versionedSchema: CurrentSchema.self)
         let modelConfiguration: ModelConfiguration
         if !inMemory {

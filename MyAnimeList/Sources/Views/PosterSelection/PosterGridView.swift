@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import SwiftUI
 import Kingfisher
+import SwiftUI
 
 struct PosterGridView: View {
     let posters: [Poster]
@@ -54,7 +54,8 @@ struct PosterGridView: View {
             KFImageView(
                 url: poster.url,
                 targetWidth: 300,
-                diskCacheExpiration: Constants.cacheExpiration)
+                diskCacheExpiration: Constants.cacheExpiration
+            )
             .clipShape(RoundedRectangle(cornerRadius: Constants.posterCornerRadius))
             .aspectRatio(contentMode: .fit)
             Text("\(width) x \(height)")

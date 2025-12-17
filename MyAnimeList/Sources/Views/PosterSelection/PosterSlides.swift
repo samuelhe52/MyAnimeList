@@ -15,7 +15,7 @@ fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "PosterS
 struct PosterSlides: View {
     let posters: [Poster]
     let currentPoster: Poster
-    
+
     private let fetcher = InfoFetcher()
     let onPosterSelected: (URL?) -> Void
     @State private var fullSizePosterURLs: [Poster: URL] = [:]
@@ -80,7 +80,8 @@ struct PosterSlides: View {
     private var currentSlide: (poster: Poster, url: URL)? {
         guard let first = loadedPosters.first else { return nil }
         if let currentSlideID,
-           let match = loadedPosters.first(where: { $0.poster.id == currentSlideID }) {
+            let match = loadedPosters.first(where: { $0.poster.id == currentSlideID })
+        {
             return match
         }
         return first
@@ -179,10 +180,13 @@ struct PosterSlides: View {
 
     private func fetchFullSizeURL(for poster: Poster) async throws -> URL {
         let path = poster.metadata.filePath
-        guard let url = try await fetcher
-            .tmdbClient
-            .imagesConfiguration
-            .posterURL(for: path) else {
+        guard
+            let url =
+                try await fetcher
+                .tmdbClient
+                .imagesConfiguration
+                .posterURL(for: path)
+        else {
             throw PosterSlidesError.fullSizeURLMissing
         }
         return url

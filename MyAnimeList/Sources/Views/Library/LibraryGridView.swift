@@ -36,6 +36,9 @@ struct LibraryGridView: View {
                                     toggleFavorite: toggleFavorite
                                 )
                                 .onAppear { scrolledID = entry.tmdbID }
+                            } preview: {
+                                EntryContextMenuPreview(entry: entry)
+                                    .onAppear { scrolledID = entry.tmdbID }
                             }
                             .onTapGesture { scrolledID = entry.tmdbID }
                             .onTapGesture(count: 2) {

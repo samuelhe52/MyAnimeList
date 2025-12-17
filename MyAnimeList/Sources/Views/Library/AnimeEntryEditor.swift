@@ -113,21 +113,24 @@ struct AnimeEntryEditor: View {
 
     private var navigationHeader: some View {
         HStack(alignment: .top) {
-            Menu {
-                Button("Change Poster", systemImage: "photo") {
-                    showPosterSelectionView = true
+            KFImageView(url: entry.posterURL, targetWidth: 300, diskCacheExpiration: .longTerm)
+                .aspectRatio(contentMode: .fit)
+                .clipShape(.rect(cornerRadius: 6))
+                .frame(width: 120)
+                .overlay(alignment: .bottomTrailing) {
+                    AnimeTypeIndicator(type: entry.type, padding: 3)
+                        .font(.caption2)
                 }
-            } label: {
-                KFImageView(url: entry.posterURL, targetWidth: 300, diskCacheExpiration: .longTerm)
-                    .aspectRatio(contentMode: .fit)
-                    .clipShape(.rect(cornerRadius: 6))
-                    .frame(width: 120)
-            }
-            .menuStyle(.borderlessButton)
-            .overlay(alignment: .bottomTrailing) {
-                AnimeTypeIndicator(type: entry.type, padding: 3)
-                    .font(.caption2)
-            }
+                .contextMenu {
+                    Button("Change Poster", systemImage: "photo") {
+                        showPosterSelectionView = true
+                    }
+                } preview: {
+                    EntryContextMenuPreview(
+                        entry: entry,
+                        showTypeIndicator: false
+                    )
+                }
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     VStack(alignment: .leading) {

@@ -36,7 +36,7 @@ struct LibraryListView: View {
                             toggleFavorite: toggleFavorite
                         )
                     } preview: {
-                        EntryPreview(entry: entry)
+                        EntryContextMenuPreview(entry: entry)
                             .onAppear { scrolledID = entry.tmdbID }
                     }
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {

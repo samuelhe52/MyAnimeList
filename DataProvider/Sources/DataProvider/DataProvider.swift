@@ -14,6 +14,11 @@ public typealias CurrentSchema = SchemaV2_4_0
 /// The current anime entry type used by the data provider.
 public typealias AnimeEntry = CurrentSchema.AnimeEntry
 
+@usableFromInline
+let persistenStoreURL = URL.applicationSupportDirectory
+    .appendingPathComponent("DataProvider")
+    .appendingPathComponent("mal.store")
+
 /// A data provider for SwiftData model containers and data operations, stored in MainActor.
 @MainActor public final class DataProvider {
     /// The default shared instance of the data provider.
@@ -30,22 +35,26 @@ public typealias AnimeEntry = CurrentSchema.AnimeEntry
 
     /// Whether this instance's data is stored in memory.
     public let inMemory: Bool
+    
+    /// The URL of the persistent store used by the model container.
+    public let url: URL
 
     /// Creates a new data provider instance.
     /// - Parameter inMemory: If true, uses in-memory storage instead of persistent storage.
     /// - Important: This initializer will fatalError if the model container cannot be created.
     ///              This is intentional as the app cannot function without proper data storage.
-    public init(inMemory: Bool = false) {
+    public init(inMemory: Bool = false, url: URL = persistenStoreURL) {
         // Data migration happens here
         let container: ModelContainer
         do {
-            container = try Self.createModelContainer(inMemory: inMemory)
+            container = try Self.createModelContainer(inMemory: inMemory, url: url)
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }
         self.inMemory = inMemory
         self.sharedModelContainer = container
         self.dataHandler = .init(modelContainer: container)
+        self.url = url
     }
 
     /// Tears down the existing model container and re-initializes it from the persistent store.
@@ -61,17 +70,26 @@ public typealias AnimeEntry = CurrentSchema.AnimeEntry
     private func setupContainer() {
         // Data migration happens here
         do {
-            sharedModelContainer = try Self.createModelContainer(inMemory: inMemory)
+            sharedModelContainer = try Self.createModelContainer(inMemory: inMemory, url: url)
         } catch {
             fatalError("Could not create or reload ModelContainer: \(error)")
         }
         dataHandler = .init(modelContainer: sharedModelContainer)
     }
 
-    private static func createModelContainer(inMemory: Bool = false) throws -> ModelContainer {
+    private static func createModelContainer(
+        inMemory: Bool = false,
+        url: URL) throws -> ModelContainer {
         let schema = Schema(versionedSchema: CurrentSchema.self)
-        let modelConfiguration = ModelConfiguration(
-            schema: schema, isStoredInMemoryOnly: inMemory)
+        let modelConfiguration: ModelConfiguration
+        if !inMemory {
+            modelConfiguration = ModelConfiguration(
+                schema: schema,
+                url: url
+            )
+        } else {
+            modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
+        }
 
         return try ModelContainer(
             for: schema,

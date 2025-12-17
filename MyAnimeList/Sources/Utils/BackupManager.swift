@@ -186,15 +186,9 @@ class BackupManager {
 
     /// Copies the SwiftData database files to the backup package.
     private func copySwiftDataStore(to directoryURL: URL) throws {
-        let storeDirectory = URL.applicationSupportDirectory
-
         do {
-            let fileURLs = try fileManager.contentsOfDirectory(
-                at: storeDirectory, includingPropertiesForKeys: nil)
-            for fileURL in fileURLs where fileURL.lastPathComponent.starts(with: "default.store") {
-                let destinationURL = directoryURL.appendingPathComponent(fileURL.lastPathComponent)
-                try fileManager.copyItem(at: fileURL, to: destinationURL)
-            }
+            let destinationURL = directoryURL.appendingPathComponent(dataProvider.url.lastPathComponent)
+            try fileManager.copyItem(at: dataProvider.url, to: destinationURL)
         } catch {
             throw BackupError.restoreFailed(
                 reason: "Could not copy database files. \(error.localizedDescription)")
@@ -225,7 +219,7 @@ class BackupManager {
 
     /// Replaces the current SwiftData store with the one from the backup package.
     private func restoreSwiftDataStore(from directoryURL: URL) throws {
-        let storeDirectory = URL.applicationSupportDirectory
+        let storeDirectory = dataProvider.url.deletingLastPathComponent()
 
         do {
             // Check schema version compatibility
@@ -245,16 +239,14 @@ class BackupManager {
             // Remove current store files
             let currentFiles = try fileManager.contentsOfDirectory(
                 at: storeDirectory, includingPropertiesForKeys: nil)
-            for fileURL in currentFiles
-            where fileURL.lastPathComponent.starts(with: "default.store") {
+            for fileURL in currentFiles {
                 try fileManager.removeItem(at: fileURL)
             }
 
             // Copy backed up files from the backup package
             let backupFiles = try fileManager.contentsOfDirectory(
                 at: directoryURL, includingPropertiesForKeys: nil)
-            for fileURL in backupFiles
-            where fileURL.lastPathComponent.starts(with: "default.store") {
+            for fileURL in backupFiles {
                 let destinationURL = storeDirectory.appendingPathComponent(
                     fileURL.lastPathComponent)
                 try fileManager.copyItem(at: fileURL, to: destinationURL)

@@ -86,9 +86,10 @@ struct PosterSelectionView: View {
             }
         }
         .fullScreenCover(item: $previewPoster) { poster in
-            PosterPreview(
-                previewPoster: poster,
-                updatePoster: { url in
+            PosterSlides(
+                posters: availablePosters,
+                currentPoster: poster,
+                onPosterSelected: { url in
                     if let url {
                         onPosterSelected(url)
                     }

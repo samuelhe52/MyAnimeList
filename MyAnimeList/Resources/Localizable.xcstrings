@@ -717,6 +717,22 @@
         }
       }
     },
+    "Failed to load posters." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ポスター読み込み失敗。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加载海报时发生错误。"
+          }
+        }
+      }
+    },
     "Favorite" : {
       "localizations" : {
         "ja" : {
@@ -951,6 +967,22 @@
         }
       }
     },
+    "Loading posters..." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ポスターを読み込み中…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在加载海报…"
+          }
+        }
+      }
+    },
     "Loading..." : {
       "localizations" : {
         "ja" : {
@@ -1027,6 +1059,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无海报可用"
+          }
+        }
+      }
+    },
+    "No posters available right now." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ポスターはありません "
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无可用海报"
           }
         }
       }
@@ -1350,6 +1398,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "导入完成！"
+          }
+        }
+      }
+    },
+    "Retry" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リトライ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重试"
           }
         }
       }

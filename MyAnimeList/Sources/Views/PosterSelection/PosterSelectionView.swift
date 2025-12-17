@@ -42,14 +42,9 @@ struct PosterSelectionView: View {
 
     @MainActor
     private struct Constants {
-        static let gridItemMinSize: CGFloat = 100
-        static let gridItemMaxSize: CGFloat = 200
-        static let gridItemVerticalSpacing: CGFloat = 12
-        static let gridItemHorizontalSpacing: CGFloat = 12
-        static let idealWidth: Int = 200
+        /// The ideal width for poster images to fetch from TMDb.
+        static let idealPosterWidth: Int = 200
         static let pickerPadding: CGFloat = 5
-        static let posterCornerRadius: CGFloat = 5
-        static let cacheExpiration: StorageExpiration = .transient
     }
 
     var body: some View {
@@ -65,17 +60,13 @@ struct PosterSelectionView: View {
             }
             switch imageLoadState {
             case .loading:
+                Spacer()
                 ProgressView()
+                Spacer()
             case .loaded:
                 posterGrid
             case .empty:
-                ContentUnavailableView(
-                    "No Posters Available",
-                    systemImage: "photo.on.rectangle",
-                    description: Text("TMDb did not return posters for this selection yet.")
-                )
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
+                contentUnavailable
             case .error(let error):
                 Text("Error loading posters: \(error.localizedDescription)")
                     .multilineTextAlignment(.center)
@@ -126,41 +117,24 @@ struct PosterSelectionView: View {
 
     @ViewBuilder
     private var posterGrid: some View {
-        ScrollView {
-            LazyVGrid(
-                columns: [
-                    GridItem(
-                        .adaptive(
-                            minimum: Constants.gridItemMinSize,
-                            maximum: Constants.gridItemMaxSize),
-                        spacing: Constants.gridItemHorizontalSpacing)
-                ],
-                spacing: Constants.gridItemVerticalSpacing
-            ) {
-                ForEach(currentPosters, id: \.url) { poster in
-                    posterWithInfo(poster: poster)
-                        .transition(.opacity)
-                        .onTapGesture {
-                            previewPoster = poster
-                        }
-                }
+        PosterGridView(
+            posters: currentPosters,
+            previewNamespace: preview,
+            onPosterTap: { poster in
+                previewPoster = poster
             }
-        }
+        )
     }
 
     @ViewBuilder
-    private func posterWithInfo(poster: Poster) -> some View {
-        let width = poster.metadata.width
-        let height = poster.metadata.height
-        VStack {
-            KFImageView(url: poster.url, targetWidth: 300, diskCacheExpiration: Constants.cacheExpiration)
-                .clipShape(RoundedRectangle(cornerRadius: Constants.posterCornerRadius))
-                .aspectRatio(contentMode: .fit)
-            Text("\(width) x \(height)")
-                .font(.caption)
-                .foregroundStyle(.gray)
-        }
-        .matchedTransitionSource(id: poster.metadata.filePath, in: preview)
+    private var contentUnavailable: some View {
+        ContentUnavailableView(
+            "No Posters Available",
+            systemImage: "photo.on.rectangle",
+            description: Text("TMDb did not return posters for this selection yet.")
+        )
+        .multilineTextAlignment(.center)
+        .foregroundStyle(.secondary)
     }
 
     @MainActor
@@ -172,6 +146,8 @@ struct PosterSelectionView: View {
         }
     }
 
+    /// Fetches posters for the current TMDb entity (movie/series/season) and updates state.
+    /// This is the default poster path; seasons use it unless toggled to parent-series posters.
     @MainActor
     private func fetchPrimaryPosters() async {
         do {
@@ -201,7 +177,7 @@ struct PosterSelectionView: View {
             imageLoadState = .loading
             seriesPosters = try await fetcher.postersForSeries(
                 seriesID: parentSeriesID,
-                idealWidth: Constants.idealWidth
+                idealWidth: Constants.idealPosterWidth
             )
             .filteredAndSorted()
             if useSeriesPoster {
@@ -213,25 +189,27 @@ struct PosterSelectionView: View {
         }
     }
 
+    /// Builds and executes the primary poster request based on the current anime type.
     @MainActor
     private func primaryPosterRequest() async throws -> [Poster] {
         switch type {
         case .movie:
             return try await fetcher.postersForMovie(
                 for: tmdbID,
-                idealWidth: Constants.idealWidth)
+                idealWidth: Constants.idealPosterWidth)
         case .series:
             return try await fetcher.postersForSeries(
                 seriesID: tmdbID,
-                idealWidth: Constants.idealWidth)
+                idealWidth: Constants.idealPosterWidth)
         case .season(let seasonNumber, let parentSeriesID):
             return try await fetcher.postersForSeason(
                 forSeason: seasonNumber,
                 inParentSeries: parentSeriesID,
-                idealWidth: Constants.idealWidth)
+                idealWidth: Constants.idealPosterWidth)
         }
     }
 
+    /// Syncs the displayed load state with the provided posters (or current selection).
     @MainActor
     private func syncLoadStateWithCurrentData(sourceOverride: [Poster]? = nil) {
         let posters = sourceOverride ?? currentPosters
@@ -243,45 +221,6 @@ struct PosterSelectionView: View {
         case loaded
         case empty
         case error(Error)
-    }
-}
-
-struct PosterPreview: View {
-    let previewPoster: Poster
-    let fetcher = InfoFetcher()
-    let updatePoster: (URL?) -> Void
-    @State var previewPosterURL: URL? = nil
-
-    var body: some View {
-        VStack {
-            Text("\(previewPoster.metadata.width) x \(previewPoster.metadata.height)")
-                .font(.caption)
-                .foregroundStyle(.gray)
-            KFImageView(url: previewPosterURL, diskCacheExpiration: .shortTerm)
-                .aspectRatio(contentMode: .fit)
-            Button("Use this poster") {
-                updatePoster(previewPosterURL)
-            }
-            .buttonStyle(.borderedProminent)
-            .buttonBorderShape(.capsule)
-        }
-        .task {
-            previewPosterURL = await fetchPreviewURL()
-        }
-    }
-
-    private func fetchPreviewURL() async -> URL? {
-        do {
-            let path = previewPoster.metadata.filePath
-            return
-                try await fetcher
-                .tmdbClient
-                .imagesConfiguration
-                .posterURL(for: path)
-        } catch {
-            logger.error("Error fetching preview poster image: \(error.localizedDescription)")
-        }
-        return nil
     }
 }
 

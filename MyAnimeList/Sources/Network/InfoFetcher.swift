@@ -166,27 +166,6 @@ final class InfoFetcher: Sendable {
     }
 }
 
-enum Language: String, CaseIterable, CustomLocalizedStringResourceConvertible {
-    case english = "en"
-    case chinese = "zh"
-    case japanese = "ja"
-
-    static var current: Language {
-        guard let languageCodeID = Locale.current.language.languageCode?.identifier else {
-            return .english
-        }
-        return Language(rawValue: languageCodeID) ?? .english
-    }
-
-    var localizedStringResource: LocalizedStringResource {
-        switch self {
-        case .chinese: return "Chinese"
-        case .english: return "English"
-        case .japanese: return "Japanese"
-        }
-    }
-}
-
 extension RedirectingHTTPClient {
     static let relayServer: Self = .init(
         fromHost: "api.themoviedb.org", toHost: "tmdb-api.konakona52.com")

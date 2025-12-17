@@ -285,7 +285,9 @@ struct LibraryView: View {
                             store.language == language
                         },
                         set: {
-                            if $0 { store.language = language }
+                            if $0 {
+                                store.language = language
+                            }
                         }
                     )
                 )

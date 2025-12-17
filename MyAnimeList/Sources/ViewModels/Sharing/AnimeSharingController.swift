@@ -29,18 +29,9 @@ final class AnimeSharingController {
         return formatter
     }()
 
-    private static let validLanguageCodes: Set<String> = ["ja-JP", "zh-CN", "en-US"]
-    private static let languageCodeToLanguage: [String: Language] = [
-        "ja-JP": .japanese,
-        "zh-CN": .chinese,
-        "en-US": .english
-    ]
-    private static let titleLanguageIdentifiers: [Language: String] = [
-        .english: "en-US",
-        .japanese: "ja-JP",
-        .chinese: "zh-CN"
-    ]
-    private static let subtitleLanguageIdentifier = "ja-JP"
+    private static let validLanguageCodes: Set<String> = Set(
+        Language.allCases.map(\.rawValueWithRegion)
+    )
 
     /// Root entry the sharing UI references, collapsing seasons into series.
     let entry: AnimeEntry
@@ -174,16 +165,14 @@ final class AnimeSharingController {
 
     private func attributedTitle(for language: Language) -> AttributedString {
         var attributed = AttributedString(title(for: language))
-        attributed.languageIdentifier =
-            AnimeSharingController.titleLanguageIdentifiers[language]
-            ?? Locale.current.identifier
+        attributed.languageIdentifier = language.rawValueWithRegion
         return attributed
     }
 
     private func attributedSubtitle(for language: Language) -> AttributedString? {
         guard let subtitleText = subtitle(for: language) else { return nil }
         var attributed = AttributedString(subtitleText)
-        attributed.languageIdentifier = AnimeSharingController.subtitleLanguageIdentifier
+        attributed.languageIdentifier = Language.japanese.rawValueWithRegion
         return attributed
     }
 
@@ -191,12 +180,9 @@ final class AnimeSharingController {
         translations[language] ?? entry.name
     }
 
-    /// Returns an alternate title to serve as a subtitle when needed.
     private func subtitle(for language: Language) -> String? {
-        let localized = title(for: language).trimmingCharacters(in: .whitespacesAndNewlines)
-        let base = entry.name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard localized.caseInsensitiveCompare(base) != .orderedSame else { return nil }
-        return base
+        guard language != .japanese else { return nil }
+        return entry.name.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func posterMetadata(for language: Language) -> PosterMetadata {
@@ -238,7 +224,7 @@ final class AnimeSharingController {
     /// Builds the localized title table filtered to the languages we support.
     private static func buildTranslations(from entry: AnimeEntry) -> [Language: String] {
         entry.nameTranslations.reduce(into: [Language: String]()) { result, pair in
-            guard let language = languageCodeToLanguage[pair.key],
+            guard let language = Language.fromRawValueWithRegion(pair.key),
                 validLanguageCodes.contains(pair.key)
             else { return }
             result[language] = pair.value.isEmpty ? entry.name : pair.value

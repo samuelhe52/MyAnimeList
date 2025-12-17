@@ -264,6 +264,22 @@
         }
       }
     },
+    "This may take considerable time." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "時間がかかる場合があります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这可能需要一些时间。"
+          }
+        }
+      }
+    },
     "Check Disk Usage" : {
       "localizations" : {
         "ja" : {
@@ -1349,6 +1365,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "刷新信息"
+          }
+        }
+      }
+    },
+    "Refresh all anime infos?" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのアニメ情報を更新しますか？"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新所有动画信息？"
           }
         }
       }

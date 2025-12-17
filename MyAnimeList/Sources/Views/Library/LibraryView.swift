@@ -24,7 +24,8 @@ struct LibraryView: View {
     @State private var changeAPIKey = false
     @State private var showCacheAlert = false
     @State private var showClearAllAlert = false
-    @State private var showUpdateInfoAlert = false
+    @State private var showRefreshInfoOnLanguageUpdateAlert = false
+    @State private var showRefreshInfoAlert = false
     @State private var cacheSizeResult: Result<UInt, KingfisherError>? = nil
     @SceneStorage("LibraryView.showBackupManager") private var showBackupManager = false
     @State private var scrollState = ScrollState()
@@ -175,7 +176,7 @@ struct LibraryView: View {
         }
         .alert(
             "Refresh Info Language?",
-            isPresented: $showUpdateInfoAlert
+            isPresented: $showRefreshInfoOnLanguageUpdateAlert
         ) {
             Button("Refresh") {
                 store.refreshInfos()
@@ -188,6 +189,17 @@ struct LibraryView: View {
                 """
 
             Text(message)
+        }
+        .alert(
+            "Refresh all anime infos?",
+            isPresented: $showRefreshInfoAlert
+        ) {
+            Button("Refresh") {
+                store.refreshInfos()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This may take considerable time.")
         }
         .alert(
             "Disk Usage", isPresented: $showCacheAlert, presenting: cacheSizeResult,
@@ -314,7 +326,7 @@ struct LibraryView: View {
         .menuActionDismissBehavior(.disabled)
         .onChange(of: store.language) { old, new in
             if old != new {
-                showUpdateInfoAlert = true
+                showRefreshInfoOnLanguageUpdateAlert = true
             }
         }
     }
@@ -342,7 +354,7 @@ struct LibraryView: View {
 
     private var refreshInfosButton: some View {
         Button("Refresh Infos", systemImage: "arrow.clockwise") {
-            store.refreshInfos()
+            showRefreshInfoAlert = true
         }
     }
 

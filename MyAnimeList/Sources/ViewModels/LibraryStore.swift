@@ -85,7 +85,7 @@ class LibraryStore {
     private func createNewEntry(tmdbID id: Int, type: AnimeType) async throws {
         // No duplicate entries
         guard library.map(\.tmdbID).contains(id) == false else {
-            library.entryWithID(id)?.onDisplay = true
+            library.entryWithTMDbID(id)?.onDisplay = true
             logger.warning(
                 "Entry with id \(id) already exists. Setting `onDisplay` to `true` and returning..."
             )
@@ -167,22 +167,22 @@ class LibraryStore {
             var fetchedInfos: [(PersistentIdentifier, BasicInfo)] = []
 
             do {
-                try await withThrowingTaskGroup(of: (PersistentIdentifier, BasicInfo).self) {
-                    group in
+                try await withThrowingTaskGroup(
+                    of: (PersistentIdentifier, BasicInfo).self
+                ) { group in
                     for entry in library {
-                        let type = entry.type
-                        let tmdbID = entry.tmdbID
+                        let original = entry.basicInfo
                         let entryID = entry.id
-                        let language = language
+                        let language = self.language
                         let usingCustomPoster = entry.usingCustomPoster
-                        let originalPosterURL = entry.posterURL
                         group.addTask {
                             var info = try await self.infoFetcher.fetchInfoFromTMDB(
-                                entryType: type,
-                                tmdbID: tmdbID,
+                                entryType: original.type,
+                                tmdbID: original.tmdbID,
                                 language: language)
                             if usingCustomPoster {
-                                info.posterURL = originalPosterURL
+                                // Preserve the original poster URL if using a custom poster
+                                info.posterURL = original.posterURL
                             }
                             return (entryID, info)
                         }
@@ -196,21 +196,7 @@ class LibraryStore {
                 for (id, info) in fetchedInfos {
                     if let entry = library[id] {
                         entry.update(from: info)
-                        if let parentSeriesID = entry.parentSeriesID {
-                            if let parentSeriesEntry = library.entryWithID(parentSeriesID) {
-                                entry.parentSeriesEntry = parentSeriesEntry
-                            } else {
-                                if let parentSeriesID = entry.parentSeriesID {
-                                    let parentSeriesEntry =
-                                        try await AnimeEntry
-                                        .generateParentSeriesEntryForSeason(
-                                            parentSeriesID: parentSeriesID,
-                                            fetcher: infoFetcher,
-                                            infoLanguage: language)
-                                    entry.parentSeriesEntry = parentSeriesEntry
-                                }
-                            }
-                        }
+                        try await resolveParentSeriesEntry(for: entry)
                     }
                 }
             } catch {
@@ -219,6 +205,24 @@ class LibraryStore {
                 return
             }
             prefetchAllImages()
+        }
+    }
+
+    func resolveParentSeriesEntry(for entry: AnimeEntry) async throws {
+        if let parentSeriesID = entry.parentSeriesID {
+            if let parentSeriesEntry = library.entryWithTMDbID(parentSeriesID) {
+                entry.parentSeriesEntry = parentSeriesEntry
+            } else {
+                if let parentSeriesID = entry.parentSeriesID {
+                    let parentSeriesEntry =
+                        try await AnimeEntry
+                        .generateParentSeriesEntryForSeason(
+                            parentSeriesID: parentSeriesID,
+                            fetcher: infoFetcher,
+                            infoLanguage: language)
+                    entry.parentSeriesEntry = parentSeriesEntry
+                }
+            }
         }
     }
 

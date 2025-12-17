@@ -105,7 +105,7 @@ struct LibraryView: View {
         ToolbarItemGroup(placement: .status) {
             sortOptions
             if let scrolledID = scrollState.scrolledID,
-                let entry = store.libraryOnDisplay.entryWithID(scrolledID)
+                let entry = store.libraryOnDisplay.entryWithTMDbID(scrolledID)
             {
                 toggleFavoriteButton(for: entry)
                     .disabled(libraryViewStyle != .gallery)

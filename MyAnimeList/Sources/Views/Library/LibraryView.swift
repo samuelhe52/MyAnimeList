@@ -24,6 +24,7 @@ struct LibraryView: View {
     @State private var changeAPIKey = false
     @State private var showCacheAlert = false
     @State private var showClearAllAlert = false
+    @State private var showUpdateInfoAlert = false
     @State private var cacheSizeResult: Result<UInt, KingfisherError>? = nil
     @SceneStorage("LibraryView.showBackupManager") private var showBackupManager = false
     @State private var scrollState = ScrollState()
@@ -173,6 +174,22 @@ struct LibraryView: View {
             Button("Cancel", role: .cancel) {}
         }
         .alert(
+            "Refresh Info Language?",
+            isPresented: $showUpdateInfoAlert
+        ) {
+            Button("Refresh") {
+                store.refreshInfos()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            let message: LocalizedStringResource = """
+                Changing the preferred language will not refresh existing infos.
+                Refresh all anime infos now? This may take considerable time.
+                """
+
+            Text(message)
+        }
+        .alert(
             "Disk Usage", isPresented: $showCacheAlert, presenting: cacheSizeResult,
             actions: { result in
                 switch result {
@@ -295,6 +312,11 @@ struct LibraryView: View {
             }
         }
         .menuActionDismissBehavior(.disabled)
+        .onChange(of: store.language) { old, new in
+            if old != new {
+                showUpdateInfoAlert = true
+            }
+        }
     }
 
     private var deleteAllButton: some View {

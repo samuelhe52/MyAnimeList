@@ -248,6 +248,22 @@
         }
       }
     },
+    "Changing the preferred language will not refresh existing infos.\nRefresh all anime infos now? This may take considerable time." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "優先言語を変更しても既存の情報は更新されません。\nすべてのアニメ情報を今すぐ更新しますか？ライブラリのサイズによっては時間がかかる場合があります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改偏好语言不会刷新现有的信息。\n现在刷新所有动画信息吗？根据资料库大小可能需要一些时间。"
+          }
+        }
+      }
+    },
     "Check Disk Usage" : {
       "localizations" : {
         "ja" : {
@@ -1285,6 +1301,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "预览"
+          }
+        }
+      }
+    },
+    "Refresh" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新"
+          }
+        }
+      }
+    },
+    "Refresh Info Language?" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "情報の言語を更新しますか？"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新信息语言？"
           }
         }
       }

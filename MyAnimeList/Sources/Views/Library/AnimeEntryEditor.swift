@@ -72,8 +72,10 @@ struct AnimeEntryEditor: View {
                     tmdbID: entry.tmdbID,
                     type: entry.type
                 ) { url in
+                    if url != entry.posterURL {
+                        entry.usingCustomPoster = true
+                    }
                     entry.posterURL = url
-                    entry.usingCustomPoster = true
                 }
                 .navigationTitle("Change Poster")
                 .toolbar {

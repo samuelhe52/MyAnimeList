@@ -161,8 +161,10 @@ extension View {
             ) { entry in
                 NavigationStack {
                     PosterSelectionView(tmdbID: entry.tmdbID, type: entry.type) { url in
+                        if url != entry.posterURL {
+                            entry.usingCustomPoster = true
+                        }
                         entry.posterURL = url
-                        entry.usingCustomPoster = true
                     }
                     .navigationTitle("Pick a poster")
                 }

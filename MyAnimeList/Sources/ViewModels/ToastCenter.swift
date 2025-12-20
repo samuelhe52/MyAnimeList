@@ -39,7 +39,7 @@ class ToastCenter: ObservableObject {
             .init(messageResource: messageResource)
         }
 
-        static func message(_ message: String) -> Self {
+        static func message(message: String) -> Self {
             .init(messageResource: LocalizedStringResource(stringLiteral: message))
         }
     }
@@ -95,16 +95,16 @@ class ToastCenter: ObservableObject {
             .init(state: .partialComplete, messageResource: messageResource)
         }
 
-        static func completed(_ message: String) -> Self {
+        static func completed(message: String) -> Self {
             .init(
                 state: .completed, messageResource: LocalizedStringResource(stringLiteral: message))
         }
 
-        static func failed(_ message: String) -> Self {
+        static func failed(message: String) -> Self {
             .init(state: .failed, messageResource: LocalizedStringResource(stringLiteral: message))
         }
 
-        static func partialComplete(_ message: String) -> Self {
+        static func partialComplete(message: String) -> Self {
             .init(
                 state: .partialComplete,
                 messageResource: LocalizedStringResource(stringLiteral: message))

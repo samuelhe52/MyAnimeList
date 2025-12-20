@@ -121,7 +121,7 @@ struct AnimeEntryEditor: View {
                     entry.updateUserInfo(from: originalUserInfo)
                     try modelContext.save()
                 } catch {
-                    ToastCenter.global.completionState = .failed(error.localizedDescription)
+                    ToastCenter.global.completionState = .failed(message: error.localizedDescription)
                 }
                 dismiss()
             }
@@ -235,7 +235,7 @@ struct AnimeEntryEditor: View {
         do {
             try modelContext.save()
         } catch {
-            ToastCenter.global.completionState = .failed(error.localizedDescription)
+            ToastCenter.global.completionState = .failed(message: error.localizedDescription)
         }
         dismiss()
     }
@@ -265,7 +265,7 @@ struct AnimeEntryEditor: View {
                 .sorted() ?? []
             showSeasonPicker = true
         } catch {
-            ToastCenter.global.completionState = .failed(error.localizedDescription)
+            ToastCenter.global.completionState = .failed(message: error.localizedDescription)
         }
         isFetchingSeasons = false
         conversionInProgress = false
@@ -283,7 +283,7 @@ struct AnimeEntryEditor: View {
             ToastCenter.global.completionState = .completed("Converted to series")
             dismiss()
         } catch {
-            ToastCenter.global.completionState = .failed(error.localizedDescription)
+            ToastCenter.global.completionState = .failed(message: error.localizedDescription)
         }
         conversionInProgress = false
     }
@@ -302,7 +302,7 @@ struct AnimeEntryEditor: View {
             ToastCenter.global.completionState = .completed("Converted to season")
             dismiss()
         } catch {
-            ToastCenter.global.completionState = .failed(error.localizedDescription)
+            ToastCenter.global.completionState = .failed(message: error.localizedDescription)
         }
         conversionInProgress = false
     }

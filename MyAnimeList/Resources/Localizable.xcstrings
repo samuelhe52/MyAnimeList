@@ -410,6 +410,38 @@
         }
       }
     },
+    "Converted to season" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "シーズンに変換しました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已转换为季"
+          }
+        }
+      }
+    },
+    "Converted to series" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "シリーズに変換しました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已转换为系列"
+          }
+        }
+      }
+    },
     "Copied!" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1087,6 +1119,22 @@
         }
       }
     },
+    "Library is unavailable" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリを利用できません"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "资料库不可用"
+          }
+        }
+      }
+    },
     "List" : {
       "localizations" : {
         "ja" : {
@@ -1163,6 +1211,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "电影"
+          }
+        }
+      }
+    },
+    "Movies cannot be converted" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "映画は変換できません"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "电影无法转换"
+          }
+        }
+      }
+    },
+    "Network Error!" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ネットワークエラー！"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网络错误！"
           }
         }
       }
@@ -1280,7 +1360,6 @@
       }
     },
     "Organizing Library..." : {
-      "extractionState" : "stale",
       "localizations" : {
         "ja" : {
           "stringUnit" : {
@@ -1518,6 +1597,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "刷新信息"
+          }
+        }
+      }
+    },
+    "Refreshed infos for %lld entries." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 件の情報を更新しました"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已刷新 %lld 条信息"
           }
         }
       }

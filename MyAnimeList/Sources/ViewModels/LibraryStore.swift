@@ -132,7 +132,7 @@ class LibraryStore {
             return true
         } catch {
             logger.error("Error creating new entry: \(error)")
-            ToastCenter.global.completionState = .failed(error.localizedDescription)
+            ToastCenter.global.completionState = .failed(message: error.localizedDescription)
             return false
         }
     }
@@ -149,7 +149,7 @@ class LibraryStore {
             return true
         } catch {
             logger.error("Error creating new entries from search results: \(error)")
-            ToastCenter.global.completionState = .failed(error.localizedDescription)
+            ToastCenter.global.completionState = .failed(message: error.localizedDescription)
             return false
         }
     }
@@ -209,7 +209,7 @@ class LibraryStore {
                 }
                 ToastCenter.global.progressState = nil
 
-                ToastCenter.global.loadingMessage = .message("Organizing Library...") 
+                ToastCenter.global.loadingMessage = .message("Organizing Library...")
                 for (id, info) in fetchedInfos {
                     if let entry = library.entryWithTMDbID(id) {
                         entry.update(from: info)
@@ -221,7 +221,7 @@ class LibraryStore {
                     "Refreshed infos for \(fetchedInfos.count) entries.")
             } catch {
                 logger.error("Error refreshing infos: \(error)")
-                ToastCenter.global.completionState = .failed(error.localizedDescription)
+                ToastCenter.global.completionState = .failed(message: error.localizedDescription)
                 return
             }
             prefetchAllImages()
@@ -436,7 +436,7 @@ class LibraryStore {
             try dataProvider.dataHandler.deleteEntry(entry)
         } catch {
             logger.error("Failed to delete entry: \(error)")
-            ToastCenter.global.completionState = .failed(error.localizedDescription)
+            ToastCenter.global.completionState = .failed(message: error.localizedDescription)
         }
     }
 
@@ -445,7 +445,7 @@ class LibraryStore {
             try dataProvider.dataHandler.deleteAllEntries()
         } catch {
             logger.error("Error clearing library: \(error)")
-            ToastCenter.global.completionState = .failed(error.localizedDescription)
+            ToastCenter.global.completionState = .failed(message: error.localizedDescription)
         }
     }
 

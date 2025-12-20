@@ -17,18 +17,21 @@ fileprivate let logger = Logger(subsystem: .bundleIdentifier, category: "Library
 
 @Observable @MainActor
 class LibraryStore {
+    // MARK: - Dependencies
+
     @ObservationIgnored private let dataProvider: DataProvider
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     @ObservationIgnored let backupManager: BackupManager
 
-    var libraryOnDisplay: [AnimeEntry] {
-        filterAndSort(library)
-    }
+    // MARK: - State
+
     private(set) var library: [AnimeEntry]
     @ObservationIgnored private var infoFetcher: InfoFetcher
     var language: Language = .current
-    var filters: Set<AnimeFilter> = []
 
+    // MARK: - Filtering & Sorting State
+
+    var filters: Set<AnimeFilter> = []
     var sortStrategy: AnimeSortStrategy = .dateStarted {
         willSet {
             UserDefaults.standard.setValue(newValue.rawValue, forKey: .librarySortStrategy)
@@ -36,6 +39,10 @@ class LibraryStore {
         }
     }
     var sortReversed: Bool = false
+
+    var libraryOnDisplay: [AnimeEntry] {
+        filterAndSort(library)
+    }
 
     init(dataProvider: DataProvider) {
         self.dataProvider = dataProvider
@@ -51,6 +58,8 @@ class LibraryStore {
         setupTMDbAPIConfigurationChangeMonitor()
         try? refreshLibrary()
     }
+
+    // MARK: - Library Loading & Observers
 
     func refreshLibrary() throws {
         logger.debug("[\(Date().debugDescription)] Refreshing library...")
@@ -81,6 +90,8 @@ class LibraryStore {
             }
             .store(in: &cancellables)
     }
+
+    // MARK: - Entry Creation
 
     @discardableResult
     private func createNewEntry(
@@ -162,6 +173,28 @@ class LibraryStore {
             logger.error("Error creating new entry from BasicInfo: \(error)")
         }
     }
+
+    // MARK: - Library Mutations
+
+    func deleteEntry(_ entry: AnimeEntry) {
+        do {
+            try dataProvider.dataHandler.deleteEntry(entry)
+        } catch {
+            logger.error("Failed to delete entry: \(error)")
+            ToastCenter.global.completionState = .failed(message: error.localizedDescription)
+        }
+    }
+
+    func clearLibrary() {
+        do {
+            try dataProvider.dataHandler.deleteAllEntries()
+        } catch {
+            logger.error("Error clearing library: \(error)")
+            ToastCenter.global.completionState = .failed(message: error.localizedDescription)
+        }
+    }
+
+    // MARK: - Info Refresh & Prefetch
 
     func chunkedLibraryEntries(chunkSize: Int) -> [ArraySlice<AnimeEntry>] {
         var chunks: [ArraySlice<AnimeEntry>] = []
@@ -431,23 +464,7 @@ class LibraryStore {
         logger.info("Converted series \(parentSeriesID, privacy: .public) to season \(seasonNumber, privacy: .public)")
     }
 
-    func deleteEntry(_ entry: AnimeEntry) {
-        do {
-            try dataProvider.dataHandler.deleteEntry(entry)
-        } catch {
-            logger.error("Failed to delete entry: \(error)")
-            ToastCenter.global.completionState = .failed(message: error.localizedDescription)
-        }
-    }
-
-    func clearLibrary() {
-        do {
-            try dataProvider.dataHandler.deleteAllEntries()
-        } catch {
-            logger.error("Error clearing library: \(error)")
-            ToastCenter.global.completionState = .failed(message: error.localizedDescription)
-        }
-    }
+    // MARK: - Filtering & Sorting
 
     func filterAndSort(_ entries: [AnimeEntry]) -> [AnimeEntry] {
         let sorted: [AnimeEntry]
@@ -470,6 +487,8 @@ class LibraryStore {
         }
         return sorted
     }
+
+    // MARK: - Filters
 
     struct AnimeFilter: Sendable, CaseIterable, Equatable, Hashable {
         static let favorited = AnimeFilter(id: "Favorited", name: "Favorited") { $0.favorite }
@@ -508,6 +527,8 @@ class LibraryStore {
             hasher.combine(id)
         }
     }
+
+    // MARK: - Sorting
 
     enum AnimeSortStrategy: String,
         CaseIterable,

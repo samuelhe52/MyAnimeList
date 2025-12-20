@@ -11,16 +11,21 @@ import Kingfisher
 import SwiftData
 import SwiftUI
 
+// MARK: - Environment Keys
+
 extension EnvironmentValues {
     @Entry var toggleFavorite: (AnimeEntry) -> Void = { _ in }
     @Entry var libraryStore: LibraryStore? = nil
 }
 
 struct LibraryView: View {
+    // MARK: - Stored Properties
+
     @Bindable var store: LibraryStore
     @State private var interaction = LibraryEntryInteractionState()
     @Environment(\.dataHandler) var dataHandler
 
+    // UI state
     @State private var isSearching = false
     @State private var changeAPIKey = false
     @State private var showCacheAlert = false
@@ -34,7 +39,13 @@ struct LibraryView: View {
     @State private var favoriteToggle = false
     @State private var highlightedEntryID: Int?
 
+    // Persistent UI preference
     @AppStorage(.libraryViewStyle) var libraryViewStyle: LibraryViewStyle = .gallery
+
+    // Language tracking
+    @State private var lastUsedlanguage: Language = .english
+
+    // MARK: - Body
 
     var body: some View {
         NavigationStack {
@@ -47,6 +58,8 @@ struct LibraryView: View {
                 .sensoryFeedback(.impact, trigger: favoriteToggle)
         }
     }
+
+    // MARK: - Content
 
     @ViewBuilder
     private var libraryView: some View {
@@ -79,22 +92,7 @@ struct LibraryView: View {
         }
     }
 
-    private func toggleFavoriteButton(for entry: AnimeEntry) -> some View {
-        Button {
-            toggleFavorite(entry)
-        } label: {
-            if entry.favorite {
-                Image(systemName: "heart.fill")
-            } else {
-                Image(systemName: "heart")
-            }
-        }
-    }
-
-    private func toggleFavorite(_ entry: AnimeEntry) {
-        dataHandler?.toggleFavorite(entry: entry)
-        favoriteToggle.toggle()
-    }
+    // MARK: - Toolbar
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
@@ -130,6 +128,53 @@ struct LibraryView: View {
         }
     }
 
+    private var sortOptions: some View {
+        Menu {
+            Toggle(
+                "Reversed", systemImage: "arrow.counterclockwise.circle", isOn: $store.sortReversed)
+            Picker("Sort", systemImage: "arrow.up.arrow.down", selection: $store.sortStrategy) {
+                ForEach(LibraryStore.AnimeSortStrategy.allCases, id: \.self) { strategy in
+                    Text(strategy.localizedStringResource).tag(strategy)
+                }
+            }
+            .pickerStyle(.menu)
+        } label: {
+            Image(systemName: "arrow.up.arrow.down")
+                .font(.system(size: 16))
+                .padding(1.5)
+        }
+        .menuActionDismissBehavior(.disabled)
+    }
+
+    private var filterOptions: some View {
+        Menu("Filter", systemImage: "line.3.horizontal.decrease") {
+            ForEach(LibraryStore.AnimeFilter.allCases, id: \.self) { filter in
+                Toggle(
+                    isOn: .init(
+                        get: {
+                            store.filters.contains(filter)
+                        },
+                        set: {
+                            if $0 {
+                                store.filters.insert(filter)
+                            } else {
+                                store.filters.remove(filter)
+                            }
+                        }), label: { Text(filter.name) })
+            }
+            Divider()
+            Toggle(
+                "All",
+                isOn: .init(
+                    get: { store.filters.isEmpty },
+                    set: {
+                        if $0 { store.filters.removeAll() }
+                    }))
+        }
+    }
+
+    // MARK: - Search
+
     private var searchButton: some View {
         Button("Search...", systemImage: "magnifyingglass") { isSearching = true }
             .sheet(isPresented: $isSearching) {
@@ -153,6 +198,8 @@ struct LibraryView: View {
                 }
             }
     }
+
+    // MARK: - Settings Menu
 
     @ViewBuilder
     private var settings: some View {
@@ -243,52 +290,7 @@ struct LibraryView: View {
         }
     }
 
-    private var sortOptions: some View {
-        Menu {
-            Toggle(
-                "Reversed", systemImage: "arrow.counterclockwise.circle", isOn: $store.sortReversed)
-            Picker("Sort", systemImage: "arrow.up.arrow.down", selection: $store.sortStrategy) {
-                ForEach(LibraryStore.AnimeSortStrategy.allCases, id: \.self) { strategy in
-                    Text(strategy.localizedStringResource).tag(strategy)
-                }
-            }
-            .pickerStyle(.menu)
-        } label: {
-            Image(systemName: "arrow.up.arrow.down")
-                .font(.system(size: 16))
-                .padding(1.5)
-        }
-        .menuActionDismissBehavior(.disabled)
-    }
-
-    private var filterOptions: some View {
-        Menu("Filter", systemImage: "line.3.horizontal.decrease") {
-            ForEach(LibraryStore.AnimeFilter.allCases, id: \.self) { filter in
-                Toggle(
-                    isOn: .init(
-                        get: {
-                            store.filters.contains(filter)
-                        },
-                        set: {
-                            if $0 {
-                                store.filters.insert(filter)
-                            } else {
-                                store.filters.remove(filter)
-                            }
-                        }), label: { Text(filter.name) })
-            }
-            Divider()
-            Toggle(
-                "All",
-                isOn: .init(
-                    get: { store.filters.isEmpty },
-                    set: {
-                        if $0 { store.filters.removeAll() }
-                    }))
-        }
-    }
-
-    @State private var lastUsedlanguage: Language = .english
+    // MARK: - Language
 
     private var isLanguageFollowingSystem: Binding<Bool> {
         Binding(
@@ -333,6 +335,8 @@ struct LibraryView: View {
         }
     }
 
+    // MARK: - Settings Actions
+
     private var deleteAllButton: some View {
         Button("Delete All Animes", systemImage: "trash", role: .destructive) {
             showClearAllAlert = true
@@ -360,6 +364,25 @@ struct LibraryView: View {
         }
     }
 
+    // MARK: - Entry Actions
+
+    private func toggleFavoriteButton(for entry: AnimeEntry) -> some View {
+        Button {
+            toggleFavorite(entry)
+        } label: {
+            if entry.favorite {
+                Image(systemName: "heart.fill")
+            } else {
+                Image(systemName: "heart")
+            }
+        }
+    }
+
+    private func toggleFavorite(_ entry: AnimeEntry) {
+        dataHandler?.toggleFavorite(entry: entry)
+        favoriteToggle.toggle()
+    }
+
     private func jumpToEntryInLibrary(withID id: Int) {
         scrollState.scrolledID = id
         highlightedEntryID = id
@@ -383,11 +406,15 @@ struct LibraryView: View {
         }
     }
 
+    // MARK: - Helpers
+
     private func customButtonStyle<S: Shape>(in shape: S)
         -> CustomBGBorderedButtonStyle<Material, S>
     {
         CustomBGBorderedButtonStyle(.ultraThinMaterial, backgroundIn: shape)
     }
+
+    // MARK: - Types
 
     enum LibraryViewStyle: String, CaseIterable {
         case gallery

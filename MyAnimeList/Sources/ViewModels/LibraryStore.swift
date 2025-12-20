@@ -82,14 +82,18 @@ class LibraryStore {
             .store(in: &cancellables)
     }
 
-    private func createNewEntry(tmdbID id: Int, type: AnimeType) async throws {
+    @discardableResult
+    private func createNewEntry(
+        tmdbID id: Int,
+        type: AnimeType
+    ) async throws -> PersistentIdentifier? {
         // No duplicate entries
         guard library.map(\.tmdbID).contains(id) == false else {
             library.entryWithTMDbID(id)?.onDisplay = true
             logger.warning(
                 "Entry with id \(id) already exists. Setting `onDisplay` to `true` and returning..."
             )
-            return
+            return nil
         }
         logger.debug("Creating new entry with id: \(id), type: \(type)...")
         let info = try await infoFetcher.fetchInfoFromTMDB(
@@ -110,7 +114,7 @@ class LibraryStore {
                 entry.parentSeriesEntry = parentSeriesEntry
             }
         }
-        try dataProvider.dataHandler.newEntry(entry)
+        return try dataProvider.dataHandler.newEntry(entry)
     }
 
     /// Creates a new `AnimeEntry` from a TMDB ID and adds it to the library.
@@ -337,6 +341,94 @@ class LibraryStore {
                 logger.info("Prefetched images: \(messageResourceString)")
             })
         prefetcher.start()
+    }
+
+    // MARK: - Conversion helpers
+
+    /// Convert a season entry back to its series entry 
+    /// while preserving user metadata and custom posters.
+    /// Strategy: materialize (or reuse) the parent series entry as visible,
+    /// apply the user's metadata, then remove the season entry.
+    func convertSeasonToSeries(_ entry: AnimeEntry, language: Language) async throws {
+        guard case .season(_, let parentSeriesID) = entry.type else { return }
+        let seasonTMDbID = entry.tmdbID
+        logger.info("Converting season \(seasonTMDbID, privacy: .public) to series \(parentSeriesID, privacy: .public)")
+
+        let userInfo = entry.userInfo
+        let originalPosterURL = entry.posterURL
+
+        // Resolve or fetch the parent series entry using shared helpers and in-memory library
+        let parentEntry: AnimeEntry
+        if let existingParent = entry.parentSeriesEntry {
+            parentEntry = existingParent
+            parentEntry.onDisplay = true
+        } else if let inMemory = library.entryWithTMDbID(parentSeriesID) {
+            parentEntry = inMemory
+            parentEntry.onDisplay = true
+        } else {
+            let parentInfo = try await infoFetcher.tvSeriesInfo(tmdbID: parentSeriesID, language: language)
+            parentEntry = AnimeEntry(fromInfo: parentInfo)
+            parentEntry.onDisplay = true
+            try dataProvider.dataHandler.newEntry(parentEntry)
+        }
+
+        // Apply user metadata to the parent series entry
+        parentEntry.updateUserInfo(from: userInfo)
+        if userInfo.usingCustomPoster {
+            parentEntry.posterURL = originalPosterURL
+        }
+
+        // Remove the original season entry
+        try dataProvider.dataHandler.deleteEntry(entry)
+
+        logger.info("Converted season \(seasonTMDbID, privacy: .public) to series \(parentSeriesID, privacy: .public)")
+    }
+
+    /// Convert a series entry to a specific season 
+    /// while preserving user metadata and custom posters.
+    /// Strategy: delete the original series entry, create a hidden parent series entry,
+    /// and add a new season entry with carried user metadata using shared helpers.
+    func convertSeriesToSeason(
+        _ entry: AnimeEntry,
+        seasonNumber: Int,
+        language: Language
+    ) async throws {
+        let parentSeriesID = entry.tmdbID
+        logger.info("Converting series \(parentSeriesID, privacy: .public) to season \(seasonNumber, privacy: .public)")
+
+        let userInfo = entry.userInfo
+        let originalPosterURL = entry.posterURL
+
+        // Fetch infos before deleting the original entry
+        let parentInfo = try await infoFetcher.tvSeriesInfo(tmdbID: parentSeriesID, language: language)
+        var seasonInfo = try await infoFetcher.tvSeasonInfo(
+            seasonNumber: seasonNumber,
+            parentSeriesID: parentSeriesID,
+            language: language)
+
+        // Remove the original series entry from the library
+        try dataProvider.dataHandler.deleteEntry(entry)
+
+        if userInfo.usingCustomPoster {
+            seasonInfo.posterURL = originalPosterURL
+        }
+
+        // Hidden parent series entry
+        let parentEntry = AnimeEntry(fromInfo: parentInfo)
+        parentEntry.onDisplay = false
+
+        // New season entry with user metadata
+        let seasonEntry = AnimeEntry(fromInfo: seasonInfo)
+        seasonEntry.parentSeriesEntry = parentEntry
+        seasonEntry.updateUserInfo(from: userInfo)
+        if userInfo.usingCustomPoster {
+            seasonEntry.posterURL = originalPosterURL
+        }
+
+        try dataProvider.dataHandler.newEntry(parentEntry)
+        try dataProvider.dataHandler.newEntry(seasonEntry)
+
+        logger.info("Converted series \(parentSeriesID, privacy: .public) to season \(seasonNumber, privacy: .public)")
     }
 
     func deleteEntry(_ entry: AnimeEntry) {

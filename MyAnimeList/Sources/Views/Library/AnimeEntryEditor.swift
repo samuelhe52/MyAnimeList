@@ -20,6 +20,8 @@ struct AnimeEntryEditor: View {
     @Environment(\.locale) var locale
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
+    @Environment(\.libraryStore) var libraryStore
+    @AppStorage(.preferredAnimeInfoLanguage) private var language: Language = .current
     @Bindable var entry: AnimeEntry
 
     @State private var showPosterSelectionView: Bool = false
@@ -27,6 +29,11 @@ struct AnimeEntryEditor: View {
     @State private var showNavigationTitle: Bool = false
     @State private var originalUserInfo: UserEntryInfo
     @State private var showCancelEditsConfirmation: Bool = false
+
+    @State private var conversionInProgress: Bool = false
+    @State private var showSeasonPicker: Bool = false
+    @State private var isFetchingSeasons: Bool = false
+    @State private var seasonNumberOptions: [Int] = []
 
     init(entry: AnimeEntry) {
         self.entry = entry
@@ -64,6 +71,9 @@ struct AnimeEntryEditor: View {
                     showCancelEditsConfirmation = true
                 }
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                convertButton
+            }
         }
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $showPosterSelectionView) {
@@ -86,6 +96,24 @@ struct AnimeEntryEditor: View {
                     }
                 }
             }
+        }
+        .confirmationDialog(
+            "Convert to which season?",
+            isPresented: $showSeasonPicker,
+            titleVisibility: .visible
+        ) {
+            if isFetchingSeasons {
+                ProgressView()
+            } else if seasonNumberOptions.isEmpty {
+                Button("No seasons available", role: .cancel) {}
+            } else {
+                ForEach(seasonNumberOptions, id: \.self) { seasonNumber in
+                    Button("Season \(seasonNumber)") {
+                        Task { await convertSeriesToSeason(seasonNumber: seasonNumber) }
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
         }
         .confirmationDialog("Discard all changes?", isPresented: $showCancelEditsConfirmation) {
             Button("Discard", role: .destructive) {
@@ -187,6 +215,14 @@ struct AnimeEntryEditor: View {
         .labelStyle(.iconOnly)
     }
 
+    private var convertButton: some View {
+        Button("Convert") {
+            Task { await handleConvertTap() }
+        }
+        .disabled(conversionInProgress)
+        .opacity(conversionInProgress ? 0.5 : 1)
+    }
+
     private var monthAndYearDateFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.dateFormat = "YYYY.MM"
@@ -202,6 +238,73 @@ struct AnimeEntryEditor: View {
             ToastCenter.global.completionState = .failed(error.localizedDescription)
         }
         dismiss()
+    }
+
+    private func handleConvertTap() async {
+        guard !conversionInProgress else { return }
+        switch entry.type {
+        case .series:
+            await presentSeasonPicker()
+        case .season:
+            await convertSeasonToSeries()
+        case .movie:
+            ToastCenter.global.completionState = .failed("Movies cannot be converted")
+        }
+    }
+
+    private func presentSeasonPicker() async {
+        isFetchingSeasons = true
+        conversionInProgress = true
+        do {
+            let infoFetcher = InfoFetcher()
+            let series = try await infoFetcher.tvSeries(
+                entry.tmdbID,
+                language: language)
+            seasonNumberOptions = series.seasons?
+                .map(\.seasonNumber)
+                .sorted() ?? []
+            showSeasonPicker = true
+        } catch {
+            ToastCenter.global.completionState = .failed(error.localizedDescription)
+        }
+        isFetchingSeasons = false
+        conversionInProgress = false
+    }
+
+    private func convertSeasonToSeries() async {
+        guard let store = libraryStore else {
+            ToastCenter.global.completionState = .failed("Library is unavailable")
+            return
+        }
+        guard case .season(_, _) = entry.type else { return }
+        conversionInProgress = true
+        do {
+            try await store.convertSeasonToSeries(entry, language: language)
+            ToastCenter.global.completionState = .completed("Converted to series")
+            dismiss()
+        } catch {
+            ToastCenter.global.completionState = .failed(error.localizedDescription)
+        }
+        conversionInProgress = false
+    }
+
+    private func convertSeriesToSeason(seasonNumber: Int) async {
+        guard let store = libraryStore else {
+            ToastCenter.global.completionState = .failed("Library is unavailable")
+            return
+        }
+        conversionInProgress = true
+        do {
+            try await store.convertSeriesToSeason(
+                entry,
+                seasonNumber: seasonNumber,
+                language: language)
+            ToastCenter.global.completionState = .completed("Converted to season")
+            dismiss()
+        } catch {
+            ToastCenter.global.completionState = .failed(error.localizedDescription)
+        }
+        conversionInProgress = false
     }
 }
 

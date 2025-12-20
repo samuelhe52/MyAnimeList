@@ -164,6 +164,29 @@ final class InfoFetcher: Sendable {
         try await tmdbClient.posterURLs(
             forSeason: seasonNumber, inTVSeries: parentSeriesID, idealWidth: idealWidth)
     }
+
+    /// Fetches BasicInfo for all seasons of a TV series.
+    func seasonInfos(
+        forSeriesID tmdbID: Int,
+        language: Language
+    ) async throws -> [BasicInfo] {
+        let series = try await tvSeries(tmdbID, language: language)
+        guard let seasons = series.seasons else { return [] }
+
+        return try await withThrowingTaskGroup(of: BasicInfo.self) { group in
+            var results: [BasicInfo] = []
+            for season in seasons {
+                group.addTask {
+                    try await season.basicInfo(
+                        client: self.tmdbClient, parentSeriesID: tmdbID)
+                }
+            }
+            for try await info in group {
+                results.append(info)
+            }
+            return results.sorted { ($0.type.seasonNumber ?? 0) < ($1.type.seasonNumber ?? 0) }
+        }
+    }
 }
 
 extension RedirectingHTTPClient {

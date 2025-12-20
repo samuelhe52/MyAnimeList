@@ -13,6 +13,7 @@ import SwiftUI
 
 extension EnvironmentValues {
     @Entry var toggleFavorite: (AnimeEntry) -> Void = { _ in }
+    @Entry var libraryStore: LibraryStore? = nil
 }
 
 struct LibraryView: View {
@@ -39,6 +40,7 @@ struct LibraryView: View {
         NavigationStack {
             libraryView
                 .environment(\.toggleFavorite, toggleFavorite)
+                .environment(\.libraryStore, store)
                 .environment(interaction)
                 .toolbar(content: { toolbarContent })
                 .sensoryFeedback(.success, trigger: newEntriesAddedToggle)

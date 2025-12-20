@@ -20,13 +20,55 @@ class ToastCenter: ObservableObject {
     var pasted: Bool = false
     var favorited: Bool = false
     var unFavorited: Bool = false
-    var refreshingInfos: Bool = false
-    var loading: Bool = false
-    var prefetchingImages: Bool = false
     var regularCompleted: Bool = false
     var regularFailed: Bool = false
 
     var completionState: CompletedWithMessage? = nil
+    var loadingMessage: LoadingMessage? = nil
+    var progressState: ProgressWithMessage? = nil
+
+    struct LoadingMessage: Identifiable, Equatable {
+        var id = UUID()
+        var messageResource: LocalizedStringResource
+
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            lhs.messageResource == rhs.messageResource
+        }
+
+        static func message(_ messageResource: LocalizedStringResource) -> Self {
+            .init(messageResource: messageResource)
+        }
+
+        static func message(_ message: String) -> Self {
+            .init(messageResource: LocalizedStringResource(stringLiteral: message))
+        }
+    }
+
+    struct ProgressWithMessage: Identifiable, Equatable {
+        var id = UUID()
+        var current: Int
+        var total: Int
+        var messageResource: LocalizedStringResource
+
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            lhs.current == rhs.current &&
+                lhs.total == rhs.total &&
+                lhs.messageResource == rhs.messageResource
+        }
+
+        static func progress(
+            current: Int, total: Int, messageResource: LocalizedStringResource
+        ) -> Self {
+            .init(current: current, total: total, messageResource: messageResource)
+        }
+
+        static func progress(current: Int, total: Int, message: String) -> Self {
+            .init(
+                current: current,
+                total: total,
+                messageResource: LocalizedStringResource(stringLiteral: message))
+        }
+    }
 
     struct CompletedWithMessage: Identifiable, Equatable {
         var id = UUID()

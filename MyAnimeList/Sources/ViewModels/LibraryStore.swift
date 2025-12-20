@@ -159,46 +159,62 @@ class LibraryStore {
         }
     }
 
+    func chunkedLibraryEntries(chunkSize: Int) -> [ArraySlice<AnimeEntry>] {
+        var chunks: [ArraySlice<AnimeEntry>] = []
+        var currentIndex = library.startIndex
+
+        while currentIndex < library.endIndex {
+            let endIndex = library.index(
+                currentIndex,
+                offsetBy: chunkSize,
+                limitedBy: library.endIndex) ?? library.endIndex
+            chunks.append(library[currentIndex..<endIndex])
+            currentIndex = endIndex
+        }
+
+        return chunks
+    }
+
     /// Fetches the latest infos from tmdb for all entries and update the entries.
     func refreshInfos() {
         Task {
-            defer { ToastCenter.global.refreshingInfos = false }
-            ToastCenter.global.refreshingInfos = true
-            var fetchedInfos: [(PersistentIdentifier, BasicInfo)] = []
+            ToastCenter.global.progressState = 
+                .progress(
+                    current: 0,
+                    total: library.count,
+                    messageResource: "Fetching Info: 0 / \(library.count)")
 
             do {
-                try await withThrowingTaskGroup(
-                    of: (PersistentIdentifier, BasicInfo).self
-                ) { group in
-                    for entry in library {
-                        let original = entry.basicInfo
-                        let entryID = entry.id
-                        let language = self.language
-                        let usingCustomPoster = entry.usingCustomPoster
-                        group.addTask {
-                            var info = try await self.infoFetcher.fetchInfoFromTMDB(
-                                entryType: original.type,
-                                tmdbID: original.tmdbID,
-                                language: language)
-                            if usingCustomPoster {
-                                // Preserve the original poster URL if using a custom poster
-                                info.posterURL = original.posterURL
-                            }
-                            return (entryID, info)
-                        }
-                    }
-
-                    for try await result in group {
-                        fetchedInfos.append(result)
+                var fetchedInfos: [Int: BasicInfo] = [:]
+                let totalCount = library.count
+                for chunk in chunkedLibraryEntries(chunkSize: 8) {
+                    let chunkInfos = try await latestInfoForEntries(
+                        entries: chunk,
+                        updateProgress: { current, _ in
+                            let messageResource: LocalizedStringResource =
+                                "Fetching Info: \(fetchedInfos.count + current) / \(totalCount)"
+                            ToastCenter.global.progressState =
+                                .progress(
+                                    current: fetchedInfos.count + current,
+                                    total: totalCount,
+                                    messageResource: messageResource)
+                        })
+                    for (id, info) in chunkInfos {
+                        fetchedInfos[id] = info
                     }
                 }
+                ToastCenter.global.progressState = nil
 
+                ToastCenter.global.loadingMessage = .message("Organizing Library...") 
                 for (id, info) in fetchedInfos {
-                    if let entry = library[id] {
+                    if let entry = library.entryWithTMDbID(id) {
                         entry.update(from: info)
                         try await resolveParentSeriesEntry(for: entry)
                     }
                 }
+                ToastCenter.global.loadingMessage = nil
+                ToastCenter.global.completionState = .completed(
+                    "Refreshed infos for \(fetchedInfos.count) entries.")
             } catch {
                 logger.error("Error refreshing infos: \(error)")
                 ToastCenter.global.completionState = .failed(error.localizedDescription)
@@ -206,6 +222,64 @@ class LibraryStore {
             }
             prefetchAllImages()
         }
+    }
+
+    /// Fetches the latest infos from tmdb for the given entries.
+    /// 
+    /// - Parameters:
+    ///   - entries: The entries to fetch latest infos for.
+    ///   - updateProgress: A (current, total) closure called when progress is updated.
+    /// 
+    /// - Returns: An array of (tmdbID, BasicInfo) tuples.
+    func latestInfoForEntries<C: Collection<AnimeEntry>>(
+        entries: C,
+        updateProgress: @escaping (Int, Int) -> Void
+    ) async throws -> [(Int, BasicInfo)] {
+        return try await withThrowingTaskGroup(
+            of: (Int, BasicInfo).self
+        ) { group in
+            var fetchedInfos: [(Int, BasicInfo)] = []
+
+            for entry in entries {
+                let tmdbID = entry.tmdbID
+                let type = entry.type
+                let persistentID = entry.id
+                let originalPosterURL = entry.posterURL
+                let usingCustomPoster = entry.usingCustomPoster
+                group.addTask {
+                    return try await self.fetchLatestInfo(
+                        tmdbID: tmdbID,
+                        entryType: type,
+                        persistentID: persistentID,
+                        originalPosterURL: originalPosterURL,
+                        usingCustomPoster: usingCustomPoster)
+                }
+            }
+
+            for try await result in group {
+                fetchedInfos.append(result)
+                updateProgress(fetchedInfos.count, entries.count)
+            }
+
+            return fetchedInfos
+        }
+    }
+
+    func fetchLatestInfo(
+        tmdbID: Int,
+        entryType: AnimeType,
+        persistentID: PersistentIdentifier,
+        originalPosterURL: URL?,
+        usingCustomPoster: Bool) async throws -> (Int, BasicInfo) {
+        var info = try await self.infoFetcher.fetchInfoFromTMDB(
+            entryType: entryType,
+            tmdbID: tmdbID,
+            language: language)
+        if usingCustomPoster {
+            // Preserve the original poster URL if using a custom poster
+            info.posterURL = originalPosterURL
+        }
+        return (tmdbID, info)
     }
 
     func resolveParentSeriesEntry(for entry: AnimeEntry) async throws {
@@ -228,10 +302,22 @@ class LibraryStore {
 
     func prefetchAllImages() {
         let urls = library.compactMap { $0.posterURL }
+        ToastCenter.global.progressState = 
+            .progress(
+                current: 0,
+                total: urls.count,
+                messageResource: "Fetching Images: 0 / \(urls.count)")
         let prefetcher = ImagePrefetcher(
             urls: urls,
-            completionHandler: { skipped, failed, completed in
-                ToastCenter.global.prefetchingImages = false
+            progressBlock: { skipped, failed, completed in
+                let total = urls.count
+                let current = skipped.count + failed.count + completed.count
+                ToastCenter.global.progressState =
+                    .progress(
+                        current: current,
+                        total: total,
+                        messageResource: "Fetching Images: \(current) / \(total)")
+            }, completionHandler: { skipped, failed, completed in
                 var state: ToastCenter.CompletedWithMessage.State = .completed
                 let messageResourceString =
                     "Fetched: \(skipped.count + completed.count), failed: \(failed.count)"
@@ -244,12 +330,12 @@ class LibraryStore {
                 } else {
                     state = .partialComplete
                 }
+                ToastCenter.global.progressState = nil
                 ToastCenter.global.completionState = .init(
                     state: state,
                     messageResource: messageResource)
                 logger.info("Prefetched images: \(messageResourceString)")
             })
-        ToastCenter.global.prefetchingImages = true
         prefetcher.start()
     }
 

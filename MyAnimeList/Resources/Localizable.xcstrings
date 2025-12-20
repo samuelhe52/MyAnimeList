@@ -264,22 +264,6 @@
         }
       }
     },
-    "This may take considerable time." : {
-      "localizations" : {
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "時間がかかる場合があります。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "这可能需要一些时间。"
-          }
-        }
-      }
-    },
     "Check Disk Usage" : {
       "localizations" : {
         "ja" : {
@@ -819,6 +803,94 @@
         }
       }
     },
+    "Fetching Images: %lld / %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fetching Images: %1$lld / %2$lld"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画像を取得中: %1$lld / %2$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在获取图片：%1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "Fetching Images: 0 / %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fetching Images: 0 / %1$lld"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画像を取得中: 0 / %1$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在获取图片：0 / %1$lld"
+          }
+        }
+      }
+    },
+    "Fetching Info: %lld / %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fetching Info: %1$lld / %2$lld"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "情報を取得中: %1$lld / %2$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在获取信息：%1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "Fetching Info: 0 / %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fetching Info: 0 / %1$lld"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "情報を取得中: 0 / %1$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在获取信息：0 / %1$lld"
+          }
+        }
+      }
+    },
     "Filter" : {
       "localizations" : {
         "ja" : {
@@ -1159,6 +1231,23 @@
         }
       }
     },
+    "Organizing Library..." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリを整理しています..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在整理资料库..."
+          }
+        }
+      }
+    },
     "Overwrite the current library?" : {
       "localizations" : {
         "ja" : {
@@ -1337,6 +1426,22 @@
         }
       }
     },
+    "Refresh all anime infos?" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのアニメ情報を更新しますか？"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新所有动画信息？"
+          }
+        }
+      }
+    },
     "Refresh Info Language?" : {
       "localizations" : {
         "ja" : {
@@ -1369,18 +1474,25 @@
         }
       }
     },
-    "Refresh all anime infos?" : {
+    "Refreshed infos for %lld entries." : {
+      "extractionState" : "stale",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Refreshed infos for %1$lld entries."
+          }
+        },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "すべてのアニメ情報を更新しますか？"
+            "value" : "情報を%1$lld件更新しました。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "刷新所有动画信息？"
+            "value" : "已刷新 %1$lld 条信息。"
           }
         }
       }
@@ -1804,6 +1916,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此动画信息已有更改。粘贴会覆盖已有更改。"
+          }
+        }
+      }
+    },
+    "This may take considerable time." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "時間がかかる場合があります。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这可能需要一些时间。"
           }
         }
       }

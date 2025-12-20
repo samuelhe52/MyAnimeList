@@ -35,24 +35,6 @@ struct GlobalToastsModifier: ViewModifier {
             )
             .sensoryFeedback(.lighterImpact, trigger: center.pasted) { !$0 && $1 }
             .toast(
-                isPresenting: .constant(center.refreshingInfos), offsetY: 20,
-                alert: {
-                    AlertToast(
-                        displayMode: .hud,
-                        type: .systemImage("arrow.clockwise.circle", .blue),
-                        titleResource: "Refreshing infos...")
-                }
-            )
-            .toast(
-                isPresenting: .constant(center.prefetchingImages), offsetY: 20,
-                alert: {
-                    AlertToast(
-                        displayMode: .hud,
-                        type: .systemImage("photo.on.rectangle.angled", .blue),
-                        titleResource: "Prefetching images...")
-                }
-            )
-            .toast(
                 isPresenting: $center.regularCompleted, offsetY: 20,
                 alert: {
                     AlertToast(
@@ -98,15 +80,32 @@ struct GlobalToastsModifier: ViewModifier {
                 }
             }
             .toast(
-                isPresenting: $center.loading,
+                item: $center.progressState, offsetY: 20,
+                alert: { progress in
+                    guard let progress else {
+                        return AlertToast(
+                            displayMode: .hud,
+                            type: .loading,
+                            titleResource: "Loading...")
+                    }
+                    let fraction = Double(progress.current) / Double(progress.total)
+                    return AlertToast(
+                        displayMode: .hud,
+                        type: .progress(fraction),
+                        titleResource: progress.messageResource
+                    )
+                }
+            )
+            .toast(
+                item: $center.loadingMessage,
                 duration: 0,
                 tapToDismiss: false,
                 offsetY: 20
-            ) {
+            ) { message in
                 AlertToast(
                     displayMode: .hud,
                     type: .systemImage("arrow.clockwise.circle", .blue),
-                    titleResource: "Loading...")
+                    titleResource: message?.messageResource)
             }
             .toast(
                 isPresenting: $center.favorited, duration: 1.5, offsetY: 35,

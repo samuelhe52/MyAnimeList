@@ -378,6 +378,38 @@
         }
       }
     },
+    "Convert" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "変換"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "转换"
+          }
+        }
+      }
+    },
+    "Convert to which season?" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "どのシーズンに変換しますか？"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要转换到哪一季？"
+          }
+        }
+      }
+    },
     "Copied!" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1199,6 +1231,22 @@
         }
       }
     },
+    "No seasons available" : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "利用できるシーズンがありません"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可用的季"
+          }
+        }
+      }
+    },
     "Notes" : {
       "localizations" : {
         "ja" : {
@@ -1470,29 +1518,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "刷新信息"
-          }
-        }
-      }
-    },
-    "Refreshed infos for %lld entries." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Refreshed infos for %1$lld entries."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "情報を%1$lld件更新しました。"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已刷新 %1$lld 条信息。"
           }
         }
       }

@@ -94,7 +94,7 @@ class LibraryStore {
     // MARK: - Entry Creation
 
     @discardableResult
-    private func createNewEntry(
+    func createNewEntry(
         tmdbID id: Int,
         type: AnimeType
     ) async throws -> PersistentIdentifier? {
@@ -394,9 +394,6 @@ class LibraryStore {
         let parentEntry: AnimeEntry
         if let existingParent = entry.parentSeriesEntry {
             parentEntry = existingParent
-            parentEntry.onDisplay = true
-        } else if let inMemory = library.entryWithTMDbID(parentSeriesID) {
-            parentEntry = inMemory
             parentEntry.onDisplay = true
         } else {
             let parentInfo = try await infoFetcher.tvSeriesInfo(tmdbID: parentSeriesID, language: language)

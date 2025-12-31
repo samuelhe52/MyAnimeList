@@ -19,12 +19,15 @@ extension UTType {
 enum BackupError: LocalizedError {
     case fileCreationFailed
     case backupDirectoryCreationFailed
+    case dataStoreBackupFailed(reason: String)
     case userDefaultsSerializationFailed
     case swiftDataStoreNotFound
+    case swiftDataStoreInvalid
     case archiveCreationFailed
     case restoreDirectoryCreationFailed
     case archiveExtractionFailed
     case backupFileNotFound
+    case backupFileExtractionFailed
     case restoreFailed(reason: String)
     case schemaVersionIncompatible(highest: Schema.Version, found: Schema.Version)
 
@@ -34,10 +37,14 @@ enum BackupError: LocalizedError {
             return "Failed to create the backup file."
         case .backupDirectoryCreationFailed:
             return "Could not create the temporary backup directory."
+        case .dataStoreBackupFailed(let reason):
+            return "Failed to back up the data store: \(reason)"
         case .userDefaultsSerializationFailed:
             return "Failed to serialize user settings."
         case .swiftDataStoreNotFound:
             return "Could not locate the SwiftData store files."
+        case .swiftDataStoreInvalid:
+            return "The SwiftData store files are invalid or corrupted."
         case .archiveCreationFailed:
             return "Failed to create the ZIP archive for the backup."
         case .restoreDirectoryCreationFailed:
@@ -46,6 +53,8 @@ enum BackupError: LocalizedError {
             return "Failed to extract the backup archive."
         case .backupFileNotFound:
             return "The backup file could not be found in the archive."
+        case .backupFileExtractionFailed:
+            return "Failed to extract files from the backup."
         case .restoreFailed(let reason):
             return "Restore failed: \(reason)"
         case .schemaVersionIncompatible(let highest, let found):
@@ -56,6 +65,18 @@ enum BackupError: LocalizedError {
 }
 
 // MARK: - Backup Manager
+/// Manages backup and restore operations for SwiftData store and user settings.
+/// 
+/// This class provides methods to create backups of the app's data and restore from them.
+/// The backup file is a ZIP archive containing the SwiftData store files and user settings.
+/// Structure:
+/// - BackupFolder/
+///     - DataProvider/  (SwiftData store files)
+///         - mal.store
+///         - mal.store-shm
+///         - mal.store-wal
+///     - UserSettings.json
+///     - SchemaVersion.txt
 @MainActor
 class BackupManager {
     let dataProvider: DataProvider
@@ -70,6 +91,9 @@ class BackupManager {
     private let backupFileName = "MyAnimeList_Backup_" + Date().ISO8601Format()
     private let userSettingsFileName = "UserSettings.json"
     private let schemaVersionFileName = "SchemaVersion.txt"
+    private var dataStoreFolderName: String {
+        dataProvider.url.deletingLastPathComponent().lastPathComponent
+    }
 
     // MARK: - Public Methods
 
@@ -146,18 +170,20 @@ class BackupManager {
             throw BackupError.archiveExtractionFailed
         }
 
-        let restoredFolderName = try fileManager.contentsOfDirectory(
+        guard let restoredFolderName = try fileManager.contentsOfDirectory(
             atPath: restoreDirectoryURL.path()
-        ).first!
+        ).first else {
+            throw BackupError.backupFileNotFound
+        }
 
         let restoredFilesURL = restoreDirectoryURL.appending(
             path: restoredFolderName, directoryHint: .isDirectory)
 
-        // 3. Restore user settings.
-        try restoreUserSettings(from: restoredFilesURL)
-
-        // 4. Restore SwiftData store.
+        // 3. Restore SwiftData store.
         try restoreSwiftDataStore(from: restoredFilesURL)
+
+        // 4. Restore user settings.
+        try restoreUserSettings(from: restoredFilesURL)
 
         // 5. Clean up the temporary restore directory.
         try? fileManager.removeItem(at: restoreDirectoryURL)
@@ -187,11 +213,34 @@ class BackupManager {
     /// Copies the SwiftData database files to the backup package.
     private func copySwiftDataStore(to directoryURL: URL) throws {
         do {
-            let destinationURL = directoryURL.appendingPathComponent(dataProvider.url.lastPathComponent)
-            try fileManager.copyItem(at: dataProvider.url, to: destinationURL)
+            let dataStoreFolderURL = dataProvider.url.deletingLastPathComponent()
+            try validateSwiftDataStore(at: dataStoreFolderURL)
+            let destinationURL = directoryURL.appendingPathComponent(
+                dataStoreFolderURL.lastPathComponent
+            )
+            try fileManager.copyItem(at: dataStoreFolderURL, to: destinationURL)
         } catch {
-            throw BackupError.restoreFailed(
-                reason: "Could not copy database files. \(error.localizedDescription)")
+            throw BackupError.dataStoreBackupFailed(reason: error.localizedDescription)
+        }
+    }
+
+    /// Verify that a folder contains valid SwiftData store files.
+    private func validateSwiftDataStore(at directoryURL: URL) throws {
+        let contents = try fileManager.contentsOfDirectory(
+            at: directoryURL,
+            includingPropertiesForKeys: nil)
+        let contentFilenames = Set(contents.map { $0.lastPathComponent })
+        let storeFileExtensions = ["store", "store-shm", "store-wal"]
+        let storeFilenames = storeFileExtensions.map {
+            dataProvider.url
+                .deletingPathExtension()
+                .appendingPathExtension($0)
+                .lastPathComponent
+        }
+        for storeFilename in storeFilenames {
+            if !contentFilenames.contains(storeFilename) {
+                throw BackupError.swiftDataStoreInvalid
+            }
         }
     }
 
@@ -244,8 +293,10 @@ class BackupManager {
             }
 
             // Copy backed up files from the backup package
+            let backupFolderURL = directoryURL.appendingPathComponent(dataStoreFolderName)
+            try validateSwiftDataStore(at: backupFolderURL)
             let backupFiles = try fileManager.contentsOfDirectory(
-                at: directoryURL, includingPropertiesForKeys: nil)
+                at: backupFolderURL, includingPropertiesForKeys: nil)
             for fileURL in backupFiles {
                 let destinationURL = storeDirectory.appendingPathComponent(
                     fileURL.lastPathComponent)

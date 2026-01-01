@@ -15,16 +15,19 @@ struct KFImageView: View {
     let url: URL?
     let diskCacheExpiration: StorageExpiration
     let targetWidth: CGFloat?
+    let animation: Animation?
     @Binding var imageLoaded: Bool
     @State private var image: UIImage? = nil
 
     init(
         url: URL?,
         targetWidth: CGFloat? = nil,
+        animation: Animation? = .default,
         diskCacheExpiration: StorageExpiration,
-        imageLoaded: Binding<Bool> = .constant(false)
+         imageLoaded: Binding<Bool> = .constant(false)
     ) {
         self.url = url
+        self.animation = animation
         self.diskCacheExpiration = diskCacheExpiration
         self.targetWidth = targetWidth
         self._imageLoaded = imageLoaded
@@ -41,7 +44,7 @@ struct KFImageView: View {
             }
         }
         .onChange(of: url, initial: true) {
-            Task { await loadImage() }
+            Task.detached { await loadImage() }
         }
     }
 
@@ -62,7 +65,9 @@ struct KFImageView: View {
             do {
                 let result = try await KingfisherManager.shared
                     .retrieveImage(with: url, options: kfRetrieveOptions)
-                withAnimation {
+                // Only animate if the image was fetched from network (not cached)
+                let shouldAnimate = result.cacheType == .none
+                withAnimation(shouldAnimate ? animation : nil) {
                     image = result.image
                     imageLoaded = true
                 }

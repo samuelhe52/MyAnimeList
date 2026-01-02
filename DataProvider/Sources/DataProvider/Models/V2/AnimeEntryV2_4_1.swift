@@ -31,7 +31,7 @@ extension SchemaV2_4_1 {
 
         /// The parent series entry if this entry is a season.
         public var parentSeriesEntry: AnimeEntry? = nil
-        
+
         /// Child season entries if this entry is a series.
         @Relationship(inverse: \AnimeEntry.parentSeriesEntry)
         public var childSeasonEntries: [AnimeEntry] = []

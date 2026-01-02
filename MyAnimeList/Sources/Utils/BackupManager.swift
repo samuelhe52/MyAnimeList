@@ -66,7 +66,7 @@ enum BackupError: LocalizedError {
 
 // MARK: - Backup Manager
 /// Manages backup and restore operations for SwiftData store and user settings.
-/// 
+///
 /// This class provides methods to create backups of the app's data and restore from them.
 /// The backup file is a ZIP archive containing the SwiftData store files and user settings.
 /// Structure:
@@ -170,9 +170,11 @@ class BackupManager {
             throw BackupError.archiveExtractionFailed
         }
 
-        guard let restoredFolderName = try fileManager.contentsOfDirectory(
-            atPath: restoreDirectoryURL.path()
-        ).first else {
+        guard
+            let restoredFolderName = try fileManager.contentsOfDirectory(
+                atPath: restoreDirectoryURL.path()
+            ).first
+        else {
             throw BackupError.backupFileNotFound
         }
 
@@ -237,10 +239,8 @@ class BackupManager {
                 .appendingPathExtension($0)
                 .lastPathComponent
         }
-        for storeFilename in storeFilenames {
-            if !contentFilenames.contains(storeFilename) {
-                throw BackupError.swiftDataStoreInvalid
-            }
+        for storeFilename in storeFilenames where !contentFilenames.contains(storeFilename) {
+            throw BackupError.swiftDataStoreInvalid
         }
     }
 

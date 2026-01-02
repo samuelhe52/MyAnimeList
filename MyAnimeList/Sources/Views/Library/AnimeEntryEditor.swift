@@ -260,7 +260,8 @@ struct AnimeEntryEditor: View {
             let series = try await infoFetcher.tvSeries(
                 entry.tmdbID,
                 language: language)
-            seasonNumberOptions = series.seasons?
+            seasonNumberOptions =
+                series.seasons?
                 .map(\.seasonNumber)
                 .sorted() ?? []
             showSeasonPicker = true

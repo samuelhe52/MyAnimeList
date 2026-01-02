@@ -24,7 +24,7 @@ struct KFImageView: View {
         targetWidth: CGFloat? = nil,
         animation: Animation? = .default,
         diskCacheExpiration: StorageExpiration,
-         imageLoaded: Binding<Bool> = .constant(false)
+        imageLoaded: Binding<Bool> = .constant(false)
     ) {
         self.url = url
         self.animation = animation

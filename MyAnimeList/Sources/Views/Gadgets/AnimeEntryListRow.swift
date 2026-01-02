@@ -17,10 +17,11 @@ struct AnimeEntryListRow: View {
             KFImageView(
                 url: entry.posterURL,
                 targetWidth: 240,
-                diskCacheExpiration: .longTerm)
-                .scaledToFit()
-                .clipShape(.rect(cornerRadius: 6))
-                .frame(width: 80, height: 120)
+                diskCacheExpiration: .longTerm
+            )
+            .scaledToFit()
+            .clipShape(.rect(cornerRadius: 6))
+            .frame(width: 80, height: 120)
             info(entry: entry)
         }
     }

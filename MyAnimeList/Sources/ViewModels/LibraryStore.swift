@@ -201,10 +201,11 @@ class LibraryStore {
         var currentIndex = library.startIndex
 
         while currentIndex < library.endIndex {
-            let endIndex = library.index(
-                currentIndex,
-                offsetBy: chunkSize,
-                limitedBy: library.endIndex) ?? library.endIndex
+            let endIndex =
+                library.index(
+                    currentIndex,
+                    offsetBy: chunkSize,
+                    limitedBy: library.endIndex) ?? library.endIndex
             chunks.append(library[currentIndex..<endIndex])
             currentIndex = endIndex
         }
@@ -215,7 +216,7 @@ class LibraryStore {
     /// Fetches the latest infos from tmdb for all entries and update the entries.
     func refreshInfos() {
         Task {
-            ToastCenter.global.progressState = 
+            ToastCenter.global.progressState =
                 .progress(
                     current: 0,
                     total: library.count,
@@ -262,17 +263,18 @@ class LibraryStore {
     }
 
     /// Fetches the latest infos from tmdb for the given entries.
-    /// 
+    ///
     /// - Parameters:
     ///   - entries: The entries to fetch latest infos for.
     ///   - updateProgress: A (current, total) closure called when progress is updated.
-    /// 
+    ///
     /// - Returns: An array of (tmdbID, BasicInfo) tuples.
+    /// - Throws: An error if fetching fails.
     func latestInfoForEntries<C: Collection<AnimeEntry>>(
         entries: C,
         updateProgress: @escaping (Int, Int) -> Void
     ) async throws -> [(Int, BasicInfo)] {
-        return try await withThrowingTaskGroup(
+        try await withThrowingTaskGroup(
             of: (Int, BasicInfo).self
         ) { group in
             var fetchedInfos: [(Int, BasicInfo)] = []
@@ -284,7 +286,7 @@ class LibraryStore {
                 let originalPosterURL = entry.posterURL
                 let usingCustomPoster = entry.usingCustomPoster
                 group.addTask {
-                    return try await self.fetchLatestInfo(
+                    try await self.fetchLatestInfo(
                         tmdbID: tmdbID,
                         entryType: type,
                         persistentID: persistentID,
@@ -307,7 +309,8 @@ class LibraryStore {
         entryType: AnimeType,
         persistentID: PersistentIdentifier,
         originalPosterURL: URL?,
-        usingCustomPoster: Bool) async throws -> (Int, BasicInfo) {
+        usingCustomPoster: Bool
+    ) async throws -> (Int, BasicInfo) {
         var info = try await self.infoFetcher.fetchInfoFromTMDB(
             entryType: entryType,
             tmdbID: tmdbID,
@@ -339,7 +342,7 @@ class LibraryStore {
 
     func prefetchAllImages() {
         let urls = library.compactMap { $0.posterURL }
-        ToastCenter.global.progressState = 
+        ToastCenter.global.progressState =
             .progress(
                 current: 0,
                 total: urls.count,
@@ -354,7 +357,8 @@ class LibraryStore {
                         current: current,
                         total: total,
                         messageResource: "Fetching Images: \(current) / \(total)")
-            }, completionHandler: { skipped, failed, completed in
+            },
+            completionHandler: { skipped, failed, completed in
                 var state: ToastCenter.CompletedWithMessage.State = .completed
                 let messageResourceString =
                     "Fetched: \(skipped.count + completed.count), failed: \(failed.count)"
@@ -378,10 +382,12 @@ class LibraryStore {
 
     // MARK: - Conversion helpers
 
-    /// Convert a season entry back to its series entry 
+    /// Convert a season entry back to its series entry
     /// while preserving user metadata and custom posters.
+    ///
     /// Strategy: materialize (or reuse) the parent series entry as visible,
     /// apply the user's metadata, then remove the season entry.
+    ///
     func convertSeasonToSeries(_ entry: AnimeEntry, language: Language) async throws {
         guard case .season(_, let parentSeriesID) = entry.type else { return }
         let seasonTMDbID = entry.tmdbID
@@ -414,10 +420,12 @@ class LibraryStore {
         logger.info("Converted season \(seasonTMDbID, privacy: .public) to series \(parentSeriesID, privacy: .public)")
     }
 
-    /// Convert a series entry to a specific season 
+    /// Convert a series entry to a specific season
     /// while preserving user metadata and custom posters.
+    ///
     /// Strategy: delete the original series entry, create a hidden parent series entry,
     /// and add a new season entry with carried user metadata using shared helpers.
+    ///
     func convertSeriesToSeason(
         _ entry: AnimeEntry,
         seasonNumber: Int,

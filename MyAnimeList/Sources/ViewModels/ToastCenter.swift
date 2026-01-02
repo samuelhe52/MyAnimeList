@@ -51,9 +51,7 @@ class ToastCenter: ObservableObject {
         var messageResource: LocalizedStringResource
 
         static func == (lhs: Self, rhs: Self) -> Bool {
-            lhs.current == rhs.current &&
-                lhs.total == rhs.total &&
-                lhs.messageResource == rhs.messageResource
+            lhs.current == rhs.current && lhs.total == rhs.total && lhs.messageResource == rhs.messageResource
         }
 
         static func progress(

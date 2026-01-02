@@ -6,10 +6,10 @@
 //
 
 import Foundation
-import Testing
-import ZIPFoundation
-import UIKit
 import SwiftData
+import Testing
+import UIKit
+import ZIPFoundation
 
 @testable import DataProvider
 @testable import MyAnimeList
@@ -21,7 +21,7 @@ struct MyAnimeListTests {
     @MainActor let dataProviderDefault = DataProvider.default
     @MainActor let dataProviderForPreview = DataProvider.forPreview
     @MainActor let backupManager = BackupManager(dataProvider: .forPreview)
-    
+
     @Test func testFetchInfo() async throws {
         guard
             let result = try await fetcher.searchTVSeries(name: "Frieren", language: language).first
@@ -32,7 +32,7 @@ struct MyAnimeListTests {
         let entry = AnimeEntry(fromInfo: info)
         print(entry.debugDescription)
     }
-    
+
     @Test func imageTest() async throws {
         guard
             let result = try await fetcher.searchTVSeries(name: "CLANNAD", language: language).first
@@ -47,7 +47,7 @@ struct MyAnimeListTests {
             print("-------------------------------------------")
         }
     }
-    
+
     @Test @MainActor func testBackup() throws {
         let backupURL = try backupManager.createBackup()
         let parentDirectoryURL = backupURL.deletingLastPathComponent()
@@ -60,7 +60,7 @@ struct MyAnimeListTests {
                 $0.contains("default")
             }))
     }
-    
+
     @Test @MainActor func inspectDataStoreDirectory() throws {
         let url = dataProviderDefault.url.deletingLastPathComponent()
         let contents = try fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
@@ -68,7 +68,7 @@ struct MyAnimeListTests {
             print(item.lastPathComponent)
         }
     }
-    
+
     struct UserInfoRestoration: Codable {
         let tmdbID: Int
         let name: String
@@ -76,7 +76,7 @@ struct MyAnimeListTests {
         let customPosterURL: URL?
         let userInfo: UserEntryInfo
     }
-    
+
     @Test @MainActor func exportAllUserDataToClipboard() throws {
         let allEntries = try dataProviderDefault.getAllModels(ofType: AnimeEntry.self).filter {
             $0.onDisplay
@@ -96,14 +96,14 @@ struct MyAnimeListTests {
         let jsonString = String(data: data, encoding: .utf8)!
         UIPasteboard.general.string = jsonString
     }
-    
+
     @Test @MainActor func restoreEntriesFromClipboardData() async throws {
         let jsonData = UIPasteboard.general.string!.data(using: .utf8)!
         let store = LibraryStore(dataProvider: dataProviderDefault)
         let userInfos = try JSONDecoder().decode(
-        [UserInfoRestoration].self,
-        from: jsonData)
-        guard userInfos.count == 102 else { fatalError("Unexpected number of entries")  }
+            [UserInfoRestoration].self,
+            from: jsonData)
+        guard userInfos.count == 102 else { fatalError("Unexpected number of entries") }
         for (index, info) in userInfos.enumerated() {
             guard let id = try await store.createNewEntry(tmdbID: info.tmdbID, type: info.type) else {
                 fatalError("Failed to create entry for \(info.name)")
@@ -113,16 +113,21 @@ struct MyAnimeListTests {
                 predicate: #Predicate<AnimeEntry> {
                     $0.id == id
                 })
-            guard let entry = try dataProviderDefault
-                .dataHandler.modelContext.fetch(descriptor).first else {
-                    fatalError("Entry not found after creation")
+            guard
+                let entry =
+                    try dataProviderDefault
+                    .dataHandler.modelContext.fetch(descriptor).first
+            else {
+                fatalError("Entry not found after creation")
             }
             entry.updateUserInfo(from: info.userInfo)
             if let customPosterURL = info.customPosterURL {
                 if entry.usingCustomPoster {
                     entry.posterURL = customPosterURL
                 } else {
-                    print("Warning: Entry \(entry.name) is not marked as using custom poster, but customPosterURL is provided.")
+                    print(
+                        "Warning: Entry \(entry.name) is not marked as using custom poster, but customPosterURL is provided."
+                    )
                 }
             }
         }
@@ -137,7 +142,7 @@ struct MyAnimeListTests {
             }
         }
     }
-    
+
     @Test @MainActor func testParentChildRelationshipInference() async throws {
         let dataProvider = dataProviderForPreview
         let parent = AnimeEntry.frieren

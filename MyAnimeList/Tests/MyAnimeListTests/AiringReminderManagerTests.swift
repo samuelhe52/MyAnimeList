@@ -310,6 +310,37 @@ struct AiringReminderManagerTests {
         if hasNextEpisode { #expect(next.first?.episodeNumber == 2) }
     }
 
+    @Test(arguments: [7200.0, -7200.0])
+    func correctedAirtimeSupersedesDelayedReminder(correction: TimeInterval) async throws {
+        let defaults = makeDefaults()
+        defer { removeDefaults(defaults) }
+        let center = AiringReminderCenterProbe(authorizationStatus: .authorized)
+        let airStamp = now.addingTimeInterval(3600)
+        let provider = EpisodeProviderProbe(nextEpisode: makeEpisode(season: 1, number: 1, airStamp: airStamp))
+        let manager = makeManager(defaults: defaults, center: center) { try await provider.nextEpisode(showID: $0) }
+        let identity = LibraryEntryIdentity(entryType: .series, tmdbID: 100)
+        _ = try await manager.enable(entryIdentity: identity, showID: 70, displayTitle: "Anime", seasonNumber: nil)
+        try await manager.setTimingOffset(90, entryIdentityRawID: identity.rawID)
+
+        let correctedAirStamp = airStamp.addingTimeInterval(correction)
+        await provider.setNextEpisode(makeEpisode(season: 1, number: 1, airStamp: correctedAirStamp))
+        let afterOriginalBroadcast = AiringReminderManager(
+            defaults: defaults, notificationCenter: center,
+            now: { airStamp.addingTimeInterval(1800) },
+            fetchNextEpisode: { try await provider.nextEpisode(showID: $0) }
+        )
+        _ = try await afterOriginalBroadcast.refreshAll()
+
+        let requests = await center.allRequests()
+        if correction > 0 {
+            #expect(requests.count == 1)
+            #expect(requests.first?.airStamp == correctedAirStamp)
+            #expect(requests.first?.fireDate == correctedAirStamp.addingTimeInterval(5400))
+        } else {
+            #expect(requests.isEmpty)
+        }
+    }
+
     @Test func failedCustomTimingRebuildRestoresChoiceAndProviderFailureKeepsRebuiltReminder() async throws {
         let defaults = makeDefaults()
         defer { removeDefaults(defaults) }

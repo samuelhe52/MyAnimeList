@@ -511,6 +511,7 @@ actor AiringReminderManager {
         var refreshedSubscriptions: [String: AiringReminderSubscription] = [:]
         var failedSubscriptions: [String: AiringReminderSubscription] = [:]
         var refreshedCandidates: [String: Candidate] = [:]
+        var refreshedEpisodes: [String: TVMazeNextEpisodeAiring] = [:]
         var overflowed = false
 
         do {
@@ -540,6 +541,7 @@ actor AiringReminderManager {
                     } else {
                         for subscription in matchingSubscriptions {
                             refreshedSubscriptions[subscription.id] = subscription
+                            refreshedEpisodes[subscription.id] = result.episode
                             if let candidate = candidate(for: subscription, episode: result.episode) {
                                 refreshedCandidates[subscription.id] = candidate
                             } else {
@@ -548,7 +550,8 @@ actor AiringReminderManager {
                         }
                         overflowed = try await reconcileRequests(
                             refreshedSubscriptions: refreshedSubscriptions,
-                            candidates: refreshedCandidates
+                            candidates: refreshedCandidates,
+                            episodes: refreshedEpisodes
                         )
                         storedWarning = overflowed ? .queueLimit : nil
                     }
@@ -637,7 +640,8 @@ actor AiringReminderManager {
 
     private func reconcileRequests(
         refreshedSubscriptions: [String: AiringReminderSubscription],
-        candidates: [String: Candidate]
+        candidates: [String: Candidate],
+        episodes: [String: TVMazeNextEpisodeAiring]
     ) async throws -> Bool {
         let activeRefreshedSubscriptionIDs = Set(
             refreshedSubscriptions.values
@@ -647,9 +651,22 @@ actor AiringReminderManager {
         let existingRequests = await notificationCenter.pendingRequests()
         // Once broadcast has started, TVMaze may advance to the following episode or return nil.
         // Keep an already queued delayed reminder until it fires, even across those refreshes.
-        let delayedRequests = existingRequests.filter {
-            $0.airStamp <= now() && $0.fireDate > now()
-                && currentSubscription(for: $0).map { timingOffset(for: $0) > 0 } == true
+        let delayedRequests = existingRequests.filter { request in
+            guard request.airStamp <= now(), request.fireDate > now(),
+                currentSubscription(for: request).map({ timingOffset(for: $0) > 0 }) == true
+            else { return false }
+
+            // A corrected airtime for this episode supersedes its old request, including when
+            // the corrected reminder time is already past and no replacement can be scheduled.
+            if activeRefreshedSubscriptionIDs.contains(request.subscriptionID),
+                let episode = episodes[request.subscriptionID],
+                let seasonNumber = request.seasonNumber,
+                let episodeNumber = request.episodeNumber,
+                episode.seasonNumber == seasonNumber, episode.episodeNumber == episodeNumber
+            {
+                return episode.airStamp == request.airStamp
+            }
+            return true
         }
         let delayedSubscriptionIDs = Set(delayedRequests.map(\.subscriptionID))
         let retainedRequests = existingRequests.filter {

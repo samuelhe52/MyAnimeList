@@ -7,15 +7,6 @@
 
 import SwiftUI
 
-extension AiringReminderSubscription {
-    var timingLabel: LocalizedStringResource {
-        guard let timingOffsetMinutes else { return "Default" }
-        if timingOffsetMinutes == 0 { return "At airtime" }
-        if timingOffsetMinutes > 0 { return "\(timingOffsetMinutes) min after" }
-        return "\(-timingOffsetMinutes) min before"
-    }
-}
-
 struct AiringReminderTimingSheet: View {
     @Environment(\.dismiss) private var dismiss
     private let airingReminders = AiringReminderCoordinator.shared

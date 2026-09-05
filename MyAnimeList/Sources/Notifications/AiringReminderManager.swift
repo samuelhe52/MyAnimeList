@@ -459,10 +459,6 @@ actor AiringReminderManager {
             throw error
         }
         persistSubscriptions()
-        let result = try await refreshAll()
-        if result.failedSubscriptionCount > 0 {
-            throw AiringReminderManagerError.refreshFailed
-        }
     }
 
     private func timingOffset(for subscription: AiringReminderSubscription) -> Int {
@@ -982,14 +978,22 @@ final class AiringReminderCoordinator {
         defer { isRefreshing = false }
         do {
             try await manager.setTimingOffset(minutes, entryIdentityRawID: entryIdentityRawID)
-            lastRefreshFailed = false
-            await reloadState()
-            return true
         } catch {
             lastRefreshFailed = true
             await reloadState()
             return false
         }
+
+        // Saving and rebuilding succeeded. Refresh health must not turn that saved edit into
+        // a failure in the editor, even if this or another subscription cannot be refreshed.
+        do {
+            let result = try await manager.refreshAll()
+            lastRefreshFailed = !result.completedSuccessfully
+        } catch {
+            lastRefreshFailed = true
+        }
+        await reloadState()
+        return true
     }
 
     func setLeadTime(_ leadTime: AiringReminderLeadTime) async {

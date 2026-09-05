@@ -211,6 +211,129 @@ struct AiringReminderManagerTests {
         )
     }
 
+    @Test func customTimingPersistsIndependentlyOfDefaultAndCanBeReset() async throws {
+        let defaults = makeDefaults()
+        defer { removeDefaults(defaults) }
+        let center = AiringReminderCenterProbe(authorizationStatus: .authorized)
+        let airStamp = now.addingTimeInterval(86_400)
+        let provider = EpisodeProviderProbe(nextEpisode: makeEpisode(season: 1, number: 1, airStamp: airStamp))
+        let manager = makeManager(defaults: defaults, center: center) { showID in
+            try await provider.nextEpisode(showID: showID)
+        }
+        let custom = LibraryEntryIdentity(entryType: .series, tmdbID: 100)
+        let inherited = LibraryEntryIdentity(entryType: .series, tmdbID: 200)
+        for identity in [custom, inherited] {
+            _ = try await manager.enable(
+                entryIdentity: identity, showID: 70, displayTitle: identity.rawID, seasonNumber: nil)
+        }
+        // Existing installations have subscriptions without the new optional field.
+        let legacyData = try #require(defaults.data(forKey: .airingReminderSubscriptions))
+        #expect(!String(decoding: legacyData, as: UTF8.self).contains("timingOffsetMinutes"))
+        try await manager.setTimingOffset(90, entryIdentityRawID: custom.rawID)
+        try await manager.setLeadTime(.oneHour)
+        let restored = makeManager(defaults: defaults, center: center) { showID in
+            try await provider.nextEpisode(showID: showID)
+        }
+        #expect((await restored.snapshot()).subscription(for: custom.rawID)?.timingOffsetMinutes == 90)
+        #expect((await restored.snapshot()).subscription(for: inherited.rawID)?.timingOffsetMinutes == nil)
+        let requests = await center.allRequests()
+        #expect(requests.first { $0.subscriptionID == custom.rawID }?.fireDate == airStamp.addingTimeInterval(5400))
+        #expect(requests.first { $0.subscriptionID == inherited.rawID }?.fireDate == airStamp.addingTimeInterval(-3600))
+        #expect(
+            requests.first { $0.subscriptionID == custom.rawID }?.body
+                == String.localizedStringWithFormat(
+                    String(localized: "%@ aired %lld minutes ago."), "S01E01", Int64(90)
+                ))
+
+        try await restored.setLeadTime(.oneHourAfter)
+        #expect(
+            (await center.allRequests()).first { $0.subscriptionID == inherited.rawID }?.fireDate
+                == airStamp.addingTimeInterval(3600))
+        #expect(
+            (await center.allRequests()).first { $0.subscriptionID == custom.rawID }?.fireDate
+                == airStamp.addingTimeInterval(5400))
+        let restoredDefault = makeManager(defaults: defaults, center: center) { showID in
+            try await provider.nextEpisode(showID: showID)
+        }
+        #expect((await restoredDefault.snapshot()).leadTime == .oneHourAfter)
+        try await restored.setLeadTime(.oneHour)
+
+        try await restored.setTimingOffset(-37, entryIdentityRawID: custom.rawID)
+        #expect(
+            (await center.allRequests()).first { $0.subscriptionID == custom.rawID }?.fireDate
+                == airStamp.addingTimeInterval(-2220))
+        try await restored.setTimingOffset(0, entryIdentityRawID: custom.rawID)
+        #expect((await center.allRequests()).first { $0.subscriptionID == custom.rawID }?.fireDate == airStamp)
+        try await restored.setTimingOffset(nil, entryIdentityRawID: custom.rawID)
+        #expect((await restored.snapshot()).subscription(for: custom.rawID)?.timingOffsetMinutes == nil)
+        #expect(
+            (await center.allRequests()).first { $0.subscriptionID == custom.rawID }?.fireDate
+                == airStamp.addingTimeInterval(-3600))
+    }
+
+    @Test(arguments: [false, true])
+    func delayedReminderSurvivesProviderAdvancingAfterBroadcast(hasNextEpisode: Bool) async throws {
+        let defaults = makeDefaults()
+        defer { removeDefaults(defaults) }
+        let center = AiringReminderCenterProbe(authorizationStatus: .authorized)
+        let airStamp = now.addingTimeInterval(3600)
+        let provider = EpisodeProviderProbe(nextEpisode: makeEpisode(season: 1, number: 1, airStamp: airStamp))
+        let manager = makeManager(defaults: defaults, center: center) { showID in
+            try await provider.nextEpisode(showID: showID)
+        }
+        let identity = LibraryEntryIdentity(entryType: .series, tmdbID: 100)
+        _ = try await manager.enable(
+            entryIdentity: identity, showID: 70, displayTitle: "Delayed Anime", seasonNumber: nil)
+        if hasNextEpisode {
+            try await manager.setLeadTime(.oneHourAfter)
+        } else {
+            try await manager.setTimingOffset(90, entryIdentityRawID: identity.rawID)
+        }
+        let previous = await center.allRequests()
+        await provider.setNextEpisode(
+            hasNextEpisode ? makeEpisode(season: 1, number: 2, airStamp: airStamp.addingTimeInterval(604800)) : nil)
+        let afterBroadcast = AiringReminderManager(
+            defaults: defaults, notificationCenter: center,
+            now: { airStamp.addingTimeInterval(1800) },
+            fetchNextEpisode: { try await provider.nextEpisode(showID: $0) }
+        )
+        _ = try await afterBroadcast.refreshAll()
+        #expect(await center.allRequests() == previous)
+        let afterReminder = AiringReminderManager(
+            defaults: defaults, notificationCenter: center,
+            now: { airStamp.addingTimeInterval(5401) },
+            fetchNextEpisode: { try await provider.nextEpisode(showID: $0) }
+        )
+        _ = try await afterReminder.refreshAll()
+        let next = await center.allRequests()
+        #expect(next.count == (hasNextEpisode ? 1 : 0))
+        if hasNextEpisode { #expect(next.first?.episodeNumber == 2) }
+    }
+
+    @Test func failedCustomTimingRebuildRestoresChoiceAndProviderFailureKeepsRebuiltReminder() async throws {
+        let defaults = makeDefaults()
+        defer { removeDefaults(defaults) }
+        let center = AiringReminderCenterProbe(authorizationStatus: .authorized)
+        let airStamp = now.addingTimeInterval(86_400)
+        let provider = EpisodeProviderProbe(nextEpisode: makeEpisode(season: 1, number: 1, airStamp: airStamp))
+        let manager = makeManager(defaults: defaults, center: center) { try await provider.nextEpisode(showID: $0) }
+        let identity = LibraryEntryIdentity(entryType: .series, tmdbID: 100)
+        _ = try await manager.enable(entryIdentity: identity, showID: 70, displayTitle: "Anime", seasonNumber: nil)
+        let previous = await center.allRequests()
+        await center.failNextAdds(1)
+        await #expect(throws: AiringReminderManagerError.self) {
+            try await manager.setTimingOffset(90, entryIdentityRawID: identity.rawID)
+        }
+        #expect(await center.allRequests() == previous)
+        #expect((await manager.snapshot()).subscription(for: identity.rawID)?.timingOffsetMinutes == nil)
+        await provider.setFails(true)
+        await #expect(throws: AiringReminderManagerError.self) {
+            try await manager.setTimingOffset(90, entryIdentityRawID: identity.rawID)
+        }
+        #expect((await center.allRequests()).first?.fireDate == airStamp.addingTimeInterval(5400))
+        #expect((await manager.snapshot()).subscription(for: identity.rawID)?.timingOffsetMinutes == 90)
+    }
+
     @Test func failedRefreshPreservesExistingRequestsAndDisableCancelsOnlyItsSubscription() async throws {
         let defaults = makeDefaults()
         defer { removeDefaults(defaults) }

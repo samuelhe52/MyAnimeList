@@ -33,12 +33,17 @@ enum AiringReminderAuthorizationStatus: String, Codable, Sendable {
     }
 }
 
+// Persisted lead times keep their original sign: negative values mean after airtime.
 enum AiringReminderLeadTime: Int, CaseIterable, Codable, Sendable {
-    case atAirtime = 0
-    case fiveMinutes = 5
-    case fifteenMinutes = 15
-    case thirtyMinutes = 30
     case oneHour = 60
+    case thirtyMinutes = 30
+    case fifteenMinutes = 15
+    case fiveMinutes = 5
+    case atAirtime = 0
+    case fiveMinutesAfter = -5
+    case fifteenMinutesAfter = -15
+    case thirtyMinutesAfter = -30
+    case oneHourAfter = -60
 
     static let defaultValue = Self.fifteenMinutes
 }
@@ -51,6 +56,9 @@ struct AiringReminderSubscription: Codable, Equatable, Identifiable, Sendable {
     ///
     /// This value does not override TVMaze episode numbering.
     let seasonNumber: Int?
+
+    /// Minutes relative to airtime: negative is before, positive is after; nil uses the default.
+    var timingOffsetMinutes: Int?
 
     var id: String { entryIdentityRawID }
 }
@@ -357,7 +365,8 @@ actor AiringReminderManager {
             entryIdentityRawID: entryIdentity.rawID,
             tvMazeShowID: showID,
             displayTitle: displayTitle,
-            seasonNumber: seasonNumber
+            seasonNumber: seasonNumber,
+            timingOffsetMinutes: subscriptions[entryIdentity.rawID]?.timingOffsetMinutes
         )
         persistSubscriptions()
         let refreshResult = try await refreshAll()
@@ -434,6 +443,30 @@ actor AiringReminderManager {
     func removeSubscriptions(notIn validEntryIdentityRawIDs: Set<String>) async -> Set<String> {
         let staleIDs = Set(subscriptions.keys.filter { !validEntryIdentityRawIDs.contains($0) })
         return await removeSubscriptions(withEntryIdentityRawIDs: staleIDs)
+    }
+
+    func setTimingOffset(_ minutes: Int?, entryIdentityRawID: String) async throws {
+        guard let previous = subscriptions[entryIdentityRawID] else { return }
+        var updated = previous
+        updated.timingOffsetMinutes = minutes.map { min(max($0, -1439), 1439) }
+        subscriptions[entryIdentityRawID] = updated
+        do {
+            try await rebuildPendingRequests(for: leadTime, subscriptionID: entryIdentityRawID)
+        } catch {
+            if subscriptions[entryIdentityRawID] == updated {
+                subscriptions[entryIdentityRawID] = previous
+            }
+            throw error
+        }
+        persistSubscriptions()
+        let result = try await refreshAll()
+        if result.failedSubscriptionCount > 0 {
+            throw AiringReminderManagerError.refreshFailed
+        }
+    }
+
+    private func timingOffset(for subscription: AiringReminderSubscription) -> Int {
+        subscription.timingOffsetMinutes ?? -leadTime.rawValue
     }
 
     func setLeadTime(_ newValue: AiringReminderLeadTime) async throws {
@@ -597,8 +630,7 @@ actor AiringReminderManager {
         guard let episode else { return nil }
         // Keep TVMaze's season and episode numbers in the reminder. TMDb and TVMaze can use
         // different season numbering for the same show, while the provider supplies the airing.
-        let leadSeconds = TimeInterval(leadTime.rawValue * 60)
-        let fireDate = episode.airStamp.addingTimeInterval(-leadSeconds)
+        let fireDate = episode.airStamp.addingTimeInterval(TimeInterval(timingOffset(for: subscription) * 60))
         guard fireDate > now() else { return nil }
         return Candidate(subscription: subscription, episode: episode, fireDate: fireDate)
     }
@@ -613,13 +645,24 @@ actor AiringReminderManager {
                 .map(\.id)
         )
         let existingRequests = await notificationCenter.pendingRequests()
+        // Once broadcast has started, TVMaze may advance to the following episode or return nil.
+        // Keep an already queued delayed reminder until it fires, even across those refreshes.
+        let delayedRequests = existingRequests.filter {
+            $0.airStamp <= now() && $0.fireDate > now()
+                && currentSubscription(for: $0).map { timingOffset(for: $0) > 0 } == true
+        }
+        let delayedSubscriptionIDs = Set(delayedRequests.map(\.subscriptionID))
         let retainedRequests = existingRequests.filter {
-            !activeRefreshedSubscriptionIDs.contains($0.subscriptionID)
+            (!activeRefreshedSubscriptionIDs.contains($0.subscriptionID)
+                || delayedSubscriptionIDs.contains($0.subscriptionID))
                 && $0.fireDate > now()
                 && currentSubscription(for: $0) != nil
         }
         let replacementRequests = candidates.values
-            .filter { subscriptions[$0.subscription.id] == $0.subscription }
+            .filter {
+                subscriptions[$0.subscription.id] == $0.subscription
+                    && !delayedSubscriptionIDs.contains($0.subscription.id)
+            }
             .map(makeRequest)
         let requestedQueue = (retainedRequests + replacementRequests)
             .sorted(by: Self.requestOrdering)
@@ -673,11 +716,17 @@ actor AiringReminderManager {
         }
     }
 
-    private func rebuildPendingRequests(for leadTime: AiringReminderLeadTime) async throws {
-        let pendingRequests = await notificationCenter.pendingRequests()
-        let leadSeconds = TimeInterval(leadTime.rawValue * 60)
+    private func rebuildPendingRequests(
+        for leadTime: AiringReminderLeadTime,
+        subscriptionID: String? = nil
+    ) async throws {
+        let pendingRequests = await notificationCenter.pendingRequests().filter {
+            subscriptionID == nil || $0.subscriptionID == subscriptionID
+        }
         let rebuilt = pendingRequests.compactMap { request -> AiringReminderRequest? in
-            let fireDate = request.airStamp.addingTimeInterval(-leadSeconds)
+            guard let subscription = currentSubscription(for: request) else { return nil }
+            let offset = subscription.timingOffsetMinutes ?? -leadTime.rawValue
+            let fireDate = request.airStamp.addingTimeInterval(TimeInterval(offset * 60))
             guard fireDate > now() else { return nil }
             return AiringReminderRequest(
                 identifier: request.identifier,
@@ -685,7 +734,7 @@ actor AiringReminderManager {
                 body: Self.notificationBody(
                     seasonNumber: request.seasonNumber,
                     episodeNumber: request.episodeNumber,
-                    leadTime: leadTime
+                    timingOffsetMinutes: offset
                 ),
                 subscriptionID: request.subscriptionID,
                 tvMazeShowID: request.tvMazeShowID,
@@ -745,7 +794,7 @@ actor AiringReminderManager {
             body: Self.notificationBody(
                 seasonNumber: candidate.episode.seasonNumber,
                 episodeNumber: candidate.episode.episodeNumber,
-                leadTime: leadTime
+                timingOffsetMinutes: timingOffset(for: candidate.subscription)
             ),
             subscriptionID: candidate.subscription.id,
             tvMazeShowID: candidate.subscription.tvMazeShowID,
@@ -759,7 +808,7 @@ actor AiringReminderManager {
     private static func notificationBody(
         seasonNumber: Int?,
         episodeNumber: Int?,
-        leadTime: AiringReminderLeadTime
+        timingOffsetMinutes: Int
     ) -> String {
         let episodeLabel: String
         if let seasonNumber, let episodeNumber {
@@ -768,16 +817,18 @@ actor AiringReminderManager {
             episodeLabel = String(localized: "New episode")
         }
 
-        if leadTime == .atAirtime {
+        if timingOffsetMinutes == 0 {
             return String.localizedStringWithFormat(
                 String(localized: "%@ is airing now."),
                 episodeLabel
             )
         }
         return String.localizedStringWithFormat(
-            String(localized: "%@ airs in %lld minutes."),
+            timingOffsetMinutes > 0
+                ? String(localized: "%@ aired %lld minutes ago.")
+                : String(localized: "%@ airs in %lld minutes."),
             episodeLabel,
-            Int64(leadTime.rawValue)
+            Int64(abs(timingOffsetMinutes))
         )
     }
 
@@ -905,6 +956,23 @@ final class AiringReminderCoordinator {
         await manager.cancelAll()
         lastRefreshFailed = false
         await reloadState()
+    }
+
+    @discardableResult
+    func setTimingOffset(_ minutes: Int?, entryIdentityRawID: String) async -> Bool {
+        guard !isRefreshing else { return false }
+        isRefreshing = true
+        defer { isRefreshing = false }
+        do {
+            try await manager.setTimingOffset(minutes, entryIdentityRawID: entryIdentityRawID)
+            lastRefreshFailed = false
+            await reloadState()
+            return true
+        } catch {
+            lastRefreshFailed = true
+            await reloadState()
+            return false
+        }
     }
 
     func setLeadTime(_ leadTime: AiringReminderLeadTime) async {

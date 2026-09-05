@@ -14,6 +14,7 @@ struct EntryDetailBroadcastMenuContent: View {
     let hasAiringReminder: Bool
     let onPresentValidation: () -> Void
     let onRetry: () -> Void
+    let onPresentReminderTiming: (AiringReminderSubscription) -> Void
 
     var isVisible: Bool {
         phase != .disabled || hasAiringReminder
@@ -34,7 +35,7 @@ struct EntryDetailBroadcastMenuContent: View {
     @ViewBuilder
     private var airingReminderMenu: some View {
         if case .resolved = phase {
-            EntryDetailAiringReminderMenu(context: airingReminderContext)
+            EntryDetailAiringReminderMenu(context: airingReminderContext, onPresentTiming: onPresentReminderTiming)
         } else {
             Button(action: {}) {
                 Label(

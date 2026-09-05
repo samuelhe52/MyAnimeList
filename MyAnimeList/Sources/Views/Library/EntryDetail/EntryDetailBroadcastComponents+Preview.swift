@@ -34,7 +34,8 @@ fileprivate struct EntryDetailBroadcastPolicyPreview: View {
                             ),
                             hasAiringReminder: false,
                             onPresentValidation: {},
-                            onRetry: {}
+                            onRetry: {},
+                            onPresentReminderTiming: { _ in }
                         )
                         broadcastContent
 

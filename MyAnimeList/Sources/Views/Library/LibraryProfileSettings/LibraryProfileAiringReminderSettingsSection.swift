@@ -26,14 +26,26 @@ struct LibraryProfileAiringReminderSettingsSection: View {
             )
 
             HStack(alignment: .firstTextBaseline, spacing: 12) {
-                Text("Remind Me")
+                Text("Default Timing")
                     .font(.subheadline.weight(.semibold))
                 Spacer(minLength: 12)
                 Menu {
-                    Picker("Remind Me", selection: leadTimeBinding) {
-                        ForEach(AiringReminderLeadTime.allCases, id: \.rawValue) { leadTime in
-                            Text(leadTime.localizedResource)
-                                .tag(leadTime)
+                    Picker("Default Timing", selection: leadTimeBinding) {
+                        Section {
+                            ForEach(AiringReminderLeadTime.allCases.filter { $0.rawValue > 0 }, id: \.rawValue) {
+                                leadTime in
+                                Text(leadTime.localizedResource).tag(leadTime)
+                            }
+                        }
+                        Section {
+                            Text(AiringReminderLeadTime.atAirtime.localizedResource)
+                                .tag(AiringReminderLeadTime.atAirtime)
+                        }
+                        Section {
+                            ForEach(AiringReminderLeadTime.allCases.filter { $0.rawValue < 0 }, id: \.rawValue) {
+                                leadTime in
+                                Text(leadTime.localizedResource).tag(leadTime)
+                            }
                         }
                     }
                 } label: {
@@ -82,7 +94,7 @@ struct LibraryProfileAiringReminderSettingsSection: View {
             }
         }
         .padding(14)
-        .libraryProfileInsetPanel(cornerRadius: 22, tint: .orange)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 22))
         .task { await airingReminders.reloadState() }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
@@ -195,6 +207,14 @@ extension AiringReminderLeadTime {
             "30 minutes before"
         case .oneHour:
             "1 hour before"
+        case .fiveMinutesAfter:
+            "5 minutes after"
+        case .fifteenMinutesAfter:
+            "15 minutes after"
+        case .thirtyMinutesAfter:
+            "30 minutes after"
+        case .oneHourAfter:
+            "1 hour after"
         }
     }
 }

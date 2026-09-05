@@ -172,6 +172,8 @@ struct DetailStatCard: View {
 }
 
 struct EntryDetailQuickActionsRow: View {
+    @State private var editingReminder: AiringReminderSubscription?
+
     let detailURL: URL?
     let isFavorite: Bool
     let showsConvertAction: Bool
@@ -225,7 +227,8 @@ struct EntryDetailQuickActionsRow: View {
                     airingReminderContext: airingReminderContext,
                     hasAiringReminder: hasAiringReminder,
                     onPresentValidation: onPresentBroadcastValidation,
-                    onRetry: onRetryBroadcast
+                    onRetry: onRetryBroadcast,
+                    onPresentReminderTiming: { editingReminder = $0 }
                 )
                 broadcastMenuContent
 
@@ -266,6 +269,12 @@ struct EntryDetailQuickActionsRow: View {
             .tint(.primary)
 
             Spacer(minLength: 0)
+        }
+        .sheet(item: $editingReminder) { subscription in
+            AiringReminderTimingSheet(
+                subscription: subscription,
+                defaultLeadTime: AiringReminderCoordinator.shared.snapshot.leadTime
+            )
         }
     }
 }

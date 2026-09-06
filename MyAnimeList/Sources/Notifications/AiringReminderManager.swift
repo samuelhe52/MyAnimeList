@@ -33,19 +33,21 @@ enum AiringReminderAuthorizationStatus: String, Codable, Sendable {
     }
 }
 
-// Persisted lead times keep their original sign: negative values mean after airtime.
-enum AiringReminderLeadTime: Int, CaseIterable, Codable, Sendable {
-    case oneHour = 60
-    case thirtyMinutes = 30
-    case fifteenMinutes = 15
-    case fiveMinutes = 5
+/// Signed minutes relative to airtime, shared with custom timing: negative is before, positive is after.
+enum AiringReminderTimingPreset: Int, CaseIterable, Sendable {
+    case oneHourBefore = -60
+    case thirtyMinutesBefore = -30
+    case fifteenMinutesBefore = -15
+    case fiveMinutesBefore = -5
     case atAirtime = 0
-    case fiveMinutesAfter = -5
-    case fifteenMinutesAfter = -15
-    case thirtyMinutesAfter = -30
-    case oneHourAfter = -60
+    case fiveMinutesAfter = 5
+    case fifteenMinutesAfter = 15
+    case thirtyMinutesAfter = 30
+    case oneHourAfter = 60
 
-    static let defaultValue = Self.fifteenMinutes
+    static let defaultValue = Self.fifteenMinutesBefore
+
+    var offsetMinutes: Int { rawValue }
 }
 
 struct AiringReminderSubscription: Codable, Equatable, Identifiable, Sendable {
@@ -61,6 +63,10 @@ struct AiringReminderSubscription: Codable, Equatable, Identifiable, Sendable {
     var timingOffsetMinutes: Int?
 
     var id: String { entryIdentityRawID }
+
+    func effectiveTimingOffsetMinutes(defaultTiming: AiringReminderTimingPreset) -> Int {
+        timingOffsetMinutes ?? defaultTiming.offsetMinutes
+    }
 }
 
 struct ScheduledAiringReminder: Equatable, Identifiable, Sendable {
@@ -99,7 +105,7 @@ struct AiringReminderSnapshot: Equatable, Sendable {
     var authorizationStatus: AiringReminderAuthorizationStatus = .notDetermined
     var subscriptions: [AiringReminderSubscription] = []
     var scheduledReminders: [ScheduledAiringReminder] = []
-    var leadTime: AiringReminderLeadTime = .defaultValue
+    var defaultTiming: AiringReminderTimingPreset = .defaultValue
     var warning: AiringReminderWarning?
 
     func subscription(for entryIdentityRawID: String) -> AiringReminderSubscription? {
@@ -343,7 +349,7 @@ actor AiringReminderManager {
             authorizationStatus: await notificationCenter.authorizationStatus(),
             subscriptions: subscriptions.values.sorted { $0.displayTitle < $1.displayTitle },
             scheduledReminders: pending.map(\.reminder).sorted { $0.fireDate < $1.fireDate },
-            leadTime: leadTime,
+            defaultTiming: defaultTiming,
             warning: storedWarning
         )
     }
@@ -451,7 +457,7 @@ actor AiringReminderManager {
         updated.timingOffsetMinutes = minutes.map { min(max($0, -1439), 1439) }
         subscriptions[entryIdentityRawID] = updated
         do {
-            try await rebuildPendingRequests(for: leadTime, subscriptionID: entryIdentityRawID)
+            try await rebuildPendingRequests(for: defaultTiming, subscriptionID: entryIdentityRawID)
         } catch {
             if subscriptions[entryIdentityRawID] == updated {
                 subscriptions[entryIdentityRawID] = previous
@@ -462,12 +468,12 @@ actor AiringReminderManager {
     }
 
     private func timingOffset(for subscription: AiringReminderSubscription) -> Int {
-        subscription.timingOffsetMinutes ?? -leadTime.rawValue
+        subscription.effectiveTimingOffsetMinutes(defaultTiming: defaultTiming)
     }
 
-    func setLeadTime(_ newValue: AiringReminderLeadTime) async throws {
+    func setDefaultTiming(_ newValue: AiringReminderTimingPreset) async throws {
         try await rebuildPendingRequests(for: newValue)
-        defaults.set(newValue.rawValue, forKey: .airingReminderLeadTimeMinutes)
+        defaults.set(newValue.offsetMinutes, forKey: .airingReminderDefaultTimingOffsetMinutes)
         let refreshResult = try await refreshAll()
         if refreshResult.failedSubscriptionCount > 0 {
             throw AiringReminderManagerError.refreshFailed
@@ -599,12 +605,12 @@ actor AiringReminderManager {
         }
     }
 
-    private var leadTime: AiringReminderLeadTime {
-        guard defaults.object(forKey: .airingReminderLeadTimeMinutes) != nil else {
+    private var defaultTiming: AiringReminderTimingPreset {
+        guard defaults.object(forKey: .airingReminderDefaultTimingOffsetMinutes) != nil else {
             return .defaultValue
         }
-        return AiringReminderLeadTime(
-            rawValue: defaults.integer(forKey: .airingReminderLeadTimeMinutes)
+        return AiringReminderTimingPreset(
+            rawValue: defaults.integer(forKey: .airingReminderDefaultTimingOffsetMinutes)
         ) ?? .defaultValue
     }
 
@@ -730,7 +736,7 @@ actor AiringReminderManager {
     }
 
     private func rebuildPendingRequests(
-        for leadTime: AiringReminderLeadTime,
+        for defaultTiming: AiringReminderTimingPreset,
         subscriptionID: String? = nil
     ) async throws {
         let pendingRequests = await notificationCenter.pendingRequests().filter {
@@ -738,7 +744,7 @@ actor AiringReminderManager {
         }
         let rebuilt = pendingRequests.compactMap { request -> AiringReminderRequest? in
             guard let subscription = currentSubscription(for: request) else { return nil }
-            let offset = subscription.timingOffsetMinutes ?? -leadTime.rawValue
+            let offset = subscription.effectiveTimingOffsetMinutes(defaultTiming: defaultTiming)
             let fireDate = request.airStamp.addingTimeInterval(TimeInterval(offset * 60))
             guard fireDate > now() else { return nil }
             return AiringReminderRequest(
@@ -996,11 +1002,11 @@ final class AiringReminderCoordinator {
         return true
     }
 
-    func setLeadTime(_ leadTime: AiringReminderLeadTime) async {
+    func setDefaultTiming(_ defaultTiming: AiringReminderTimingPreset) async {
         isRefreshing = true
         defer { isRefreshing = false }
         do {
-            try await manager.setLeadTime(leadTime)
+            try await manager.setDefaultTiming(defaultTiming)
             lastRefreshFailed = false
         } catch is CancellationError {
             return

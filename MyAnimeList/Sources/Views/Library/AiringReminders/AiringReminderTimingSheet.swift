@@ -18,9 +18,9 @@ struct AiringReminderTimingSheet: View {
     @State private var minutes: Int
     @State private var saveFailed = false
 
-    init(subscription: AiringReminderSubscription, defaultLeadTime: AiringReminderLeadTime) {
+    init(subscription: AiringReminderSubscription, defaultTiming: AiringReminderTimingPreset) {
         self.subscription = subscription
-        let offset = subscription.timingOffsetMinutes ?? -defaultLeadTime.rawValue
+        let offset = subscription.effectiveTimingOffsetMinutes(defaultTiming: defaultTiming)
         _useDefault = State(initialValue: subscription.timingOffsetMinutes == nil)
         _isAfter = State(initialValue: offset > 0)
         _hours = State(initialValue: abs(offset) / 60)
@@ -48,7 +48,7 @@ struct AiringReminderTimingSheet: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Use Default")
                                 .font(.subheadline.weight(.semibold))
-                            Text(airingReminders.snapshot.leadTime.localizedResource)
+                            Text(airingReminders.snapshot.defaultTiming.localizedResource)
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }

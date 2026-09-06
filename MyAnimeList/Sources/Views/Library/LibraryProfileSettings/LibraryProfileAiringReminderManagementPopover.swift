@@ -49,7 +49,7 @@ struct LibraryProfileAiringReminderManagementPopover: View {
         .sheet(item: $editingSubscription) { subscription in
             AiringReminderTimingSheet(
                 subscription: subscription,
-                defaultLeadTime: airingReminders.snapshot.leadTime
+                defaultTiming: airingReminders.snapshot.defaultTiming
             )
         }
     }

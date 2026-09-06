@@ -30,27 +30,29 @@ struct LibraryProfileAiringReminderSettingsSection: View {
                     .font(.subheadline.weight(.semibold))
                 Spacer(minLength: 12)
                 Menu {
-                    Picker("Default Timing", selection: leadTimeBinding) {
+                    Picker("Default Timing", selection: defaultTimingBinding) {
                         Section {
-                            ForEach(AiringReminderLeadTime.allCases.filter { $0.rawValue > 0 }, id: \.rawValue) {
-                                leadTime in
-                                Text(leadTime.localizedResource).tag(leadTime)
+                            ForEach(AiringReminderTimingPreset.allCases.filter { $0.offsetMinutes < 0 }, id: \.rawValue)
+                            {
+                                defaultTiming in
+                                Text(defaultTiming.localizedResource).tag(defaultTiming)
                             }
                         }
                         Section {
-                            Text(AiringReminderLeadTime.atAirtime.localizedResource)
-                                .tag(AiringReminderLeadTime.atAirtime)
+                            Text(AiringReminderTimingPreset.atAirtime.localizedResource)
+                                .tag(AiringReminderTimingPreset.atAirtime)
                         }
                         Section {
-                            ForEach(AiringReminderLeadTime.allCases.filter { $0.rawValue < 0 }, id: \.rawValue) {
-                                leadTime in
-                                Text(leadTime.localizedResource).tag(leadTime)
+                            ForEach(AiringReminderTimingPreset.allCases.filter { $0.offsetMinutes > 0 }, id: \.rawValue)
+                            {
+                                defaultTiming in
+                                Text(defaultTiming.localizedResource).tag(defaultTiming)
                             }
                         }
                     }
                 } label: {
                     LibraryProfileSelectionCapsule(
-                        title: airingReminders.snapshot.leadTime.localizedResource,
+                        title: airingReminders.snapshot.defaultTiming.localizedResource,
                         tint: .orange
                     )
                 }
@@ -184,11 +186,11 @@ struct LibraryProfileAiringReminderSettingsSection: View {
         }
     }
 
-    private var leadTimeBinding: Binding<AiringReminderLeadTime> {
+    private var defaultTimingBinding: Binding<AiringReminderTimingPreset> {
         Binding(
-            get: { airingReminders.snapshot.leadTime },
-            set: { leadTime in
-                Task { await airingReminders.setLeadTime(leadTime) }
+            get: { airingReminders.snapshot.defaultTiming },
+            set: { defaultTiming in
+                Task { await airingReminders.setDefaultTiming(defaultTiming) }
             }
         )
     }

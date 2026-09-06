@@ -16,18 +16,18 @@ extension AiringReminderSubscription {
     }
 }
 
-extension AiringReminderLeadTime {
+extension AiringReminderTimingPreset {
     var localizedResource: LocalizedStringResource {
         switch self {
         case .atAirtime:
             "At airtime"
-        case .fiveMinutes:
+        case .fiveMinutesBefore:
             "5 minutes before"
-        case .fifteenMinutes:
+        case .fifteenMinutesBefore:
             "15 minutes before"
-        case .thirtyMinutes:
+        case .thirtyMinutesBefore:
             "30 minutes before"
-        case .oneHour:
+        case .oneHourBefore:
             "1 hour before"
         case .fiveMinutesAfter:
             "5 minutes after"

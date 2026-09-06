@@ -273,7 +273,7 @@ struct EntryDetailQuickActionsRow: View {
         .sheet(item: $editingReminder) { subscription in
             AiringReminderTimingSheet(
                 subscription: subscription,
-                defaultLeadTime: AiringReminderCoordinator.shared.snapshot.leadTime
+                defaultTiming: AiringReminderCoordinator.shared.snapshot.defaultTiming
             )
         }
     }

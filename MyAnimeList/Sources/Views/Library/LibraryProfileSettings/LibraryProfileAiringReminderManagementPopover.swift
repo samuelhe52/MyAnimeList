@@ -29,6 +29,7 @@ struct LibraryProfileAiringReminderManagementPopover: View {
     private let airingReminders = AiringReminderCoordinator.shared
 
     @State private var isRemovingReminder: Bool = false
+    @State private var editingSubscription: AiringReminderSubscription?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -43,7 +44,14 @@ struct LibraryProfileAiringReminderManagementPopover: View {
             content
         }
         .frame(minWidth: 320, idealWidth: 420, maxWidth: 420)
+        .presentationBackground(Color(.systemBackground))
         .task { await airingReminders.reloadState() }
+        .sheet(item: $editingSubscription) { subscription in
+            AiringReminderTimingSheet(
+                subscription: subscription,
+                defaultTiming: airingReminders.snapshot.defaultTiming
+            )
+        }
     }
 
     private var content: some View {
@@ -71,75 +79,80 @@ struct LibraryProfileAiringReminderManagementPopover: View {
     }
 
     private func reminderRow(_ item: AiringReminderManagementItem) -> some View {
-        HStack(alignment: .center, spacing: 16) {
-            VStack(alignment: .leading, spacing: 3) {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(item.subscription.displayTitle)
                     .font(.headline)
                     .foregroundStyle(.primary)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
-
                 if let seasonNumber = item.subscription.seasonNumber {
                     Text("Season \(seasonNumber)")
-                        .font(.subheadline)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                HStack(alignment: .center, spacing: 9) {
-                    Image(systemName: "calendar.badge.clock")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.orange)
-                        .frame(width: 28, height: 28)
-                        .background {
-                            RoundedRectangle(cornerRadius: 9, style: .continuous)
-                                .fill(.orange.opacity(0.10))
-                        }
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Next Episode")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.secondary)
-
-                        if let nextReminder = item.nextReminder {
-                            Text(
-                                verbatim: nextReminder.airStamp.formatted(
-                                    date: .abbreviated,
-                                    time: .shortened
-                                )
-                            )
-                            .font(.footnote)
-                            .lineLimit(1)
-                        } else {
-                            Text("No Reminder")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                        }
-                    }
-                }
-                .padding(.top, 7)
+                nextReminderLabel(item)
+                    .padding(.top, 2)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Button(role: .destructive) {
-                removeReminder(item.subscription)
-            } label: {
-                Image(systemName: "bell.slash")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.red.opacity(0.78))
-                    .frame(width: 34, height: 34)
-                    .background {
-                        Circle()
-                            .fill(.red.opacity(0.10))
-                    }
-                    .overlay {
-                        Circle()
-                            .stroke(.white.opacity(0.22), lineWidth: 1)
-                    }
+            VStack(alignment: .trailing, spacing: 10) {
+                Button(role: .destructive) {
+                    removeReminder(item.subscription)
+                } label: {
+                    Image(systemName: "bell.slash")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.red.opacity(0.78))
+                        .frame(width: 34, height: 34)
+                        .background(.red.opacity(0.08), in: Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("Remove reminder for \(item.subscription.displayTitle)"))
+                .accessibilityHint(Text("Removes this reminder."))
+
+                timingButton(item.subscription)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text("Remove reminder for \(item.subscription.displayTitle)"))
-            .accessibilityHint(Text("Removes this reminder."))
         }
+    }
+
+    private func nextReminderLabel(_ item: AiringReminderManagementItem) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text("Next Reminder")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            if let nextReminder = item.nextReminder {
+                Text(nextReminder.fireDate, format: .dateTime.month(.abbreviated).day().hour().minute())
+                    .font(.footnote)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("No Reminder")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func timingButton(_ subscription: AiringReminderSubscription) -> some View {
+        Button {
+            editingSubscription = subscription
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: "clock")
+                Text(subscription.timingLabel)
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+            }
+            .font(.footnote.weight(.medium))
+            .fixedSize(horizontal: true, vertical: false)
+            .foregroundStyle(.orange)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .background(.orange.opacity(0.08), in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .disabled(airingReminders.isRefreshing)
+        .accessibilityLabel(Text("Reminder Timing"))
+        .accessibilityValue(Text(subscription.timingLabel))
     }
 
     private func removeReminder(_ subscription: AiringReminderSubscription) {

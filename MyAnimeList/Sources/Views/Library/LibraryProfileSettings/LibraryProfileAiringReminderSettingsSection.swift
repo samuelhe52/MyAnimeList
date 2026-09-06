@@ -26,19 +26,33 @@ struct LibraryProfileAiringReminderSettingsSection: View {
             )
 
             HStack(alignment: .firstTextBaseline, spacing: 12) {
-                Text("Remind Me")
+                Text("Default Timing")
                     .font(.subheadline.weight(.semibold))
                 Spacer(minLength: 12)
                 Menu {
-                    Picker("Remind Me", selection: leadTimeBinding) {
-                        ForEach(AiringReminderLeadTime.allCases, id: \.rawValue) { leadTime in
-                            Text(leadTime.localizedResource)
-                                .tag(leadTime)
+                    Picker("Default Timing", selection: defaultTimingBinding) {
+                        Section {
+                            ForEach(AiringReminderTimingPreset.allCases.filter { $0.offsetMinutes < 0 }, id: \.rawValue)
+                            {
+                                defaultTiming in
+                                Text(defaultTiming.localizedResource).tag(defaultTiming)
+                            }
+                        }
+                        Section {
+                            Text(AiringReminderTimingPreset.atAirtime.localizedResource)
+                                .tag(AiringReminderTimingPreset.atAirtime)
+                        }
+                        Section {
+                            ForEach(AiringReminderTimingPreset.allCases.filter { $0.offsetMinutes > 0 }, id: \.rawValue)
+                            {
+                                defaultTiming in
+                                Text(defaultTiming.localizedResource).tag(defaultTiming)
+                            }
                         }
                     }
                 } label: {
                     LibraryProfileSelectionCapsule(
-                        title: airingReminders.snapshot.leadTime.localizedResource,
+                        title: airingReminders.snapshot.defaultTiming.localizedResource,
                         tint: .orange
                     )
                 }
@@ -82,7 +96,7 @@ struct LibraryProfileAiringReminderSettingsSection: View {
             }
         }
         .padding(14)
-        .libraryProfileInsetPanel(cornerRadius: 22, tint: .orange)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 22))
         .task { await airingReminders.reloadState() }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
@@ -172,29 +186,12 @@ struct LibraryProfileAiringReminderSettingsSection: View {
         }
     }
 
-    private var leadTimeBinding: Binding<AiringReminderLeadTime> {
+    private var defaultTimingBinding: Binding<AiringReminderTimingPreset> {
         Binding(
-            get: { airingReminders.snapshot.leadTime },
-            set: { leadTime in
-                Task { await airingReminders.setLeadTime(leadTime) }
+            get: { airingReminders.snapshot.defaultTiming },
+            set: { defaultTiming in
+                Task { await airingReminders.setDefaultTiming(defaultTiming) }
             }
         )
-    }
-}
-
-extension AiringReminderLeadTime {
-    var localizedResource: LocalizedStringResource {
-        switch self {
-        case .atAirtime:
-            "At airtime"
-        case .fiveMinutes:
-            "5 minutes before"
-        case .fifteenMinutes:
-            "15 minutes before"
-        case .thirtyMinutes:
-            "30 minutes before"
-        case .oneHour:
-            "1 hour before"
-        }
     }
 }

@@ -37,11 +37,11 @@
 - Use conventional commits: `<type>: <subject>`.
 - Write imperative, capitalized subjects; keep them concise and avoid periods.
 - Add a body when the change needs explanation.
-- For long-running, complex tasks, or when the task can be split into several subtasks cleanly, make coherent checkpoint commits along the way instead of waiting until the entire task is complete.
+- When explicitly authorized to commit, organize complex work into coherent checkpoint commits.
 
 ## Releases
 
-- Follow [`docs/workflows/release.md`](docs/workflows/release.md) for every release.
+- Use the project-specific [`anishelf-release`](.codex/skills/anishelf-release/SKILL.md) skill for every source-control release. The skill ends at verified Git publication; the maintainer handles post-push app distribution.
 
 ## Additional Notes
 

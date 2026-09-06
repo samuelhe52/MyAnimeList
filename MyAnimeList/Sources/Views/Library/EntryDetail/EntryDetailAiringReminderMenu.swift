@@ -21,6 +21,7 @@ struct EntryDetailAiringReminderMenu: View {
     private let airingReminders = AiringReminderCoordinator.shared
 
     let context: EntryDetailAiringReminderContext
+    let onPresentTiming: (AiringReminderSubscription) -> Void
 
     private var hasReminder: Bool {
         subscription != nil
@@ -54,6 +55,13 @@ struct EntryDetailAiringReminderMenu: View {
             Divider()
 
             if hasReminder {
+                Button {
+                    if let subscription { onPresentTiming(subscription) }
+                } label: {
+                    Label("Reminder Timing", systemImage: "clock")
+                    if let subscription { Text(subscription.timingLabel) }
+                }
+                .disabled(airingReminders.isRefreshing)
                 removeReminderButton
             } else {
                 setReminderButton

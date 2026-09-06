@@ -75,10 +75,10 @@ struct LibraryPreferenceDefaultsTests {
 
     @Test func testAiringReminderPreferencesRemainDeviceLocal() {
         #expect(!String.allPreferenceKeys.contains(.airingReminderSubscriptions))
-        #expect(!String.allPreferenceKeys.contains(.airingReminderLeadTimeMinutes))
+        #expect(!String.allPreferenceKeys.contains(.airingReminderDefaultTimingOffsetMinutes))
         #expect(!String.allPreferenceKeys.contains(.airingReminderWarning))
         #expect(!String.cloudSyncedPreferenceKeys.contains(.airingReminderSubscriptions))
-        #expect(!String.cloudSyncedPreferenceKeys.contains(.airingReminderLeadTimeMinutes))
+        #expect(!String.cloudSyncedPreferenceKeys.contains(.airingReminderDefaultTimingOffsetMinutes))
         #expect(!String.cloudSyncedPreferenceKeys.contains(.airingReminderWarning))
     }
 

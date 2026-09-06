@@ -376,6 +376,26 @@ enum WhatsNewRegistry {
                     kind: .openURL(projectURL)
                 )
             ]
+        ),
+        "1.100.0": .init(
+            version: "1.100.0",
+            summary:
+                "This release adds flexible reminder timing and improves library performance and upgrade reliability.",
+            highlights: [
+                "Choose a custom reminder time before or after airtime for each anime.",
+                "Airtime reminders are now more accurate overall.",
+                "Selecting and deleting multiple library entries is now smoother and more efficient.",
+                "Multiple performance improvements."
+            ],
+            primaryAction: nil,
+            secondaryActions: [
+                .init(
+                    id: "project-github",
+                    title: "AniShelf on GitHub",
+                    systemImage: "arrow.up.right.square",
+                    kind: .openURL(projectURL)
+                )
+            ]
         )
     ]
 

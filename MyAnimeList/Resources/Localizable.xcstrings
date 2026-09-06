@@ -1269,6 +1269,22 @@
         }
       }
     },
+    "Airtime reminders are now more accurate overall." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放送時刻のリマインダーが全体的により正確になりました。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播出时间提醒现在整体更加准确。"
+          }
+        }
+      }
+    },
     "Airtime" : {
       "localizations" : {
         "ja" : {
@@ -2421,6 +2437,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "中文"
+          }
+        }
+      }
+    },
+    "Choose a custom reminder time before or after airtime for each anime." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "作品ごとに、放送前または放送後のリマインダー時刻を設定できるようになりました。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "现在可以为每部动画分别设置播出前或播出后的提醒时间。"
           }
         }
       }
@@ -5341,6 +5373,22 @@
         }
       }
     },
+    "Multiple performance improvements." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "複数のパフォーマンス改善を行いました。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "进行了多项性能优化。"
+          }
+        }
+      }
+    },
     "Movie Candidates" : {
       "localizations" : {
         "ja" : {
@@ -7796,6 +7844,22 @@
         }
       }
     },
+    "Selecting and deleting multiple library entries is now smoother and more efficient." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリで複数の項目を選択・削除する操作が、よりスムーズで効率的になりました。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择和删除多个资料库条目时更加流畅高效。"
+          }
+        }
+      }
+    },
     "Series" : {
       "localizations" : {
         "ja" : {
@@ -8676,6 +8740,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "如果你想立即更新现有条目，也可以在此页面触发完整的元数据刷新。"
+          }
+        }
+      }
+    },
+    "This release adds flexible reminder timing and improves library performance and upgrade reliability." : {
+      "localizations" : {
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このリリースでは、放送リマインダーの時刻設定を柔軟にし、ライブラリのパフォーマンスとアップグレード時の信頼性を改善しました。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本次更新提供更灵活的播出提醒时间设置，并提升了资料库性能与升级可靠性。"
           }
         }
       }

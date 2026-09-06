@@ -321,6 +321,7 @@ actor AiringReminderManager {
         tvMazeClient: TVMazeClient = TVMazeClient(),
         now: @escaping @Sendable () -> Date = Date.init
     ) {
+        Self.migrateLegacyDefaultTiming(in: defaults)
         self.defaults = defaults
         self.notificationCenter = notificationCenter
         self.fetchNextEpisode = { showID in
@@ -336,6 +337,7 @@ actor AiringReminderManager {
         now: @escaping @Sendable () -> Date = Date.init,
         fetchNextEpisode: @escaping @Sendable (Int) async throws -> TVMazeNextEpisodeAiring?
     ) {
+        Self.migrateLegacyDefaultTiming(in: defaults)
         self.defaults = defaults
         self.notificationCenter = notificationCenter
         self.fetchNextEpisode = fetchNextEpisode
@@ -612,6 +614,23 @@ actor AiringReminderManager {
         return AiringReminderTimingPreset(
             rawValue: defaults.integer(forKey: .airingReminderDefaultTimingOffsetMinutes)
         ) ?? .defaultValue
+    }
+
+    private static func migrateLegacyDefaultTiming(in defaults: UserDefaults) {
+        guard defaults.object(forKey: .airingReminderDefaultTimingOffsetMinutes) == nil,
+            defaults.object(forKey: .legacyAiringReminderLeadTimeMinutes) != nil
+        else { return }
+
+        let legacyLeadTime = defaults.integer(forKey: .legacyAiringReminderLeadTimeMinutes)
+        guard legacyLeadTime >= 0,
+            let migratedTiming = AiringReminderTimingPreset(rawValue: -legacyLeadTime)
+        else { return }
+
+        defaults.set(
+            migratedTiming.offsetMinutes,
+            forKey: .airingReminderDefaultTimingOffsetMinutes
+        )
+        defaults.removeObject(forKey: .legacyAiringReminderLeadTimeMinutes)
     }
 
     private var storedWarning: AiringReminderWarning? {

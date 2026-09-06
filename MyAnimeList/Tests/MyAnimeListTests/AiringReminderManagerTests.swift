@@ -178,6 +178,33 @@ struct AiringReminderManagerTests {
         #expect((await manager.snapshot()).defaultTiming == .oneHourBefore)
     }
 
+    @Test func legacyLeadTimeMigratesToSignedDefaultTiming() async {
+        let cases: [(legacy: Int, expected: AiringReminderTimingPreset)] = [
+            (0, .atAirtime),
+            (5, .fiveMinutesBefore),
+            (15, .fifteenMinutesBefore),
+            (30, .thirtyMinutesBefore),
+            (60, .oneHourBefore)
+        ]
+
+        for testCase in cases {
+            let defaults = makeDefaults()
+            defaults.set(testCase.legacy, forKey: .legacyAiringReminderLeadTimeMinutes)
+            let manager = makeManager(
+                defaults: defaults,
+                center: AiringReminderCenterProbe(authorizationStatus: .authorized)
+            ) { _ in nil }
+
+            #expect((await manager.snapshot()).defaultTiming == testCase.expected)
+            #expect(
+                defaults.integer(forKey: .airingReminderDefaultTimingOffsetMinutes)
+                    == testCase.expected.offsetMinutes
+            )
+            #expect(defaults.object(forKey: .legacyAiringReminderLeadTimeMinutes) == nil)
+            removeDefaults(defaults)
+        }
+    }
+
     @Test func failedDefaultTimingRebuildPreservesPreviousDefaultTimingAndPendingRequest() async throws {
         let defaults = makeDefaults()
         defer { removeDefaults(defaults) }

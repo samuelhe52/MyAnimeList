@@ -30,6 +30,7 @@ extension String {
     // Device-local airing reminder state. Keep these out of backup and CloudKit allowlists.
     static let airingReminderSubscriptions = "AiringReminderSubscriptions"
     static let airingReminderDefaultTimingOffsetMinutes = "AiringReminderDefaultTimingOffsetMinutes"
+    static let legacyAiringReminderLeadTimeMinutes = "AiringReminderLeadTimeMinutes"
     static let airingReminderWarning = "AiringReminderWarning"
     static let libraryPosterProgressBarOverlayEnabled = "LibraryPosterProgressBarOverlayEnabled"
     static let libraryHideDroppedByDefault = "LibraryHideDroppedByDefault"

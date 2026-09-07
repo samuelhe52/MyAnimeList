@@ -44,7 +44,6 @@ struct LibraryProfileAiringReminderManagementPopover: View {
             content
         }
         .frame(minWidth: 320, idealWidth: 420, maxWidth: 420)
-        .presentationBackground(Color(.systemBackground))
         .task { await airingReminders.reloadState() }
         .sheet(item: $editingSubscription) { subscription in
             AiringReminderTimingSheet(

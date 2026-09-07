@@ -96,7 +96,7 @@ struct LibraryProfileAiringReminderSettingsSection: View {
             }
         }
         .padding(14)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 22))
+        .libraryProfileInsetPanel(cornerRadius: 22, tint: .orange)
         .task { await airingReminders.reloadState() }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
